@@ -1761,8 +1761,8 @@ body.simple #secPick .grid.g2{display:none!important}
           <div class="lo-seg lo-sm" id="cd_geo"><button data-v="total" class="lo-on">Total</button><button data-v="region">Región</button><button data-v="zona">Zona</button><button data-v="centro">Centro</button></div></div>
         <div class="cd-f"><label>Proceso en la tabla</label>
           <div class="lo-seg lo-sm" id="cd_split"><button data-v="junto" class="lo-on">Juntar</button><button data-v="sep">Separar</button></div></div>
-        <div class="cd-f"><label>Real real</label>
-          <button class="lo-tg" id="cd_onlyRR" type="button" aria-pressed="false">Solo con Real real</button></div>
+        <div class="cd-f"><label>Real</label>
+          <button class="lo-tg" id="cd_onlyRR" type="button" aria-pressed="false">Solo con Real</button></div>
         <div class="cd-f" style="margin-left:auto"><label>&nbsp;</label>
           <button class="lo-tg" id="cd_reset" type="button">Reset</button></div>
       </div></div>
@@ -3851,7 +3851,7 @@ function renderChart(agg){
   const x=agg.map(b=>periodLabel(b.k)), n=x.length, few=n<=45;
   const ln=(key,name,color)=>({x,y:agg.map(b=>b[key]),name,type:'scatter',mode:few?'lines+markers':'lines',
     connectgaps:false,line:{color,width:2.6},marker:{size:5,color}});
-  const traces=[ln('ancla','Ancla',COL.ancla),ln('horario','Horario',COL.horario),ln('real','Real',COL.real),ln('rrv','Real real',COL.rr)];
+  const traces=[ln('ancla','Estimado',COL.ancla),ln('horario','Planificado',COL.horario),ln('real','Óptimo',COL.real),ln('rrv','Real',COL.rr)];
   const ink=cssv('--ink2','#8aa'), line=cssv('--line','#223');
   const step=Math.max(1,Math.ceil(n/14)), tv=x.filter((_,i)=>i%step===0);
   // margen por debajo de 0 para que los puntos en cero (p.ej. domingos) no queden pegados al eje
@@ -3867,9 +3867,9 @@ function renderChart(agg){
 function downloadChart(){ const box=$('cd_chart'); if(typeof Plotly==='undefined'||!box||!box.data)return;
   try{ Plotly.downloadImage(box,{format:'png',filename:'caudal_grafica',width:1500,height:640,scale:2}); }catch(e){} }
 
-const MCOLS=[['Ancla','ancla'],['Horario','horario'],['Real','real'],['Real real','rrv'],
-  ['Ancla − Horario','ancla_horario'],['Ancla − Real','ancla_real'],['Horario − Real','horario_real'],
-  ['Ancla − RealReal','ancla_rr'],['Horario − RealReal','horario_rr'],['Real − RealReal','real_rr']];
+const MCOLS=[['Estimado','ancla'],['Planificado','horario'],['Óptimo','real'],['Real','rrv'],
+  ['Estimado − Planificado','ancla_horario'],['Estimado − Óptimo','ancla_real'],['Planificado − Óptimo','horario_real'],
+  ['Estimado − Real','ancla_rr'],['Planificado − Real','horario_rr'],['Óptimo − Real','real_rr']];
 const DELTAS=new Set(['ancla_horario','ancla_real','horario_real','ancla_rr','horario_rr','real_rr']);
 const MLABEL=Object.fromEntries(MCOLS.map(c=>[c[1],c[0]]));
 const deltaCls=v=>(v==null)?'':(v<0?' class="cd-neg"':v>0?' class="cd-pos"':'');
@@ -3893,7 +3893,7 @@ function buildTableModel(rows){
 }
 function renderTable(rows){
   const {arr,dcols,mcols,T}=buildTableModel(rows), t=$('cd_tbl');
-  if(!arr.length){ t.innerHTML='<tbody><tr><td style="padding:14px;color:var(--ink3)">Sin filas. Ajusta los filtros o quita «Solo con Real real».</td></tr></tbody>'; return; }
+  if(!arr.length){ t.innerHTML='<tbody><tr><td style="padding:14px;color:var(--ink3)">Sin filas. Ajusta los filtros o quita «Solo con Real».</td></tr></tbody>'; return; }
   const arrow=k=>SORT.k===k?(SORT.dir>0?' <span class="cd-ar">▲</span>':' <span class="cd-ar">▼</span>'):'';
   let h='<thead><tr>'+dcols.map(c=>`<th class="cd-dim" data-k="${c.key}">${c.lab}${arrow(c.key)}</th>`).join('')
     +mcols.map(c=>`<th data-k="${c.key}">${c.lab}${arrow(c.key)}</th>`).join('')+'</tr></thead><tbody>';
@@ -3939,7 +3939,7 @@ function rankData(){ const rows=filtered(), by=RK.by, m=new Map();
 function renderRank(){ if(!LOADED)return; const arr=rankData(), by=RK.by, mk=RK.metric, isD=DELTAS.has(mk), t=$('cd_rkTbl');
   if(!arr.length){ t.innerHTML='<tbody><tr><td style="padding:14px;color:var(--ink3)">Sin datos para el ranking con estos filtros.</td></tr></tbody>'; return; }
   const maxAbs=Math.max(1,...arr.map(b=>Math.abs(b[mk]||0)));
-  let h='<thead><tr><th class="cd-dim">#</th><th class="cd-dim">'+RKBY_LAB[by]+'</th><th>'+MLABEL[mk]+'</th><th>Ancla</th><th>Horario</th><th>Real</th><th>Real real</th></tr></thead><tbody>';
+  let h='<thead><tr><th class="cd-dim">#</th><th class="cd-dim">'+RKBY_LAB[by]+'</th><th>'+MLABEL[mk]+'</th><th>Estimado</th><th>Planificado</th><th>Óptimo</th><th>Real</th></tr></thead><tbody>';
   arr.forEach((b,i)=>{ const v=b[mk], w=Math.round(Math.abs(v||0)/maxAbs*100), bc=isD?(v<0?'#e5484d':'#12b5a5'):'var(--brand)';
     h+=`<tr><td class="cd-dim" style="color:var(--ink3);font-weight:800">${i+1}</td><td class="cd-dim">${rankLabel(by,b.key)}</td>`
       +`<td><div class="cd-rkcell"><div class="cd-rkwrap"><div class="cd-rkbar" style="width:${w}%;background:${bc}"></div></div><span${isD?deltaCls(v):''}>${fmt(v)}</span></div></td>`
