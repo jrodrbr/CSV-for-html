@@ -1236,6 +1236,12 @@ body.simple #secPick .grid.g2{display:none!important}
 }
 /* v7.19 · Pareto a 1 columna también en iPad/tablet (el donut quedaba en columna estrecha y se salía) */
 @media(max-width:1024px){#secPareto>.grid{grid-template-columns:1fr!important}}
+/* v7.22 · Escena de carga: rueda giratoria arriba en vez de solo texto */
+.spinner{width:50px;height:50px;margin:0 auto;border-radius:50%;border:4px solid var(--line2);border-top-color:var(--brand);animation:jvspin .8s linear infinite}
+@keyframes jvspin{to{transform:rotate(360deg)}}
+#empty .empty-load{display:none}
+#empty.loading .empty-ic{display:none}
+#empty.loading .empty-load{display:block;margin:0 auto 18px}
 </style>
 </head>
 <body>
@@ -1291,6 +1297,7 @@ body.simple #secPick .grid.g2{display:none!important}
 
   <div class="card" id="empty">
     <div class="empty">
+      <div class="empty-load"><div class="spinner" role="status" aria-label="Cargando"></div></div>
       <div class="empty-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 13h7V3H3v10zm0 8h7v-6H3v6zm8 0h10V11H11v10zm0-18v6h10V3H11z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
       <h3 id="emptyT">Carga un CSV para empezar</h3>
       <p id="emptyP">Podrás comparar una tienda con una referencia (faro, tiempos, impacto, ratios y tendencia 12 meses) o cambiar al modo Ranking para priorizar visitas.</p>
@@ -1990,7 +1997,7 @@ $('file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;$
     complete:res=>{try{buildFromRows(res.data,f.name);}catch(err){showErr(['No se ha podido procesar el CSV: '+err.message]);}},
     error:err=>showErr(['Error al leer el CSV: '+err.message])});
 });
-function showErr(list){$('errbox').classList.add('show');$('errbox').innerHTML='<b>No se puede continuar:</b><br>'+list.join('<br>');setStatus('Error en el archivo','err');$('step2').style.display='none';$('modeBar').style.display='none';if($('emptyT')){$('emptyT').textContent='No se han podido cargar los datos';$('emptyP').textContent='Revisa la conexión o carga el CSV manualmente desde el panel de datos.';}}
+function showErr(list){$('empty').classList.remove('loading');$('errbox').classList.add('show');$('errbox').innerHTML='<b>No se puede continuar:</b><br>'+list.join('<br>');setStatus('Error en el archivo','err');$('step2').style.display='none';$('modeBar').style.display='none';if($('emptyT')){$('emptyT').textContent='No se han podido cargar los datos';$('emptyP').textContent='Revisa la conexión o carga el CSV manualmente desde el panel de datos.';}}
 function buildFromRows(raw,fname){
   if(!raw||!raw.length){showErr(['El CSV está vacío.']);return;}
   const cols=Object.keys(raw[0]);
@@ -3190,19 +3197,20 @@ loadGeneral();
 
 /* ===== AUTO-CARGA DESDE GITHUB ===== */
 if(CSV_URL){
-  $('dropT').textContent='Cargando datos desde GitHub…';
+  $('dropT').textContent='Cargando datos…';
   $('dropS').textContent=decodeURIComponent(CSV_URL.split('/').pop());
   $('dropIc').textContent='↓';
   setStatus('Cargando…','');
-  $('emptyT').textContent='Cargando datos desde GitHub…';
+  $('emptyT').textContent='Cargando datos…';
   $('emptyP').textContent='Descargando el desglose por tienda y mes. Suele tardar unos segundos.';
+  $('empty').classList.add('loading');
   Papa.parse(CSV_URL,{
     download:true,
     header:true,
     skipEmptyLines:true,
     delimiter:'',
     transformHeader:h=>h.trim(),
-    complete:res=>{try{buildFromRows(res.data,'GitHub · auto');}catch(err){showErr(['Error procesando el CSV: '+err.message]);}},
+    complete:res=>{$('empty').classList.remove('loading');try{buildFromRows(res.data,'GitHub · auto');}catch(err){showErr(['Error procesando el CSV: '+err.message]);}},
     error:err=>showErr(['No se pudo descargar el CSV de GitHub: '+err.message+'. Puedes cargarlo manualmente con el drop.'])
   });
 }
