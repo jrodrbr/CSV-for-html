@@ -1430,11 +1430,12 @@ body.simple #secPick .grid.g2{display:none!important}
       <div class="sec-hd"><div>
         <div class="sec-n">Prioridad · área + fase</div>
         <div class="sec-h">Qué combinación revisar primero</div>
-        <div class="sec-s">Cada fila es un <b>área + fase</b> ordenada por el tiempo de más al mes. Pulsa para ver su detalle.</div>
-      </div></div>
+        <div class="sec-s">Cada fila es un <b>área + fase</b> ordenada por cuánto aporta a la productividad media mensual. Pulsa para ver su detalle.</div>
+      </div>
+      <div class="lo-seg lo-sm" id="paretoUnitSeg" style="flex:none"><button data-v="prod" class="lo-on">Productividad</button><button data-v="tiempo">Tiempo</button></div></div>
       <div class="grid" style="grid-template-columns:1.7fr 1fr;gap:16px;align-items:start">
         <div class="cbox"><div class="cbox-in" style="padding-top:38px"><button class="csv" data-csv="paretoTable" data-csvname="prioridad_area_fase">⤓ CSV</button><div class="ptable-wrap" style="max-height:340px;overflow:auto"><table class="ptable" id="paretoTable"></table></div></div></div>
-        <div class="cbox"><div class="cbox-in"><button class="png" data-png="cParetoDonut">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle">Reparto del tiempo de más por área</div><div class="csub">min/mes de más frente a la referencia</div></div></div><div class="chart" id="cParetoDonut" style="height:310px"></div></div></div>
+        <div class="cbox"><div class="cbox-in"><button class="png" data-png="cParetoDonut">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle">Reparto por área</div><div class="csub">de más frente a la referencia</div></div></div><div class="chart" id="cParetoDonut" style="height:310px"></div></div></div>
       </div>
       <div class="notice info" style="margin-top:14px"><span class="ic">i</span><span id="paretoNote">—</span></div>
     </div>
@@ -1944,7 +1945,7 @@ function mapCorte(r){
 }
 const H={comp:340,trend:380,pick:300,cont:300,despl:320};
 
-const ST={rows:[],index:{},tiendas:[],synthPresent:[],realStores:[],meses:[],shifts:[],mesLabel:{},gen:{},genReady:false,mode:'comp',corte:'util',realUnit:'min',caudalView:'dia',caudalTblDesc:true,realWho:'A',realOrder:'natural',diffMetric:'prod',faroUnit:'objof',faroUd:'mo',fichaArea:'SECOS',fichaFase:'prep',trArea:'SECOS',rkOrder:'worst',analyzed:false,single:false,nameA:'Analizado',nameB:'Referencia',_trInit:false,_chatInit:false,_rkInit:false};
+const ST={rows:[],index:{},tiendas:[],synthPresent:[],realStores:[],meses:[],shifts:[],mesLabel:{},gen:{},genReady:false,mode:'comp',corte:'util',realUnit:'min',caudalView:'dia',caudalTblDesc:true,realWho:'A',realOrder:'natural',diffMetric:'prod',faroUnit:'objof',faroUd:'mo',fichaArea:'SECOS',fichaFase:'prep',trArea:'SECOS',rkOrder:'worst',paretoUnit:'prod',analyzed:false,single:false,nameA:'Analizado',nameB:'Referencia',_trInit:false,_chatInit:false,_rkInit:false};
 let MODEL=[],curA=null,curB=null;
 
 const $=id=>document.getElementById(id);
@@ -2528,7 +2529,10 @@ function renderReal(){
 
 /* ===== FARO (valor + desviación, click para detalle) ===== */
 // color por % de desviación frente a la referencia (unidad-agnóstico): satura a ~30% → mismo criterio para min/ud y min/lote
-function divColor(dv,ref){if(dv==null||ref==null||!isFinite(ref)||ref===0)return 'var(--panel2)';var t=Math.min(1,Math.abs(dv/ref)/0.22);t=Math.pow(t,0.7);var rgb=dv>0?RGB.bad:RGB.good;return 'rgba('+rgb+','+(0.10+0.78*t).toFixed(3)+')';}
+function divColor(dv,ref){if(dv==null)return 'var(--panel2)';var base=(ref!=null&&isFinite(ref)&&ref!==0)?Math.abs(dv/ref):1;var t=Math.pow(Math.min(1,base/0.18),0.5);var rgb=dv>0?RGB.bad:RGB.good;return 'rgba('+rgb+','+(0.12+0.85*t).toFixed(3)+')';}
+// Color del faro por APORTE a la productividad: en objetivo (imp<=0) → sin color; peor → rojo escalado por el impacto (cuanto más aporta, más rojo = revisar primero)
+let _FMB=0,_FMP=0;
+function impColor(imp,isTot){ if(imp==null||imp===0)return 'var(--panel2)'; var mx=isTot?_FMP:_FMB; if(!(mx>0))return 'var(--panel2)'; var t=Math.abs(imp)/mx; if(t<0.04)return 'var(--panel2)'; t=Math.pow(Math.min(1,t),0.6); return 'rgba('+(imp>0?RGB.bad:RGB.good)+','+(0.12+0.80*t).toFixed(3)+')'; }
 // ---- unidad del faro: 'min' (min/lote) · 'prod' (min/ud todas) · 'objof' (prep+pesaje min/ud; consol+entre min/lote) ----
 // Objetivo oficial: por unidad = picking, desplazamiento, pesaje (y sus bloques). Arranque (P1) es tiempo fijo
 // SEPARADO (min/lote); pero el bloque agrupado Preparación (g_prep = P1+P2+P3) sí va en min/ud.
@@ -2541,7 +2545,7 @@ function faroConv(min,k,uds){ if(min==null)return null;
   return min/uds*MF(); }                       // min/ud, en la unidad global (MO o Mercadona ×1,08)
 function faroDec(k){ if(ST.faroUnit==='min')return 1; if(ST.faroUnit==='objof'&&!PERUD_K1.has(k))return 1; return 2; }
 function faroUnitLbl(){ return ST.faroUnit==='min'?'min':udName(); }
-function cellHTML(val,dv,imp,ref,name,area,faseK,span,isTot,dec){
+function cellHTML(val,dv,imp,cv,ref,name,area,faseK,span,isTot,dec){
   dec=(dec==null)?1:dec;
   const spanSt=(span>1?' style="grid-column:span '+span+'"':'');
   if(val==null)return '<div class="mxc na" data-area="'+area+'" data-fase="'+faseK+'"'+spanSt+'><div class="mv">n/d</div></div>';
@@ -2574,12 +2578,13 @@ function renderMatrix(){
   function cellOf(m,k,keys){
     const rawA=keys?sumKeys(m.ra,keys):(m.ra?m.ra[MINKEY[k]]:null);
     const val=faroConv(rawA,k,m.udsA);
-    if(ST.single)return {val,dv:null,imp:null,ref:null,dec:faroDec(k)};  // ficha: sin comparación
+    if(ST.single)return {val,dv:null,imp:null,aud:null,ref:null,dec:faroDec(k)};  // ficha: sin comparación
     const rawB=keys?sumKeys(m.rb,keys):(m.rb?m.rb[MINKEY[k]]:null);
     const vb=faroConv(rawB,k,m.udsB);
     const dv=(val!=null&&vb!=null)?val-vb:null;
     const imp=(rawA!=null&&rawB!=null&&m.lotesA!=null)?(rawA-rawB)*m.lotesA:null;
-    return {val,dv,imp,ref:vb,dec:faroDec(k)};
+    const aud=(rawA!=null&&rawB!=null&&m.udsA>0&&m.udsB>0)?((rawA/m.udsA)-(rawB/m.udsB))*MF():null; // aporte a la productividad (min/ud): suma exactamente prodA-prodB
+    return {val,dv,imp,aud,ref:vb,dec:faroDec(k)};
   }
   const areaCells=m=>grouped?FGRUPOS.map(g=>({c:cellOf(m,g.k,g.keys),name:g.name,k:g.k,span:1}))
     :(m.compat?FASES.map(f=>({c:cellOf(m,f.k,null),name:f.name,k:f.k,span:1}))
@@ -2593,17 +2598,24 @@ function renderMatrix(){
   const isMinV=(ST.faroUnit==='min');
   const tailLbl=isMinV?'Total lote':'Productividad', tailUnit='<span style="'+uStyle+'">'+(isMinV?'min/lote':udName())+'</span>';
   let h='<div class="mxrow head"><div class="mxh"></div>'+cols.map(f=>'<div class="mxh"><i style="background:'+cssv(f.col)+'"></i>'+f.name+uSub(f.k)+'</div>').join('')+'<div class="mxh tot">'+tailLbl+tailUnit+'</div></div>';
+  // color por APORTE A LA PRODUCTIVIDAD (min/ud): _FMB = máx aporte de una fase; _FMP = máx aporte total de un área. (en vista Tiempo, por impacto min/mes)
+  _FMB=0;_FMP=0;
+  dispAreas.forEach(a=>{ const m0=MODEL.find(x=>x.area===a); let ac=0;
+    areaCells(m0).forEach(o=>{ var cv=isMinV?o.c.imp:o.c.aud; if(cv!=null){ var v=Math.abs(cv); if(v>_FMB)_FMB=v; ac+=cv; } });
+    if(Math.abs(ac)>_FMP)_FMP=Math.abs(ac);
+  });
   dispAreas.forEach(a=>{
     const m=MODEL.find(x=>x.area===a);
     h+='<div class="mxrow"><div class="mxa" data-area="'+a+'">'+a+'</div>';
-    areaCells(m).forEach(o=>{h+=cellHTML(o.c.val,o.c.dv,o.c.imp,o.c.ref,o.name,a,o.k,o.span,false,o.c.dec);});
-    // ÚNICA columna resumen: vista Tiempo = total de minutos (media de los totales, oficial); Prod/Objetivo oficial = productividad OFICIAL (prod_total_min_ud_media), nunca minutos÷uds
+    const cells=areaCells(m); let areaCv=0,areaImp=0; cells.forEach(o=>{ var cv=isMinV?o.c.imp:o.c.aud; if(cv!=null)areaCv+=cv; if(o.c.imp!=null)areaImp+=o.c.imp; });
+    cells.forEach(o=>{ var cv=isMinV?o.c.imp:o.c.aud; h+=cellHTML(o.c.val,o.c.dv,o.c.imp,cv,o.c.ref,o.name,a,o.k,o.span,false,o.c.dec); });
+    // columna resumen: la Productividad del área = tiempo útil ÷ uds = SUMA EXACTA de las fases (misma agregación). Así el número, su delta y el color coinciden, y es imposible "área peor con todas las partes mejores".
     if(isMinV){
-      h+=cellHTML(m.tiempoA, ST.single?null:m.dTiempo, (!ST.single&&m.dTiempo!=null&&m.lotesA!=null)?m.dTiempo*m.lotesA:null, m.tiempoB, 'Total del lote', a, 'total', 1, true, 1);
+      h+=cellHTML(m.tiempoA, ST.single?null:m.dTiempo, ST.single?null:areaImp, ST.single?null:areaCv, m.tiempoB, 'Total del lote', a, 'total', 1, true, 1);
     } else {
       const prA=(m.prodA!=null&&!isNaN(m.prodA))?m.prodA*MF():null, prB=(m.prodB!=null&&!isNaN(m.prodB))?m.prodB*MF():null;
       const prDv=(!ST.single&&prA!=null&&prB!=null)?prA-prB:null;
-      h+=cellHTML(prA, prDv, m.impacto, prB, 'Productividad', a, 'prodcol', 1, true, 2);
+      h+=cellHTML(prA, prDv, ST.single?null:m.impacto, ST.single?null:areaCv, prB, 'Productividad', a, 'prodcol', 1, true, 2);
     }
     h+='</div>';
   });
@@ -2612,7 +2624,7 @@ function renderMatrix(){
   $('matBody').querySelectorAll('.mxa[data-area]').forEach(c=>c.addEventListener('click',()=>{ST.fichaArea=c.dataset.area;renderFichaTabs();renderFicha();$('secFicha').scrollIntoView({behavior:'smooth',block:'start'});}));
   $('matFoot').innerHTML=ST.single
     ? '<div class="mx-imp-legend">Ficha de la tienda · valores propios, sin comparación · pulsa una celda para su tendencia de 12 meses</div>'
-    : '<div class="mx-scale"><span>mejor</span><div class="mx-grad" style="background:linear-gradient(90deg,rgba('+RGB.good+',.7),var(--panel2),rgba('+RGB.bad+',.7))"></div><span>peor</span></div><div class="mx-imp-legend">el color es el <b>% de desviación</b> frente a la referencia (satura a ~30%): rojo = peor, verde = mejor</div>';
+    : '<div class="mx-scale"><span>mejor</span><div class="mx-grad" style="background:linear-gradient(90deg,rgba('+RGB.good+',.9),var(--panel2),rgba('+RGB.bad+',.9))"></div><span>peor</span></div>';
 }
 const FARO_MACRO={g_prep:{name:'Preparación',col:'--f-prep',keys:['p1','p2','p3','p23']},g_pes:{name:'Pesaje',col:'--f-pesaje',keys:['p4']},g_cons:{name:'Consolidación',col:'--f-consol',keys:['p5','p6']},g_entre:{name:'Entre lotes',col:'--f-entre',keys:['p7']}};
 function macroSerie(t,sh,area,keys){return ST.meses.map(mkey=>{const r=mapCorte((((ST.index[t]||{})[mkey]||{})[sh]||{})[area]||null);if(!r)return null;let s=0,any=false;keys.forEach(k=>{const v=r[MINKEY[k]];if(v!=null){s+=v;any=true;}});return any?s:null;});}
@@ -2671,6 +2683,7 @@ function renderFaroDetail(area,faseK){
 const AREA_COL={SECOS:'#4f8fe0',REFRIGERADO:'#38a9a0',CONGELADO:'#6cc2e0',FRESCOS:'#e0a13a',FYV:'#dd7f4a',HORNO:'#b98a5e',PENDIENTES:'#8896ab'};
 function areaColor(a){return AREA_COL[a]||'#8896ab';}
 function renderPareto(){
+  if(!ST._paretoInit){ST._paretoInit=true;var _pu=$('paretoUnitSeg');if(_pu)_pu.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click',()=>{ST.paretoUnit=b.dataset.v;_pu.querySelectorAll('[data-v]').forEach(x=>x.classList.toggle('lo-on',x.dataset.v===ST.paretoUnit));renderPareto();}));}
   const data=paretoData().filter(o=>o.imp>0).sort((a,b)=>b.imp-a.imp);
   const tEl=$('paretoTable');
   if(!data.length){
@@ -2680,26 +2693,33 @@ function renderPareto(){
     return;
   }
   const total=data.reduce((s,o)=>s+o.imp,0);
+  const totalUds=MODEL.reduce((s,m)=>s+((m&&m.ra&&m.udsA!=null&&m.lotesA!=null)?m.udsA*m.lotesA:0),0);
+  const uP=ST.paretoUnit==='tiempo';
+  const pv=v=>uP?fmtImpact(v):(totalUds>0?fmt((v/totalUds)*MF(),3):'—');   // productividad = min/ud que aporta al global
+  const primLbl=uP?'Tiempo/mes':udName();
   // tabla de combinaciones área × fase
   let cum=0;
-  let th='<thead><tr><th>Área · fase</th><th>Tiempo/mes</th><th>%</th><th>Acum.</th></tr></thead><tbody>';
+  let th='<thead><tr><th>Área · fase</th><th>'+primLbl+'</th><th>%</th><th>Acum.</th></tr></thead><tbody>';
   const rows=data.map(o=>{cum+=o.imp;const prio=o.imp>=60;
-    return '<tr class="'+(prio?'prio':'')+'" data-a="'+o.area+'" data-f="'+o.faseK+'" style="cursor:pointer" title="'+(prio?'Prioridad (≥1 h/mes de más)':'')+'"><td><span class="fdot" style="background:'+areaColor(o.area)+'"></span>'+o.area+' · '+o.faseName+'</td><td class="an">'+fmtImpact(o.imp)+'</td><td>'+fmt(o.imp/total*100,0)+'%</td><td>'+fmt(cum/total*100,0)+'%</td></tr>';
+    return '<tr class="'+(prio?'prio':'')+'" data-a="'+o.area+'" data-f="'+o.faseK+'" style="cursor:pointer" title="'+(prio?'Prioridad (≥1 h/mes de más)':'')+'"><td><span class="fdot" style="background:'+areaColor(o.area)+'"></span>'+o.area+' · '+o.faseName+'</td><td class="an">'+pv(o.imp)+'</td><td>'+fmt(o.imp/total*100,0)+'%</td><td>'+fmt(cum/total*100,0)+'%</td></tr>';
   }).join('');
-  tEl.innerHTML=th+rows+'<tr class="totrow"><td>Total tiempo de más</td><td class="an">'+fmtImpact(total)+'</td><td>100%</td><td></td></tr></tbody>';
+  tEl.innerHTML=th+rows+'<tr class="totrow"><td>Total de más</td><td class="an">'+pv(total)+'</td><td>100%</td><td></td></tr></tbody>';
   tEl.querySelectorAll('[data-a]').forEach(r=>r.addEventListener('click',()=>{renderFaroDetail(r.dataset.a,r.dataset.f);$('secMatrix').scrollIntoView({behavior:'smooth',block:'start'});}));
   // rosco por área
   const byArea={};data.forEach(o=>{byArea[o.area]=(byArea[o.area]||0)+o.imp;});
   const areasP=Object.keys(byArea).sort((a,b)=>byArea[b]-byArea[a]);
-  const totC=total>=60?fmt(total/60,1)+' h':fmt(total,0)+' min';
-  Plotly.react('cParetoDonut',[{type:'pie',hole:.62,sort:false,labels:areasP,values:areasP.map(a=>byArea[a]),
+  const valArr=areasP.map(a=>uP?byArea[a]:(totalUds>0?(byArea[a]/totalUds)*MF():0));
+  const totC=uP?(total>=60?fmt(total/60,1)+' h':fmt(total,0)+' min'):(totalUds>0?fmt((total/totalUds)*MF(),3):'—');
+  const totSub=uP?'/mes de más':udName()+' de más';
+  const hFmt=uP?'%{value:.0f}':'%{value:.3f}', hUnit=uP?'min/mes de más':udName()+' de más';
+  Plotly.react('cParetoDonut',[{type:'pie',hole:.62,sort:false,labels:areasP,values:valArr,
     marker:{colors:areasP.map(a=>areaColor(a)),line:{color:cssv('--panel'),width:2}},
     textinfo:'percent',textfont:{size:11,color:'#fff'},
-    hovertemplate:'%{label}: %{value:.0f} min/mes de más (%{percent})<extra></extra>'}],
+    hovertemplate:'%{label}: '+hFmt+' '+hUnit+' (%{percent})<extra></extra>'}],
     baseLayout({height:310,margin:{l:6,r:6,t:8,b:64},showlegend:true,xaxis:{visible:false},yaxis:{visible:false},legend:{orientation:'h',y:-0.2,x:.5,xanchor:'center',font:{size:10,color:cssv('--ink2')}},
-    annotations:[{text:'<b>'+totC+'</b><br><span style="font-size:9px">/mes de más</span>',x:.5,y:.5,xref:'paper',yref:'paper',xanchor:'center',yanchor:'middle',font:{size:15,color:cssv('--ink')},showarrow:false}]}),PCFG);
+    annotations:[{text:'<b>'+totC+'</b><br><span style="font-size:9px">'+totSub+'</span>',x:.5,y:.5,xref:'paper',yref:'paper',xanchor:'center',yanchor:'middle',font:{size:15,color:cssv('--ink')},showarrow:false}]}),PCFG);
   let c=0,n80=data.length;for(let i=0;i<data.length;i++){c+=data[i].imp;if(c/total>=0.8){n80=i+1;break;}}
-  $('paretoNote').innerHTML='Las <b>'+n80+'</b> primeras combinaciones explican ~el <b>80%</b> del tiempo de más; el rosco reparte ese total por área. Pulsa una fila para ver su detalle y tendencia en el faro.';
+  $('paretoNote').innerHTML='Las <b>'+n80+'</b> primeras combinaciones explican ~el <b>80%</b> de '+(uP?'el tiempo de más':'lo que se aporta a la productividad')+'; el rosco lo reparte por área. Pulsa una fila para ver su detalle en el faro.';
 }
 
 /* ===== barras semánticas (analizado verde mejor / rojo peor; referencia gris) ===== */
