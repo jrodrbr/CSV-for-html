@@ -172,7 +172,7 @@ html.light{
   --sh:0 10px 30px rgba(20,40,70,.08);--sh-sm:0 3px 12px rgba(20,40,70,.06);--sh-lg:0 22px 54px rgba(20,40,70,.13);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scrollbar-gutter:stable}
 body{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.55;font-size:14px;letter-spacing:-.011em}
 body:before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(1000px 460px at 10% -10%,rgba(22,184,127,.07),transparent),radial-gradient(900px 440px at 92% -6%,rgba(84,166,218,.05),transparent)}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:24px 26px 40px;position:relative;z-index:1}
@@ -1704,7 +1704,7 @@ body.simple #secPick .grid.g2{display:none!important}
     <style>
     .cd-wrap{display:flex;flex-direction:column;gap:16px}
     .cd-groups{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch}
-    .cd-grp{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px 12px 11px;display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-width:0}
+    .cd-grp{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px 12px 11px;display:flex;flex-direction:column;gap:8px;flex:1 1 0;min-width:132px}
     .cd-grp-h{font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--brand)}
     .cd-grp-row{display:flex;flex-wrap:nowrap;gap:7px}
     .cd-f{position:relative;flex:1 1 0;min-width:0}
@@ -1730,7 +1730,9 @@ body.simple #secPick .grid.g2{display:none!important}
       .cd-viewbar .lo-seg>button{flex:1 1 0;min-width:0;justify-content:center;text-align:center;white-space:nowrap}
       .cd-viewbar .lo-tin,.cd-viewbar select.lo-tin{width:100%;min-width:0}
     }
-    .cd-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .cd-scopebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+    #cd_media button[disabled]{opacity:.38;cursor:not-allowed;pointer-events:none}
+    .cd-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}
     .cd-dlbtn{padding:8px 13px;border-radius:999px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
     .cd-dlbtn:hover{color:var(--ink);border-color:var(--brand-bd)}
     table.cd-tbl{width:100%;border-collapse:collapse;font-size:12px}
@@ -1752,29 +1754,19 @@ body.simple #secPick .grid.g2{display:none!important}
     </style>
     <div class="cd-wrap">
 
-      <!-- FILTROS (ámbito) -->
+      <!-- FILTROS (ámbito) — aplican a GRÁFICA y TABLA -->
       <div class="card"><div class="cpad">
         <div class="h-c">Caudal · horas por indicador</div>
-        <div class="s-c">Filtra el <b>ámbito</b> con las casillas. La gráfica muestra la evolución; la tabla, el desglose.</div>
+        <div class="s-c">Filtra el <b>ámbito</b> con las casillas. Afecta a la gráfica y a la tabla. La gráfica va siempre a nivel día.</div>
         <div id="cd_status" class="s-c" role="status" style="margin-top:8px;color:var(--up);display:none"></div>
         <div id="cd_filts" class="cd-groups" style="margin-top:14px"></div>
+        <div class="cd-scopebar">
+          <button class="lo-tg" id="cd_onlyRR" type="button" aria-pressed="false">Solo con Real</button>
+          <button class="lo-tg" id="cd_reset" type="button" style="margin-left:auto">Reset filtros</button>
+        </div>
       </div></div>
 
-      <!-- BARRA DE VISTA -->
-      <div class="card"><div class="cpad cd-viewbar">
-        <div class="cd-f"><label>Tiempo (gráfica y tabla)</label>
-          <div class="lo-seg lo-sm" id="cd_time"><button data-v="dia" class="lo-on">Día</button><button data-v="semana">Semana</button><button data-v="mes">Mes</button><button data-v="anio">Año</button></div></div>
-        <div class="cd-f"><label>Agrupar tabla por geografía</label>
-          <div class="lo-seg lo-sm" id="cd_geo"><button data-v="total" class="lo-on">Total</button><button data-v="region">Región</button><button data-v="zona">Zona</button><button data-v="centro">Centro</button></div></div>
-        <div class="cd-f"><label>Proceso en la tabla</label>
-          <div class="lo-seg lo-sm" id="cd_split"><button data-v="junto" class="lo-on">Juntar</button><button data-v="sep">Separar</button></div></div>
-        <div class="cd-f"><label>Real</label>
-          <button class="lo-tg" id="cd_onlyRR" type="button" aria-pressed="false">Solo con Real</button></div>
-        <div class="cd-f" style="margin-left:auto"><label>&nbsp;</label>
-          <button class="lo-tg" id="cd_reset" type="button">Reset</button></div>
-      </div></div>
-
-      <!-- GRÁFICA -->
+      <!-- GRÁFICA (siempre a nivel día) -->
       <div class="cbox" style="padding:16px 20px 14px">
         <div class="cd-toolbar"><div class="h-c" style="font-size:14px;margin:0">Evolución temporal</div>
           <button class="cd-dlbtn" id="cd_dlChart" type="button">⤓ Descargar gráfica</button></div>
@@ -1789,8 +1781,34 @@ body.simple #secPick .grid.g2{display:none!important}
               <div class="cd-pop" id="cd_colsPop" style="right:0;left:auto"></div></div>
             <button class="cd-dlbtn" id="cd_dl" type="button">⤓ Descargar tabla</button>
           </div></div>
-        <div class="s-c" style="margin:-4px 0 8px">Pulsa una cabecera para ordenar. Usa «Columnas» para elegir qué ver (y qué se descarga).</div>
+        <div class="s-c" style="margin:-4px 0 8px">Estos selectores solo afectan a la tabla. Pulsa una cabecera para ordenar. Usa «Columnas» para elegir qué ver (y qué se descarga).</div>
+        <div class="cd-viewbar" style="margin:6px 0 12px">
+          <div class="cd-f"><label>Agrupación temporal</label>
+            <div class="lo-seg lo-sm" id="cd_time"><button data-v="dia" class="lo-on">Día</button><button data-v="semana">Semana</button><button data-v="mes">Mes</button><button data-v="anio">Año</button></div></div>
+          <div class="cd-f"><label>Agrupar por geografía</label>
+            <div class="lo-seg lo-sm" id="cd_geo"><button data-v="total" class="lo-on">Total</button><button data-v="region">Región</button><button data-v="zona">Zona</button><button data-v="centro">Centro</button></div></div>
+          <div class="cd-f"><label>Proceso</label>
+            <div class="lo-seg lo-sm" id="cd_split"><button data-v="junto" class="lo-on">Juntar</button><button data-v="sep">Separar</button></div></div>
+          <div class="cd-f" style="margin-left:auto"><label>&nbsp;</label>
+            <button class="lo-tg" id="cd_resetView" type="button">Reset vista</button></div>
+        </div>
         <div class="lo-tbl-wrap" id="cd_tblWrap" style="margin-top:4px;max-height:560px"><table class="cd-tbl" id="cd_tbl"></table></div>
+      </div></div>
+
+      <!-- DESVÍOS ENTRE CAUDALES (%) — entre Detalle y Ranking -->
+      <div class="card"><div class="cpad">
+        <div class="cd-toolbar"><div class="h-c" style="font-size:15px;margin:0">Desvíos entre caudales (%)</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="cd-f" style="position:relative"><button class="cd-btn" id="cd_devColsBtn" type="button" style="min-width:120px"><span>Columnas</span><span class="cd-cnt" id="cd_devColsCnt"></span></button>
+              <div class="cd-pop" id="cd_devColsPop" style="right:0;left:auto"></div></div>
+            <button class="cd-dlbtn" id="cd_devDl" type="button">⤓ Descargar desvíos</button>
+          </div></div>
+        <div class="s-c" style="margin:-4px 0 10px">Mismo desglose que el Detalle (Agrupación temporal + Geografía + Proceso), pero en % de desvío sobre el caudal de referencia de cada par. La <b>Media</b> decide cómo se calcula ese % dentro de cada fila (se saca el % de cada día/semana/mes y se promedia). <b>Verde</b> = menos horas (mejor); <b>rojo</b> = más.</div>
+        <div class="cd-viewbar" style="margin:0 0 12px">
+          <div class="cd-f"><label>Media (cálculo del %)</label>
+            <div class="lo-seg lo-sm" id="cd_media"><button data-v="dia" class="lo-on">Diaria</button><button data-v="semana">Semanal</button><button data-v="mes">Mensual</button><button data-v="anio">Anual</button></div></div>
+        </div>
+        <div class="lo-tbl-wrap" id="cd_devWrap" style="max-height:520px"><table class="cd-tbl" id="cd_devTbl"></table></div>
       </div></div>
 
       <!-- RANKING -->
@@ -2532,7 +2550,7 @@ function renderReal(){
 function divColor(dv,ref){if(dv==null)return 'var(--panel2)';var base=(ref!=null&&isFinite(ref)&&ref!==0)?Math.abs(dv/ref):1;var t=Math.pow(Math.min(1,base/0.18),0.5);var rgb=dv>0?RGB.bad:RGB.good;return 'rgba('+rgb+','+(0.12+0.85*t).toFixed(3)+')';}
 // Color del faro por APORTE a la productividad: en objetivo (imp<=0) → sin color; peor → rojo escalado por el impacto (cuanto más aporta, más rojo = revisar primero)
 let _FMB=0,_FMP=0;
-function impColor(imp,isTot){ if(imp==null||imp===0)return 'var(--panel2)'; var mx=isTot?_FMP:_FMB; if(!(mx>0))return 'var(--panel2)'; var t=Math.abs(imp)/mx; if(t<0.04)return 'var(--panel2)'; t=Math.pow(Math.min(1,t),0.6); return 'rgba('+(imp>0?RGB.bad:RGB.good)+','+(0.12+0.80*t).toFixed(3)+')'; }
+function impColor(imp,isTot){ if(imp==null||Math.abs(imp)<1e-4)return 'var(--panel2)'; var mx=isTot?_FMP:_FMB; if(!(mx>0))return 'var(--panel2)'; var t=Math.pow(Math.min(1,Math.abs(imp)/mx),0.6); return 'rgba('+(imp>0?RGB.bad:RGB.good)+','+(0.12+0.85*t).toFixed(3)+')'; }
 // ---- unidad del faro: 'min' (min/lote) · 'prod' (min/ud todas) · 'objof' (prep+pesaje min/ud; consol+entre min/lote) ----
 // Objetivo oficial: por unidad = picking, desplazamiento, pesaje (y sus bloques). Arranque (P1) es tiempo fijo
 // SEPARADO (min/lote); pero el bloque agrupado Preparación (g_prep = P1+P2+P3) sí va en min/ud.
@@ -2578,13 +2596,13 @@ function renderMatrix(){
   function cellOf(m,k,keys){
     const rawA=keys?sumKeys(m.ra,keys):(m.ra?m.ra[MINKEY[k]]:null);
     const val=faroConv(rawA,k,m.udsA);
-    if(ST.single)return {val,dv:null,imp:null,aud:null,ref:null,dec:faroDec(k)};  // ficha: sin comparación
+    if(ST.single)return {val,dv:null,imp:null,cD:null,ref:null,dec:faroDec(k)};  // ficha: sin comparación
     const rawB=keys?sumKeys(m.rb,keys):(m.rb?m.rb[MINKEY[k]]:null);
     const vb=faroConv(rawB,k,m.udsB);
     const dv=(val!=null&&vb!=null)?val-vb:null;
     const imp=(rawA!=null&&rawB!=null&&m.lotesA!=null)?(rawA-rawB)*m.lotesA:null;
-    const aud=(rawA!=null&&rawB!=null&&m.udsA>0&&m.udsB>0)?((rawA/m.udsA)-(rawB/m.udsB))*MF():null; // aporte a la productividad (min/ud): suma exactamente prodA-prodB
-    return {val,dv,imp,aud,ref:vb,dec:faroDec(k)};
+    const cD=(rawA!=null&&rawB!=null&&m.tiempoA>0&&m.tiempoB>0&&m.prodA!=null&&m.prodB!=null)?(m.prodA*(rawA/m.tiempoA)-m.prodB*(rawB/m.tiempoB))*MF():null; // lógica inversa: reparto de la productividad por % de tiempo de la fase → Σ fases = prodA-prodB
+    return {val,dv,imp,cD,ref:vb,dec:faroDec(k)};
   }
   const areaCells=m=>grouped?FGRUPOS.map(g=>({c:cellOf(m,g.k,g.keys),name:g.name,k:g.k,span:1}))
     :(m.compat?FASES.map(f=>({c:cellOf(m,f.k,null),name:f.name,k:f.k,span:1}))
@@ -2598,24 +2616,25 @@ function renderMatrix(){
   const isMinV=(ST.faroUnit==='min');
   const tailLbl=isMinV?'Total lote':'Productividad', tailUnit='<span style="'+uStyle+'">'+(isMinV?'min/lote':udName())+'</span>';
   let h='<div class="mxrow head"><div class="mxh"></div>'+cols.map(f=>'<div class="mxh"><i style="background:'+cssv(f.col)+'"></i>'+f.name+uSub(f.k)+'</div>').join('')+'<div class="mxh tot">'+tailLbl+tailUnit+'</div></div>';
-  // color por APORTE A LA PRODUCTIVIDAD (min/ud): _FMB = máx aporte de una fase; _FMP = máx aporte total de un área. (en vista Tiempo, por impacto min/mes)
+  // LÓGICA INVERSA: cada fase por su aporte a la productividad (reparto por % de tiempo); columna resumen por el desvío de la prod. Σ aportes = desvío prod → prod roja ⇒ fase roja. _FMB=máx |aporte fase|, _FMP=máx |desvío prod área|.
   _FMB=0;_FMP=0;
-  dispAreas.forEach(a=>{ const m0=MODEL.find(x=>x.area===a); let ac=0;
-    areaCells(m0).forEach(o=>{ var cv=isMinV?o.c.imp:o.c.aud; if(cv!=null){ var v=Math.abs(cv); if(v>_FMB)_FMB=v; ac+=cv; } });
-    if(Math.abs(ac)>_FMP)_FMP=Math.abs(ac);
+  dispAreas.forEach(a=>{ const m0=MODEL.find(x=>x.area===a);
+    areaCells(m0).forEach(o=>{ var cv=isMinV?o.c.dv:o.c.cD; if(cv!=null){ var v=Math.abs(cv); if(v>_FMB)_FMB=v; } });
+    var tv=isMinV?m0.dTiempo:((m0.prodA!=null&&m0.prodB!=null)?(m0.prodA-m0.prodB)*MF():null);
+    if(tv!=null&&Math.abs(tv)>_FMP)_FMP=Math.abs(tv);
   });
   dispAreas.forEach(a=>{
     const m=MODEL.find(x=>x.area===a);
     h+='<div class="mxrow"><div class="mxa" data-area="'+a+'">'+a+'</div>';
-    const cells=areaCells(m); let areaCv=0,areaImp=0; cells.forEach(o=>{ var cv=isMinV?o.c.imp:o.c.aud; if(cv!=null)areaCv+=cv; if(o.c.imp!=null)areaImp+=o.c.imp; });
-    cells.forEach(o=>{ var cv=isMinV?o.c.imp:o.c.aud; h+=cellHTML(o.c.val,o.c.dv,o.c.imp,cv,o.c.ref,o.name,a,o.k,o.span,false,o.c.dec); });
-    // columna resumen: la Productividad del área = tiempo útil ÷ uds = SUMA EXACTA de las fases (misma agregación). Así el número, su delta y el color coinciden, y es imposible "área peor con todas las partes mejores".
+    const cells=areaCells(m);
+    cells.forEach(o=>{ var cv=isMinV?o.c.dv:o.c.cD; h+=cellHTML(o.c.val,o.c.dv,o.c.imp,cv,o.c.ref,o.name,a,o.k,o.span,false,o.c.dec); });
+    // columna resumen: color por el desvío de la productividad oficial (prodA-prodB). Como el color de cada fase es su aporte (reparto de la prod por % de tiempo) y Σ aportes = este desvío, si la prod sale roja hay sí o sí una fase roja.
     if(isMinV){
-      h+=cellHTML(m.tiempoA, ST.single?null:m.dTiempo, ST.single?null:areaImp, ST.single?null:areaCv, m.tiempoB, 'Total del lote', a, 'total', 1, true, 1);
+      h+=cellHTML(m.tiempoA, ST.single?null:m.dTiempo, ST.single?null:((m.dTiempo!=null&&m.lotesA!=null)?m.dTiempo*m.lotesA:null), ST.single?null:m.dTiempo, m.tiempoB, 'Total del lote', a, 'total', 1, true, 1);
     } else {
       const prA=(m.prodA!=null&&!isNaN(m.prodA))?m.prodA*MF():null, prB=(m.prodB!=null&&!isNaN(m.prodB))?m.prodB*MF():null;
       const prDv=(!ST.single&&prA!=null&&prB!=null)?prA-prB:null;
-      h+=cellHTML(prA, prDv, ST.single?null:m.impacto, ST.single?null:areaCv, prB, 'Productividad', a, 'prodcol', 1, true, 2);
+      h+=cellHTML(prA, prDv, ST.single?null:m.impacto, ST.single?null:prDv, prB, 'Productividad', a, 'prodcol', 1, true, 2);
     }
     h+='</div>';
   });
@@ -3695,8 +3714,8 @@ const GROUPS=[
   {g:'Tiempo',    dims:[{k:'anio',lab:'Año'},{k:'mes',lab:'Mes'},{k:'semana',lab:'Semana'},{k:'dia',lab:'Día'},{k:'dow',lab:'Día sem.'}]}
 ];
 const FDIMS=GROUPS.reduce((a,x)=>a.concat(x.dims),[]);
-let ROWS=null, OPTS={}, SEL={}, TIME='dia', GEO='total', SPLIT=false, ONLY_RR=false, LOADED=false, LOADING=false, WIRED=false, MESDEF=null;
-let VISM=new Set(), SORT={k:null,dir:-1}, RK={by:'centro',metric:'real',dir:'desc',top:20};
+let ROWS=null, OPTS={}, SEL={}, TIME='dia', GEO='total', SPLIT=false, ONLY_RR=false, MEDIA='dia', LOADED=false, LOADING=false, WIRED=false, MESDEF=null;
+let VISM=new Set(), VISD=new Set(), SORT={k:null,dir:-1}, RK={by:'centro',metric:'real',dir:'desc',top:20};
 const DOW=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const DOWORD=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 function dowOf(d){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d); return m?DOW[new Date(+m[1],+m[2]-1,+m[3]).getDay()]:''; }
@@ -3755,6 +3774,7 @@ function build(data){
       if(mesVals.size){ MESDEF=mesVals; SEL['mes']=new Set(mesVals); } }
   }catch(e){}
   VISM=new Set(MCOLS.map(c=>c[1]));
+  VISD=new Set(DEVCOLS.map(c=>c[1]));
   LOADED=true;
   const st=$('cd_status'); if(st){ st.style.display='none'; st.textContent=''; }
   buildFilterUI(); if(!WIRED){wireControls();WIRED=true;} render();
@@ -3810,21 +3830,28 @@ function seg(id,cb){ const el=$(id); if(!el)return; el.querySelectorAll('[data-v
   el.querySelectorAll('[data-v]').forEach(x=>x.classList.toggle('lo-on',x===b)); cb(b.dataset.v); })); }
 function resetSeg(id,v){ const el=$(id); if(el)el.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('lo-on',b.dataset.v===v)); }
 function wireControls(){
-  seg('cd_time', v=>{TIME=v;render();});
+  seg('cd_time', v=>{TIME=v;syncMediaOpts();render();});   // agrupación temporal: afecta a Detalle Y a Desvíos; y limita la Media
   seg('cd_geo',  v=>{GEO=v;render();});
   seg('cd_split',v=>{SPLIT=(v==='sep');render();});
+  seg('cd_media',v=>{MEDIA=v;renderDev(filtered());});     // cómo se calcula el % en Desvíos (día/semana/mes/año ≤ agrupación temporal)
   const rr=$('cd_onlyRR'); rr.addEventListener('click',()=>{ ONLY_RR=!ONLY_RR; rr.classList.toggle('lo-on',ONLY_RR); rr.setAttribute('aria-pressed',ONLY_RR);
     rr.style.background=ONLY_RR?'var(--brand)':''; rr.style.color=ONLY_RR?'#fff':''; rr.style.borderColor=ONLY_RR?'var(--brand)':''; render(); });
-  $('cd_reset').addEventListener('click',()=>{ FDIMS.forEach(d=>SEL[d.k]=new Set(OPTS[d.k])); if(MESDEF)SEL['mes']=new Set(MESDEF); ONLY_RR=false; TIME='dia'; GEO='total'; SPLIT=false;
+  // Reset FILTROS (arriba): solo ámbito + Solo con Real (no toca los seleccionables de la tabla)
+  $('cd_reset').addEventListener('click',()=>{ FDIMS.forEach(d=>SEL[d.k]=new Set(OPTS[d.k])); if(MESDEF)SEL['mes']=new Set(MESDEF); ONLY_RR=false;
     rr.classList.remove('lo-on'); rr.setAttribute('aria-pressed','false'); rr.style.background='';rr.style.color='';rr.style.borderColor='';
-    resetSeg('cd_time','dia'); resetSeg('cd_geo','total'); resetSeg('cd_split','junto');
     buildFilterUI(); render(); });
+  // Reset VISTA (tabla): agrupación temporal / geografía / proceso / media (no toca los filtros de ámbito)
+  const rv=$('cd_resetView'); if(rv)rv.addEventListener('click',()=>{ TIME='dia'; GEO='total'; SPLIT=false; MEDIA='dia';
+    resetSeg('cd_time','dia'); resetSeg('cd_geo','total'); resetSeg('cd_split','junto'); resetSeg('cd_media','dia');
+    syncMediaOpts(); render(); });
+  const dd=$('cd_devDl'); if(dd)dd.addEventListener('click',downloadDev);
+  syncMediaOpts();
   $('cd_dl').addEventListener('click',downloadTable);
   const dc=$('cd_dlChart'); if(dc)dc.addEventListener('click',downloadChart);
   // ordenar por cabecera (delegado; la tabla se reconstruye en cada render)
   $('cd_tbl').addEventListener('click',e=>{ const th=e.target.closest('th[data-k]'); if(!th)return;
     const k=th.dataset.k; SORT.dir=(SORT.k===k)?-SORT.dir:(k[0]==='d'?1:-1); SORT.k=k; renderTable(filtered()); });
-  buildColsUI();
+  buildColsUI(); buildDevColsUI();
   // ranking
   $('cd_rkBy').addEventListener('change',e=>{RK.by=e.target.value;renderRank();});
   const rms=$('cd_rkMetric'); if(rms){ rms.innerHTML=MCOLS.map(c=>`<option value="${c[1]}">${c[0]}</option>`).join(''); rms.value=RK.metric;
@@ -3843,14 +3870,15 @@ function filtered(){ return ROWS.filter(r=>{ if(ONLY_RR&&!r.tiene)return false;
 function newB(){ return {ancla:0,horario:0,real:0,rr:0,nrr:0}; }
 function addRow(b,r){ b.ancla+=r.ancla||0; b.horario+=r.horario||0; b.real+=r.real||0; if(r.tiene&&r.rr!=null){ b.rr+=r.rr; b.nrr++; } }
 function finish(b){ b.rrv=b.nrr>0?b.rr:null;
-  b.ancla_horario=b.ancla-b.horario;
-  b.ancla_real=b.ancla-b.real; b.horario_real=b.horario-b.real;
-  b.ancla_rr=b.rrv==null?null:b.ancla-b.rrv; b.horario_rr=b.rrv==null?null:b.horario-b.rrv;
-  b.real_rr=b.rrv==null?null:b.real-b.rrv; return b; }
+  // Signo: mejorar = MENOS horas = negativo (verde). Por eso "mejorado − base".
+  b.ancla_horario=b.horario-b.ancla;              // Planificado − Estimado
+  b.ancla_real=b.real-b.ancla; b.horario_real=b.real-b.horario;   // Óptimo − Estimado / Óptimo − Planificado
+  b.ancla_rr=b.rrv==null?null:b.rrv-b.ancla; b.horario_rr=b.rrv==null?null:b.rrv-b.horario;  // Real − Estimado / Real − Planificado
+  b.real_rr=b.rrv==null?null:b.rrv-b.real; return b; }            // Real − Óptimo
 
-function chartAgg(rows){ const m=new Map();
-  rows.forEach(r=>{ const k=periodKey(r); if(k==null||k==='')return; let b=m.get(k); if(!b){b=newB();b.k=k;m.set(k,b);} addRow(b,r); });
-  return [...m.values()].sort((a,b)=>cmpTime(a.k,b.k)).map(finish); }
+function chartAgg(rows){ const m=new Map();   // la gráfica va SIEMPRE a nivel DÍA (no depende de la agrupación temporal de la tabla)
+  rows.forEach(r=>{ const k=r.dia; if(k==null||k==='')return; let b=m.get(k); if(!b){b=newB();b.k=k;m.set(k,b);} addRow(b,r); });
+  return [...m.values()].sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:0).map(finish); }
 
 function geoFields(){ return GEO==='total'?[]:GEO==='region'?['region']:GEO==='zona'?['region','zona']:['region','zona','centro']; }
 function tableGroups(rows){ const gf=geoFields(), m=new Map();
@@ -3866,8 +3894,11 @@ function tableGroups(rows){ const gf=geoFields(), m=new Map();
 }
 
 /* ---------- render ---------- */
-function render(){ if(!LOADED)return; try{ const rows=filtered(); renderChart(chartAgg(rows)); renderTable(rows); renderRank(); }
-  catch(e){ const s=$('cd_status'); s.style.display='block'; s.textContent='Error al pintar: '+e.message; console.error(e); } }
+function render(){ if(!LOADED)return; const rows=filtered();
+  // cada tabla/gráfica se pinta AISLADA: un fallo en una nunca bloquea a las demás (ni desplaza el layout con un banner de error)
+  const safe=(fn,l)=>{ try{ fn(); }catch(e){ console.error('caudal render '+l,e); } };
+  safe(()=>renderChart(chartAgg(rows)),'chart'); safe(()=>renderTable(rows),'table');
+  safe(()=>renderDev(rows),'dev'); safe(()=>renderRank(),'rank'); }
 
 function renderChart(agg){
   const box=$('cd_chart');
@@ -3875,7 +3906,7 @@ function renderChart(agg){
   if(!agg.length){ try{Plotly.purge(box);}catch(e){} box.dataset.empty='1'; box.innerHTML='<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink3);font-size:13px">Sin datos para los filtros elegidos.</div>'; return; }
   // si venía del estado vacío (o de un mensaje), limpia el nodo para que Plotly.react no herede el texto
   if(box.dataset.empty){ box.removeAttribute('data-empty'); box.innerHTML=''; }
-  const x=agg.map(b=>periodLabel(b.k)), n=x.length, few=n<=45;
+  const x=agg.map(b=>diaLabel(b.k)), n=x.length, few=n<=45;
   const ln=(key,name,color)=>({x,y:agg.map(b=>b[key]),name,type:'scatter',mode:few?'lines+markers':'lines',
     connectgaps:false,line:{color,width:2.6},marker:{size:5,color}});
   const traces=[ln('ancla','Estimado',COL.ancla),ln('horario','Planificado',COL.horario),ln('real','Óptimo',COL.real),ln('rrv','Real',COL.rr)];
@@ -3895,11 +3926,15 @@ function downloadChart(){ const box=$('cd_chart'); if(typeof Plotly==='undefined
   try{ Plotly.downloadImage(box,{format:'png',filename:'caudal_grafica',width:1500,height:640,scale:2}); }catch(e){} }
 
 const MCOLS=[['Estimado','ancla'],['Planificado','horario'],['Óptimo','real'],['Real','rrv'],
-  ['Estimado − Planificado','ancla_horario'],['Estimado − Óptimo','ancla_real'],['Planificado − Óptimo','horario_real'],
-  ['Estimado − Real','ancla_rr'],['Planificado − Real','horario_rr'],['Óptimo − Real','real_rr']];
+  ['Planificado − Estimado','ancla_horario'],['Óptimo − Estimado','ancla_real'],['Óptimo − Planificado','horario_real'],
+  ['Real − Estimado','ancla_rr'],['Real − Planificado','horario_rr'],['Real − Óptimo','real_rr']];
 const DELTAS=new Set(['ancla_horario','ancla_real','horario_real','ancla_rr','horario_rr','real_rr']);
 const MLABEL=Object.fromEntries(MCOLS.map(c=>[c[1],c[0]]));
-const deltaCls=v=>(v==null)?'':(v<0?' class="cd-neg"':v>0?' class="cd-pos"':'');
+// Color: menos horas (v<0) = mejor = verde (cd-pos); más horas (v>0) = peor = rojo (cd-neg).
+const deltaCls=v=>(v==null)?'':(v>0?' class="cd-neg"':v<0?' class="cd-pos"':'');
+// Base (denominador) del % de desvío de cada par: el caudal de referencia.
+const DEVBASE={ancla_horario:'ancla',ancla_real:'ancla',horario_real:'horario',ancla_rr:'ancla',horario_rr:'horario',real_rr:'real'};
+const devFmt=v=>(v==null||isNaN(v))?'—':(v>0?'+':'')+v.toLocaleString('es-ES',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
 function dimCols(){ const c=[]; if(SPLIT)c.push({lab:'Proceso',get:g=>procLabel(g.proceso)});
   const gf=geoFields();
   if(gf.includes('region'))c.push({lab:'Región',get:g=>optLabel('region',g.region)});
@@ -3954,6 +3989,58 @@ function buildColsUI(){ const pop=$('cd_colsPop'), btn=$('cd_colsBtn'); if(!pop|
   colsCnt();
 }
 
+/* ---------- desvíos entre caudales (%) ---------- */
+const DEVCOLS=MCOLS.filter(c=>DELTAS.has(c[1]));   // los 6 pares, mismo orden que el Detalle
+const MRANK={dia:0,semana:1,mes:2,anio:3};
+function mediaKey(r){ return MEDIA==='dia'?r.dia : MEDIA==='semana'?r.semana : MEDIA==='mes'?r.mes : r.anio; }
+// FILAS = mismo desglose que el Detalle (Proceso + Geografía + Agrupación temporal).
+// El % de cada celda se calcula según la MEDIA (día/semana/mes/año, ≤ agrupación temporal):
+// dentro de la fila se agrupa por sub-periodo MEDIA, se saca el % de cada sub-periodo ((mejorado−base)/base·100) y se PROMEDIA.
+// Si MEDIA = agrupación temporal, hay un único sub-periodo → % del agregado (una sola división). El % es división, no suma: por eso importa el nivel.
+function devGroups(rows){ const gf=geoFields(), m=new Map();
+  rows.forEach(r=>{ const tk=periodKey(r); if(tk==null||tk==='')return;
+    const parts=[]; if(SPLIT)parts.push(r.proceso); gf.forEach(f=>parts.push(r[f])); parts.push(tk);
+    const key=parts.join('¦'); let g=m.get(key);
+    if(!g){ g={proceso:r.proceso,region:r.region,zona:r.zona,centro:r.centro,centro_nombre:r.centro_nombre,tk:tk,sub:new Map()}; m.set(key,g); }
+    const sk=mediaKey(r); if(sk==null||sk==='')return; let b=g.sub.get(sk); if(!b){b=newB();g.sub.set(sk,b);} addRow(b,r); });
+  const arr=[...m.values()];
+  arr.sort((a,b)=>{ if(SPLIT&&a.proceso!==b.proceso)return a.proceso<b.proceso?-1:1;
+    for(const f of gf){ if(a[f]!==b[f])return String(a[f]).localeCompare(String(b[f]),'es',{numeric:true}); } return cmpTime(a.tk,b.tk); });
+  return {arr, gf}; }
+function devCellPct(g,key){ let s=0,n=0; g.sub.forEach(b=>{ finish(b); const v=b[key], base=b[DEVBASE[key]]; if(v==null||base==null||base===0)return; s+=v/base*100; n++; }); return n? s/n : null; }
+function renderDev(rows){ if(!LOADED)return; const t=$('cd_devTbl'); if(!t)return;
+  const {arr}=devGroups(rows), dcols=dimCols(), cols=DEVCOLS.filter(c=>VISD.has(c[1]));
+  if(!arr.length){ t.innerHTML='<tbody><tr><td style="padding:14px;color:var(--ink3)">Sin datos para los filtros elegidos.</td></tr></tbody>'; return; }
+  const medLab={dia:'diaria',semana:'semanal',mes:'mensual',anio:'anual'}[MEDIA];
+  let h='<thead><tr>'+dcols.map(c=>`<th class="cd-dim">${c.lab}</th>`).join('')
+    +cols.map(c=>`<th title="Media ${medLab} · % sobre ${MLABEL[DEVBASE[c[1]]]}">${c[0]}</th>`).join('')+'</tr></thead><tbody>';
+  arr.forEach(g=>{ h+='<tr>'+dcols.map(c=>`<td class="cd-dim">${c.get(g)}</td>`).join('')
+    +cols.map(c=>{ const v=devCellPct(g,c[1]); return `<td${deltaCls(v)}>${devFmt(v)}</td>`; }).join('')+'</tr>'; });
+  const TT={sub:new Map()}; rows.forEach(r=>{ const sk=mediaKey(r); if(sk==null||sk==='')return; let b=TT.sub.get(sk); if(!b){b=newB();TT.sub.set(sk,b);} addRow(b,r); });
+  h+='</tbody><tfoot><tr>'+dcols.map((c,i)=>`<td class="cd-dim">${i===0?'TOTAL':''}</td>`).join('')
+    +cols.map(c=>{ const v=devCellPct(TT,c[1]); return `<td${deltaCls(v)}>${devFmt(v)}</td>`; }).join('')+'</tr></tfoot>';
+  t.innerHTML=h; }
+function devColsCnt(){ const el=$('cd_devColsCnt'); if(el)el.textContent=VISD.size+'/'+DEVCOLS.length; }
+function buildDevColsUI(){ const pop=$('cd_devColsPop'), btn=$('cd_devColsBtn'); if(!pop||!btn||pop._b)return; pop._b=1;
+  pop.innerHTML='<div class="cd-p-act"><button data-a="all">Todas</button><button data-a="none">Ninguna</button></div><div class="cd-list"></div>';
+  pop.addEventListener('click',e=>e.stopPropagation());
+  const list=pop.querySelector('.cd-list');
+  DEVCOLS.forEach(c=>{ const o=document.createElement('label');o.className='cd-opt';o.innerHTML='<input type="checkbox"><span></span>';
+    o.querySelector('span').textContent=c[0]; const chk=o.querySelector('input'); chk.checked=VISD.has(c[1]);
+    chk.addEventListener('change',()=>{ if(chk.checked)VISD.add(c[1]); else VISD.delete(c[1]); devColsCnt(); renderDev(filtered()); }); list.appendChild(o); });
+  pop.querySelectorAll('.cd-p-act button').forEach(b=>b.addEventListener('click',()=>{ const all=b.dataset.a==='all';
+    VISD=all?new Set(DEVCOLS.map(c=>c[1])):new Set(); list.querySelectorAll('input').forEach(i=>i.checked=all); devColsCnt(); renderDev(filtered()); }));
+  btn.addEventListener('click',e=>{ e.stopPropagation(); const o=pop.classList.contains('open'); closePops(); if(!o)pop.classList.add('open'); });
+  devColsCnt(); }
+function downloadDev(){ if(!LOADED)return; const {arr}=devGroups(filtered()), dcols=dimCols(), cols=DEVCOLS.filter(c=>VISD.has(c[1]));
+  const lines=[dcols.map(c=>c.lab).concat(cols.map(c=>c[0]+' (%)')).join(';')];
+  arr.forEach(g=>{ lines.push(dcols.map(c=>String(c.get(g)).replace(/;/g,',')).concat(cols.map(c=>{const v=devCellPct(g,c[1]);return v==null?'':String(v.toFixed(1)).replace('.',',');})).join(';')); });
+  const blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  const u=URL.createObjectURL(blob),a=document.createElement('a'); a.href=u; a.download='caudal_desvios.csv'; a.click(); URL.revokeObjectURL(u); }
+function syncMediaOpts(){ const el=$('cd_media'); if(!el)return; const lim=MRANK[TIME];
+  el.querySelectorAll('[data-v]').forEach(b=>{ const dis=MRANK[b.dataset.v]>lim; b.disabled=dis; });
+  if(MRANK[MEDIA]>lim){ MEDIA=TIME; el.querySelectorAll('[data-v]').forEach(b=>b.classList.toggle('lo-on',b.dataset.v===MEDIA)); } }
+
 /* ---------- ranking ---------- */
 const RKBY_LAB={centro:'Centro',zona:'Zona',region:'Región',proceso:'Proceso',dow:'Día sem.',mes:'Mes',semana:'Semana'};
 function rankLabel(by,v){ return by==='zona'?zonaLabel(v) : by==='region'?regLabel(v) : by==='proceso'?procLabel(v)
@@ -3967,7 +4054,7 @@ function renderRank(){ if(!LOADED)return; const arr=rankData(), by=RK.by, mk=RK.
   if(!arr.length){ t.innerHTML='<tbody><tr><td style="padding:14px;color:var(--ink3)">Sin datos para el ranking con estos filtros.</td></tr></tbody>'; return; }
   const maxAbs=Math.max(1,...arr.map(b=>Math.abs(b[mk]||0)));
   let h='<thead><tr><th class="cd-dim">#</th><th class="cd-dim">'+RKBY_LAB[by]+'</th><th>'+MLABEL[mk]+'</th><th>Estimado</th><th>Planificado</th><th>Óptimo</th><th>Real</th></tr></thead><tbody>';
-  arr.forEach((b,i)=>{ const v=b[mk], w=Math.round(Math.abs(v||0)/maxAbs*100), bc=isD?(v<0?'#e5484d':'#12b5a5'):'var(--brand)';
+  arr.forEach((b,i)=>{ const v=b[mk], w=Math.round(Math.abs(v||0)/maxAbs*100), bc=isD?(v<0?'#12b5a5':v>0?'#e5484d':'var(--ink3)'):'var(--brand)';
     h+=`<tr><td class="cd-dim" style="color:var(--ink3);font-weight:800">${i+1}</td><td class="cd-dim">${rankLabel(by,b.key)}</td>`
       +`<td><div class="cd-rkcell"><div class="cd-rkwrap"><div class="cd-rkbar" style="width:${w}%;background:${bc}"></div></div><span${isD?deltaCls(v):''}>${fmt(v)}</span></div></td>`
       +`<td>${fmt(b.ancla)}</td><td>${fmt(b.horario)}</td><td>${fmt(b.real)}</td><td>${fmt(b.rrv)}</td></tr>`; });
