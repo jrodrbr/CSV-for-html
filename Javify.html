@@ -111,6 +111,17 @@ table.lo-mx tbody tr.lo-sel td,table.lo-mx tbody tr.lo-sel td.lo-area{background
 .lo-rkbar i{position:absolute;top:0;bottom:0;border-radius:6px;transition:width .5s}
 .lo-rkbar .lo-mid{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink2);opacity:.5}
 .lo-rkval{font-family:ui-monospace,monospace;font-weight:800;font-size:12.5px;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+/* Ranking de objetivos como tabla: dar espacio a la columna Tienda (que se vea el nombre completo) */
+/* Ranking: números con ancho FIJO (siempre visibles) y Tienda se lleva el resto (nombre entero, normalmente en una línea) */
+.lo-rktbl{table-layout:fixed;width:100%}
+.lo-rktbl th{white-space:normal;line-height:1.15}
+.lo-rktbl td{white-space:nowrap}
+.lo-rktbl th:nth-child(1),.lo-rktbl td:nth-child(1){width:32px;text-align:center}          /* # */
+.lo-rktbl th:nth-child(2),.lo-rktbl td:nth-child(2){white-space:normal;line-height:1.2}    /* Tienda: SIN width → ocupa el ancho sobrante */
+.lo-rktbl th:nth-child(3),.lo-rktbl td:nth-child(3){width:76px;text-align:right}           /* valor */
+.lo-rktbl th:nth-child(4),.lo-rktbl td:nth-child(4){width:70px;text-align:right}           /* efectivo */
+.lo-rktbl th:nth-child(5),.lo-rktbl td:nth-child(5){width:104px;text-align:right}          /* distancia */
+.lo-rktbl td.lo-area{font-weight:700}
 
 .lo-det{margin-top:16px;border:1px solid var(--line2);border-radius:var(--r);background:var(--bg2);padding:16px 18px}
 .lo-det-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
@@ -1391,8 +1402,8 @@ body.simple #secPick .grid.g2{display:none!important}
       </div>
       <div class="no-print faro-ctrls">
         <div class="faro-ctrl"><span class="faro-ctrl-l">Unidad</span>
-          <div class="modeswitch" id="faroUnitSeg" role="group" title="Tiempo por lote, productividad por unidad, u objetivo oficial (prep/pesaje por unidad; consolidación y entre lotes por lote)">
-            <button data-v="min" aria-pressed="false">Tiempo</button><button data-v="prod" aria-pressed="false">Prod (min/ud)</button><button data-v="objof" class="on" aria-pressed="true">Objetivo oficial</button></div></div>
+          <div class="modeswitch" id="faroUnitSeg" role="group" title="Objetivo oficial (mixto), tiempo por lote, productividad por unidad, o % (de dónde sale la productividad: aporte de cada área y fase al total, con el desvío frente a la referencia)">
+            <button data-v="objof" class="on" aria-pressed="true">Objetivo oficial</button><button data-v="min" aria-pressed="false">Tiempo</button><button data-v="prod" aria-pressed="false">Prod (min/ud)</button><button data-v="pct" aria-pressed="false">%</button></div></div>
         <button class="btn btn-gh" id="faroPng" type="button" style="padding:8px 14px;font-size:12px">⤓ Descargar PNG</button>
       </div></div>
       <div class="matrix"><div class="mxgrid" id="matBody"></div><div class="mx-foot" id="matFoot"></div></div>
@@ -1565,6 +1576,22 @@ body.simple #secPick .grid.g2{display:none!important}
       </div>
     </section>
 
+    <!-- CONTRIBUCIÓN AL OBJETIVO -->
+    <section id="secContrib">
+      <div class="lo-card lo-pad">
+        <div class="lo-sec-n">Objetivo principal</div>
+        <div class="lo-sec-t">De dónde sale la productividad</div>
+        <p class="lo-sec-s">Cuánto aporta cada área y fase a la productividad global objetivo de las tiendas liebre, según el tiempo medio diario y el nº de lotes (ponderado por lotes). En <b>%</b> es la parte del total (suman 100%); en <b>productividad</b>, los min/ud que aporta cada parte (suman el global). Sigue el corte y el modo agrupado/desglosado. Ejemplo: qué % del global viene de la preparación de Frescos.</p>
+        <div class="lo-ctrls">
+          <div class="lo-fld"><label>Ver como</label>
+            <div class="lo-seg lo-sm" id="lo_contribViewSeg"><button data-v="pct" class="lo-on">% del total</button><button data-v="prod">Productividad (min/ud)</button></div></div>
+        </div>
+        <div class="lo-calcsum" id="lo_contribSum" style="margin:6px 0 8px"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px"><button class="csv" style="position:static" data-pngtbl="lo_contribTbl" data-pngname="contribucion_objetivo">⤓ PNG</button><button class="csv" style="position:static" data-csv="lo_contribTbl" data-csvname="contribucion_objetivo">⤓ CSV</button></div>
+        <div class="lo-tbl-wrap"><table class="lo-mx" id="lo_contribTbl"></table></div>
+      </div>
+    </section>
+
     <!-- MATRIX -->
     <section>
       <div class="lo-card lo-pad">
@@ -1580,10 +1607,10 @@ body.simple #secPick .grid.g2{display:none!important}
             </div></div>
           <div class="lo-fld"><label>Mostrar</label>
             <div class="lo-seg" id="lo_modeSeg">
-              <button data-v="min" class="lo-on">Min / lote</button>
+              <button data-v="objof" class="lo-on">Objetivo oficial</button>
+              <button data-v="min">Min / lote</button>
               <button data-v="pct">% tiempo</button>
               <button data-v="prod">Prod (min/ud)</button>
-              <button data-v="objof">Objetivo oficial</button>
             </div></div>
           <div class="lo-fld"><label>Periodo</label>
             <div class="lo-seg" id="lo_perSeg">
@@ -1593,7 +1620,7 @@ body.simple #secPick .grid.g2{display:none!important}
           <div class="lo-fld" id="lo_mesFld" style="display:none"><label for="lo_mesSel">Mes</label>
             <select class="lo-tin" id="lo_mesSel" style="min-width:130px"></select></div>
         </div>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:6px"><button class="csv" style="position:static" data-csv="lo_mxTbl" data-csvname="objetivos_matriz">⤓ CSV</button></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px"><button class="csv" style="position:static" data-pngtbl="lo_mxTbl" data-pngname="objetivos_matriz">⤓ PNG</button><button class="csv" style="position:static" data-csv="lo_mxTbl" data-csvname="objetivos_matriz">⤓ CSV</button></div>
         <div class="lo-tbl-wrap"><table class="lo-mx" id="lo_mxTbl"></table></div>
       </div>
     </section>
@@ -1609,13 +1636,13 @@ body.simple #secPick .grid.g2{display:none!important}
             <div class="lo-seg lo-sm" id="lo_calcCorteSeg"><button data-v="util" class="lo-on">Con paradas ≤20'</button><button data-v="efec">Efectivo ≤6'</button></div></div>
           <div class="lo-fld"><label for="lo_calcTarget">Productividad objetivo</label><input class="lo-tin" id="lo_calcTarget" value="0,33" style="min-width:110px"></div>
           <div class="lo-fld"><label>Ver tabla como</label>
-            <div class="lo-seg lo-sm" id="lo_calcViewSeg"><button data-v="min" class="lo-on">Min / lote</button><button data-v="prod">Prod (min/ud)</button><button data-v="objof">Objetivo oficial</button></div></div>
+            <div class="lo-seg lo-sm" id="lo_calcViewSeg"><button data-v="objof" class="lo-on">Objetivo oficial</button><button data-v="min">Min / lote</button><button data-v="prod">Prod (min/ud)</button></div></div>
           <div class="lo-fld"><label>Fijar como oficiales</label>
             <button class="lo-tg" type="button" id="lo_calcSave" style="border-color:var(--brand);background:var(--brand);color:#fff;font-weight:800">⤓ Guardar objetivos · descargar CSV</button></div>
         </div>
         <div class="lo-calcsum" id="lo_calcSum"></div>
         <p class="lo-sec-s" style="margin-top:8px;font-size:11.5px">Al guardar se descarga <b>Objetivos_Tiendas_Liebre.csv</b>. Súbelo al repo de GitHub (igual que los CSV). El dashboard lo cargará como tienda de referencia «<b>Objetivos Tiendas Liebre</b>» disponible en Comparar y en el Ranking, para medir cualquier tienda contra estos objetivos.</p>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:6px;margin-top:14px"><button class="csv" style="position:static" data-csv="lo_calcTbl" data-csvname="objetivos_calculadora">⤓ CSV</button></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px;margin-top:14px"><button class="csv" style="position:static" data-pngtbl="lo_calcTbl" data-pngname="objetivos_calculadora">⤓ PNG</button><button class="csv" style="position:static" data-csv="lo_calcTbl" data-csvname="objetivos_calculadora">⤓ CSV</button></div>
         <div class="lo-tbl-wrap"><table class="lo-mx" id="lo_calcTbl"></table></div>
       </div>
     </section>
@@ -1661,7 +1688,7 @@ body.simple #secPick .grid.g2{display:none!important}
     </section>
 
     <!-- STORES -->
-    <section>
+    <section id="secLiebre">
       <div class="lo-card lo-pad">
         <div class="lo-sec-n">Tiendas liebre</div>
         <div class="lo-sec-t">Cada tienda frente al objetivo</div>
@@ -1688,7 +1715,7 @@ body.simple #secPick .grid.g2{display:none!important}
             </div></div>
         </div>
         <div class="lo-det" id="lo_stDet"><div class="lo-det-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>Pulsa una tienda para ver su desglose por subproceso y comparar meses.</div></div>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:6px;margin-top:16px"><button class="csv" style="position:static" data-csv="lo_stTbl" data-csvname="objetivos_tiendas">⤓ CSV</button></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px;margin-top:16px"><button class="csv" style="position:static" data-pngtbl="lo_stTbl" data-pngname="objetivos_tiendas">⤓ PNG</button><button class="csv" style="position:static" data-csv="lo_stTbl" data-csvname="objetivos_tiendas">⤓ CSV</button></div>
         <div class="lo-tbl-wrap"><table class="lo-mx" id="lo_stTbl"></table></div>
         <div id="lo_stNote" style="font-size:11px;color:var(--ink3);margin-top:8px"></div>
       </div>
@@ -1866,6 +1893,10 @@ const GENERAL_URL='https://raw.githubusercontent.com/jrodrbr/CSV-for-html/refs/h
 const AREAS=['SECOS','REFRIGERADO','CONGELADO','FRESCOS','FYV','HORNO','PENDIENTES'];
 const AREAS_DESGLOSE=['SECOS','REFRIGERADO','CONGELADO','HORNO','PENDIENTES'];
 const tieneDesglose=a=>AREAS_DESGLOSE.includes(a);
+// En modo Simple PENDIENTES no se muestra ni se compara (no adherida a objetivo). En Experto, todo.
+const _isSimple=()=>document.body.classList.contains('simple');
+function viewAreas(){ return _isSimple()?AREAS.filter(a=>a!=='PENDIENTES'):AREAS; }
+function viewAreasD(){ return _isSimple()?AREAS_DESGLOSE.filter(a=>a!=='PENDIENTES'):AREAS_DESGLOSE; }
 const FASES=[
   {k:'p1',col:'--f-arranque',name:'Arranque',code:'P1'},
   {k:'p2',col:'--f-picking',name:'Picking',code:'P2'},
@@ -2088,7 +2119,7 @@ function populate(){
   makeCombo('tA');makeCombo('tB');setCombo('tA',first);setCombo('tB',defB);
   fillSel($('mA'),ST.meses,k=>ST.mesLabel[k],last);fillSel($('sA'),ST.shifts,shiftLabel,s0);
   fillSel($('mB'),ST.meses,k=>ST.mesLabel[k],last);fillSel($('sB'),ST.shifts,shiftLabel,s0);
-  $('trArea').innerHTML=opt('__global','Global tienda',true)+AREAS.map(a=>opt(a,a)).join('');
+  $('trArea').innerHTML=opt('__global','Global tienda',true)+viewAreas().map(a=>opt(a,a)).join('');
   $('trMetric').innerHTML=METRIC_ORDER.map(k=>opt(k,METRICS[k].label,k==='prod')).join('');
   // ranking selects
   $('rkMetric').innerHTML=
@@ -2097,7 +2128,7 @@ function populate(){
     '<optgroup label="Tiempo por subproceso (min/lote)">'+['arranque','prep','picking','despl','pesaje','traslado','consol','entre'].map(k=>opt(k,METRICS[k].label,false)).join('')+'</optgroup>'+
     '<optgroup label="Productividad por subproceso (min/ud)">'+['prodp_arranque','prodp_prep','prodp_picking','prodp_despl','prodp_pesaje','prodp_traslado','prodp_consol','prodp_entre'].map(k=>opt(k,METRICS[k].label.replace(' · productividad',''),false)).join('')+'</optgroup>'+
     '<optgroup label="Por desplazamiento">'+['despltot','ratio'].map(k=>opt(k,METRICS[k].label,false)).join('')+'</optgroup>';
-  $('rkArea').innerHTML=opt('__global','Todas (global)',true)+AREAS.map(a=>opt(a,a)).join('');
+  $('rkArea').innerHTML=opt('__global','Todas (global)',true)+viewAreas().map(a=>opt(a,a)).join('');
   fillSel($('rkShift'),ST.shifts,shiftLabel,s0);
   fillSel($('rkMes'),ST.meses,k=>ST.mesLabel[k],last);
   $('rkRef').innerHTML=ST.synthPresent.map(t=>opt(t,shortStore(t),t===OBJ_NAME)).join('')||opt(first,'Tienda '+first,true);
@@ -2288,6 +2319,8 @@ function renderAll(){
 const CHARTS=['cReal','cTrend','cPick','cDespl','cDesplTot','cCont','cFevo','cCaudal','cCaudalDonut','cParetoDonut'];
 function resizeCharts(){CHARTS.forEach(id=>{const el=$(id);if(el&&el.data)try{Plotly.Plots.resize(el);}catch(e){}});}
 window.addEventListener('resize',()=>{if(ST.analyzed||ST.mode==='rank')resizeCharts();});
+// Re-pinta el comparador (y el ranking) al cambiar Simple/Experto → PENDIENTES aparece/desaparece
+window.__rerenderComp=function(){ try{ if(ST.analyzed) renderAll(); }catch(e){} try{ if(ST.mode==='rank'&&typeof renderRank==='function') renderRank(); }catch(e){} };
 
 /* ===== PLOTLY BASE ===== */
 function baseLayout(extra){
@@ -2326,7 +2359,7 @@ function paretoData(){
 function renderSummary(){
   const av=MODEL.filter(m=>m.disponible);
   $('summaryScope').innerHTML=(ST.single?'Tienda: <b style="color:var(--brand)">'+ST.nameA+'</b> · ficha individual':'Analizado: <b style="color:var(--brand)">'+ST.nameA+'</b> · Referencia: <b style="color:var(--ink)">'+ST.nameB+'</b> · comparación por área')+' · productividad en <b>'+udName()+'</b>';
-  const rowsA=AREAS.map(a=>rowFor(curA,a)).filter(Boolean),rowsB=AREAS.map(a=>rowFor(curB,a)).filter(Boolean);
+  const rowsA=viewAreas().map(a=>rowFor(curA,a)).filter(Boolean),rowsB=viewAreas().map(a=>rowFor(curB,a)).filter(Boolean);
   const tgA=tiempoGlobal(rowsA),tgB=tiempoGlobal(rowsB),pgA=prodGlobal(rowsA),pgB=prodGlobal(rowsB);
   const impTot=av.reduce((s,m)=>s+(m.impacto||0),0);
   const nrev=av.filter(m=>m.estado==='crit'||m.estado==='revisar').length;
@@ -2507,14 +2540,14 @@ function renderRealControls(){
   $('realOrder').innerHTML='';
   $('realLegend').innerHTML=STACK_REAL.map(f=>'<span class="pl"><i style="background:'+cssv(f.col)+'"></i>'+f.name+'</span>').join('');
 }
-function ordenPorTiempo(){return [...AREAS].filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&m.ra;}).sort((a,b)=>{const ma=MODEL.find(x=>x.area===a),mb=MODEL.find(x=>x.area===b);return (mb.ra.total_min_util_medio||0)-(ma.ra.total_min_util_medio||0);});}
+function ordenPorTiempo(){return [...viewAreas()].filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&m.ra;}).sort((a,b)=>{const ma=MODEL.find(x=>x.area===a),mb=MODEL.find(x=>x.area===b);return (mb.ra.total_min_util_medio||0)-(ma.ra.total_min_util_medio||0);});}
 function renderReal(){
   const pct=ST.realUnit==='pct';const KEY=pct?PCTKEY:MINKEY;
   const STK=window.__GROUP?STACK_GROUPED:STACK_REAL;   // fases desglosadas o 4 bloques agrupados (selector global)
   const segVal=(row,f)=>{ if(!row)return null; if(f.keys){let s=0,any=false;f.keys.forEach(k=>{const v=row[KEY[k]];if(v!=null){s+=(pct?v*100:v);any=true;}});return any?s:null;} const v=row[KEY[f.k]]; return v==null?null:(pct?v*100:v); };
   $('realTitle').textContent='Composición del tiempo por lote · '+shortStore(curA.tienda)+(ST.single?'':' vs '+shortStore(curB.tienda))+' · '+(pct?'%':'minutos')+' · '+(window.__GROUP?'agrupado':'desglosado');
   $('realLegend').innerHTML=STK.map(f=>'<span class="pl"><i style="background:'+cssv(f.col)+'"></i>'+f.name+'</span>').join('');
-  const areas=[...AREAS].filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&(m.ra||m.rb);});
+  const areas=[...viewAreas()].filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&(m.ra||m.rb);});
   if(!areas.length){Plotly.purge('cReal');$('cReal').innerHTML='<div class="combo-none">Sin áreas comparables.</div>';return;}
   const totOf=row=>row?STK.reduce((s,f)=>s+(segVal(row,f)||0),0):null;
   const totMin=row=>row?STK.reduce((s,f)=>{ if(f.keys)return s+f.keys.reduce((x,k)=>x+(row[MINKEY[k]]||0),0); return s+(row[MINKEY[f.k]]||0); },0):null;
@@ -2549,7 +2582,7 @@ function renderReal(){
 // color por % de desviación frente a la referencia (unidad-agnóstico): satura a ~30% → mismo criterio para min/ud y min/lote
 function divColor(dv,ref){if(dv==null)return 'var(--panel2)';var base=(ref!=null&&isFinite(ref)&&ref!==0)?Math.abs(dv/ref):1;var t=Math.pow(Math.min(1,base/0.18),0.5);var rgb=dv>0?RGB.bad:RGB.good;return 'rgba('+rgb+','+(0.12+0.85*t).toFixed(3)+')';}
 // Color del faro por APORTE a la productividad: en objetivo (imp<=0) → sin color; peor → rojo escalado por el impacto (cuanto más aporta, más rojo = revisar primero)
-let _FMB=0,_FMP=0;
+let _FMB=0,_FMP=0,_PCTTA=0,_PCTTB=0;
 function impColor(imp,isTot){ if(imp==null||Math.abs(imp)<1e-4)return 'var(--panel2)'; var mx=isTot?_FMP:_FMB; if(!(mx>0))return 'var(--panel2)'; var t=Math.pow(Math.min(1,Math.abs(imp)/mx),0.6); return 'rgba('+(imp>0?RGB.bad:RGB.good)+','+(0.12+0.85*t).toFixed(3)+')'; }
 // ---- unidad del faro: 'min' (min/lote) · 'prod' (min/ud todas) · 'objof' (prep+pesaje min/ud; consol+entre min/lote) ----
 // Objetivo oficial: por unidad = picking, desplazamiento, pesaje (y sus bloques). Arranque (P1) es tiempo fijo
@@ -2557,12 +2590,12 @@ function impColor(imp,isTot){ if(imp==null||Math.abs(imp)<1e-4)return 'var(--pan
 const PERUD_K1=new Set(['p2','p3','p23','p4','g_prep','g_pes']);
 function faroConv(min,k,uds){ if(min==null)return null;
   if(ST.faroUnit==='min')return min;
-  const perUd=(ST.faroUnit==='prod')||PERUD_K1.has(k);
+  const perUd=(ST.faroUnit==='prod'||ST.faroUnit==='pct')||PERUD_K1.has(k);  // 'pct' usa min/ud en el detalle; en la matriz lo calcula cellOf
   if(!perUd)return min;                       // objof: consol/entre → min/lote
   if(!(uds>0))return null;
   return min/uds*MF(); }                       // min/ud, en la unidad global (MO o Mercadona ×1,08)
 function faroDec(k){ if(ST.faroUnit==='min')return 1; if(ST.faroUnit==='objof'&&!PERUD_K1.has(k))return 1; return 2; }
-function faroUnitLbl(){ return ST.faroUnit==='min'?'min':udName(); }
+function faroUnitLbl(){ return ST.faroUnit==='min'?'min':(ST.faroUnit==='pct'?'%':udName()); }
 function cellHTML(val,dv,imp,cv,ref,name,area,faseK,span,isTot,dec){
   dec=(dec==null)?1:dec;
   const spanSt=(span>1?' style="grid-column:span '+span+'"':'');
@@ -2590,11 +2623,22 @@ function renderMatrix(){
   $('faroDetail').innerHTML='';
   const grouped=!!window.__GROUP;
   $('matBody').classList.toggle('grouped',grouped);
-  const dispAreas=AREAS.filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&m.ra;});
+  const dispAreas=viewAreas().filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&m.ra;});
   if(!dispAreas.length){$('matBody').innerHTML='<div class="combo-none">Sin datos para el escenario analizado.</div>';$('matFoot').innerHTML='';return;}
   // valor de una fase/bloque en la unidad activa (min/lote, min/ud, u objetivo oficial mixto)
   function cellOf(m,k,keys){
     const rawA=keys?sumKeys(m.ra,keys):(m.ra?m.ra[MINKEY[k]]:null);
+    if(ST.faroUnit==='pct'){   // % de contribución de la fase al total del analizado (min de la fase / min totales), con delta vs referencia
+      const minA=(rawA!=null&&m.lotesA!=null)?rawA*m.lotesA:null;
+      const val=(minA!=null&&_PCTTA>0)?minA/_PCTTA*100:null;
+      if(ST.single)return {val,dv:null,imp:null,cD:null,ref:null,dec:1};
+      const rawB2=keys?sumKeys(m.rb,keys):(m.rb?m.rb[MINKEY[k]]:null);
+      const minB=(rawB2!=null&&m.lotesB!=null)?rawB2*m.lotesB:null;
+      const vb=(minB!=null&&_PCTTB>0)?minB/_PCTTB*100:null;
+      const dv=(val!=null&&vb!=null)?val-vb:null;
+      const imp=(rawA!=null&&rawB2!=null&&m.lotesA!=null)?(rawA-rawB2)*m.lotesA:null;
+      return {val,dv,imp,cD:dv,ref:vb,dec:1};
+    }
     const val=faroConv(rawA,k,m.udsA);
     if(ST.single)return {val,dv:null,imp:null,cD:null,ref:null,dec:faroDec(k)};  // ficha: sin comparación
     const rawB=keys?sumKeys(m.rb,keys):(m.rb?m.rb[MINKEY[k]]:null);
@@ -2612,25 +2656,35 @@ function renderMatrix(){
   // color por % de desviación frente a la referencia (cada celda con su propia referencia) → mismo criterio para todas las unidades
   const cols=grouped?FGRUPOS:FASES;
   const uStyle='display:block;font-size:8px;font-weight:600;color:var(--ink3);text-transform:none;letter-spacing:0';
-  const uSub=k=>'<span style="'+uStyle+'">'+(ST.faroUnit==='min'?'min/lote':((ST.faroUnit==='prod'||PERUD_K1.has(k))?'min/ud':'min'))+'</span>';
-  const isMinV=(ST.faroUnit==='min');
-  const tailLbl=isMinV?'Total lote':'Productividad', tailUnit='<span style="'+uStyle+'">'+(isMinV?'min/lote':udName())+'</span>';
+  const uSub=k=>'<span style="'+uStyle+'">'+(ST.faroUnit==='pct'?'%':(ST.faroUnit==='min'?'min/lote':((ST.faroUnit==='prod'||PERUD_K1.has(k))?'min/ud':'min')))+'</span>';
+  const isMinV=(ST.faroUnit==='min'), isPctV=(ST.faroUnit==='pct');
+  const tailLbl=isMinV?'Total lote':(isPctV?'Aporte al total':'Productividad'), tailUnit='<span style="'+uStyle+'">'+(isMinV?'min/lote':(isPctV?'%':udName()))+'</span>';
   let h='<div class="mxrow head"><div class="mxh"></div>'+cols.map(f=>'<div class="mxh"><i style="background:'+cssv(f.col)+'"></i>'+f.name+uSub(f.k)+'</div>').join('')+'<div class="mxh tot">'+tailLbl+tailUnit+'</div></div>';
   // LÓGICA INVERSA: cada fase por su aporte a la productividad (reparto por % de tiempo); columna resumen por el desvío de la prod. Σ aportes = desvío prod → prod roja ⇒ fase roja. _FMB=máx |aporte fase|, _FMP=máx |desvío prod área|.
+  // Vista %: totales de minutos (ponderados por nº de lotes) del analizado y de la referencia, para repartir la contribución
+  _PCTTA=0;_PCTTB=0;
+  if(isPctV){ dispAreas.forEach(a=>{ const m0=MODEL.find(x=>x.area===a);
+    if(m0.tiempoA!=null&&m0.lotesA!=null)_PCTTA+=m0.tiempoA*m0.lotesA;
+    if(m0.tiempoB!=null&&m0.lotesB!=null)_PCTTB+=m0.tiempoB*m0.lotesB; }); }
   _FMB=0;_FMP=0;
   dispAreas.forEach(a=>{ const m0=MODEL.find(x=>x.area===a);
-    areaCells(m0).forEach(o=>{ var cv=isMinV?o.c.dv:o.c.cD; if(cv!=null){ var v=Math.abs(cv); if(v>_FMB)_FMB=v; } });
-    var tv=isMinV?m0.dTiempo:((m0.prodA!=null&&m0.prodB!=null)?(m0.prodA-m0.prodB)*MF():null);
+    areaCells(m0).forEach(o=>{ var cv=(isMinV||isPctV)?o.c.dv:o.c.cD; if(cv!=null){ var v=Math.abs(cv); if(v>_FMB)_FMB=v; } });
+    var tv=isMinV?m0.dTiempo:(isPctV?((m0.tiempoA!=null&&m0.lotesA!=null&&m0.tiempoB!=null&&m0.lotesB!=null&&_PCTTA>0&&_PCTTB>0)?(m0.tiempoA*m0.lotesA/_PCTTA-m0.tiempoB*m0.lotesB/_PCTTB)*100:null):((m0.prodA!=null&&m0.prodB!=null)?(m0.prodA-m0.prodB)*MF():null));
     if(tv!=null&&Math.abs(tv)>_FMP)_FMP=Math.abs(tv);
   });
   dispAreas.forEach(a=>{
     const m=MODEL.find(x=>x.area===a);
     h+='<div class="mxrow"><div class="mxa" data-area="'+a+'">'+a+'</div>';
     const cells=areaCells(m);
-    cells.forEach(o=>{ var cv=isMinV?o.c.dv:o.c.cD; h+=cellHTML(o.c.val,o.c.dv,o.c.imp,cv,o.c.ref,o.name,a,o.k,o.span,false,o.c.dec); });
+    cells.forEach(o=>{ var cv=(isMinV||isPctV)?o.c.dv:o.c.cD; h+=cellHTML(o.c.val,o.c.dv,o.c.imp,cv,o.c.ref,o.name,a,o.k,o.span,false,o.c.dec); });
     // columna resumen: color por el desvío de la productividad oficial (prodA-prodB). Como el color de cada fase es su aporte (reparto de la prod por % de tiempo) y Σ aportes = este desvío, si la prod sale roja hay sí o sí una fase roja.
     if(isMinV){
       h+=cellHTML(m.tiempoA, ST.single?null:m.dTiempo, ST.single?null:((m.dTiempo!=null&&m.lotesA!=null)?m.dTiempo*m.lotesA:null), ST.single?null:m.dTiempo, m.tiempoB, 'Total del lote', a, 'total', 1, true, 1);
+    } else if(isPctV){
+      const aA=(m.tiempoA!=null&&m.lotesA!=null&&_PCTTA>0)?m.tiempoA*m.lotesA/_PCTTA*100:null;
+      const aB=(m.tiempoB!=null&&m.lotesB!=null&&_PCTTB>0)?m.tiempoB*m.lotesB/_PCTTB*100:null;
+      const aDv=(!ST.single&&aA!=null&&aB!=null)?aA-aB:null;
+      h+=cellHTML(aA, aDv, ST.single?null:m.impacto, aDv, aB, 'Aporte al total del área', a, 'prodcol', 1, true, 1);
     } else {
       const prA=(m.prodA!=null&&!isNaN(m.prodA))?m.prodA*MF():null, prB=(m.prodB!=null&&!isNaN(m.prodB))?m.prodB*MF():null;
       const prDv=(!ST.single&&prA!=null&&prB!=null)?prA-prB:null;
@@ -2703,7 +2757,7 @@ const AREA_COL={SECOS:'#4f8fe0',REFRIGERADO:'#38a9a0',CONGELADO:'#6cc2e0',FRESCO
 function areaColor(a){return AREA_COL[a]||'#8896ab';}
 function renderPareto(){
   if(!ST._paretoInit){ST._paretoInit=true;var _pu=$('paretoUnitSeg');if(_pu)_pu.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click',()=>{ST.paretoUnit=b.dataset.v;_pu.querySelectorAll('[data-v]').forEach(x=>x.classList.toggle('lo-on',x.dataset.v===ST.paretoUnit));renderPareto();}));}
-  const data=paretoData().filter(o=>o.imp>0).sort((a,b)=>b.imp-a.imp);
+  const data=paretoData().filter(o=>o.imp>0&&viewAreas().includes(o.area)).sort((a,b)=>b.imp-a.imp);
   const tEl=$('paretoTable');
   if(!data.length){
     if(tEl)tEl.innerHTML='<tbody><tr><td style="padding:16px;color:var(--ink3);font-family:Inter,sans-serif;font-weight:600">'+ST.nameA+' no acumula tiempo de más frente a '+ST.nameB+' en ninguna combinación área+fase. Nada que priorizar por aquí.</td></tr></tbody>';
@@ -2755,7 +2809,7 @@ function barGroupSem(id,kA,kB,areas,dec,h,eps){
 
 /* ===== PICKING / DESPLAZAMIENTO + RATIOS ===== */
 function renderPickDespl(){
-  const ad=AREAS_DESGLOSE.filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&m.disponible;}).sort((a,b)=>AREAS.indexOf(a)-AREAS.indexOf(b));
+  const ad=viewAreasD().filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&m.disponible;}).sort((a,b)=>AREAS.indexOf(a)-AREAS.indexOf(b));
   if(!ad.length){Plotly.purge('cPick');Plotly.purge('cDespl');$('ratioGrid').innerHTML='';$('pickNote').textContent='No hay áreas con separación fiable de picking y desplazamiento en estos escenarios.';return;}
   barGroupSem('cPick','p2A','p2B',ad,2,H.pick,0.1);
   barGroupSem('cDespl','p3A','p3B',ad,2,H.pick,0.1);
@@ -2773,7 +2827,7 @@ function renderPickDespl(){
 
 /* ===== DESPLAZAMIENTO TOTAL ===== */
 function renderDesplTot(){
-  const ad=AREAS_DESGLOSE.filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&m.disponible;}).sort((a,b)=>AREAS.indexOf(a)-AREAS.indexOf(b));
+  const ad=viewAreasD().filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&m.disponible;}).sort((a,b)=>AREAS.indexOf(a)-AREAS.indexOf(b));
   if(!ad.length){Plotly.purge('cDesplTot');$('desplTotNote').textContent='Sin áreas con desplazamiento total comparable.';return;}
   barGroupSem('cDesplTot','desplTotA','desplTotB',ad,2,H.pick,0.2);
   $('desplTotSub').innerHTML='arranque + desplazamiento + traslado + tiempo entre lotes · '+legendSem;
@@ -2787,7 +2841,7 @@ function renderDesplTot(){
 
 /* ===== TIEMPO ENTRE LOTES ===== */
 function renderCont(){
-  const ac=AREAS.filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&m.disponible&&(m.p7A!=null||m.p7B!=null);}).sort((a,b)=>AREAS.indexOf(a)-AREAS.indexOf(b));
+  const ac=viewAreas().filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&m.disponible&&(m.p7A!=null||m.p7B!=null);}).sort((a,b)=>AREAS.indexOf(a)-AREAS.indexOf(b));
   if(!ac.length){Plotly.purge('cCont');$('contNote').textContent='Sin datos de tiempo entre lotes.';return;}
   barGroupSem('cCont','p7A','p7B',ac,2,H.pick,0.1);
   $('contSub').innerHTML='analizado vs referencia · '+legendSem;
@@ -2817,8 +2871,8 @@ function renderDiffControls(){
 }
 function renderDiff(){
   const metric=ST.diffMetric, isUds=metric==='uds';
-  const rows=MODEL.filter(m=>m.disponible).map(m=>({m,imp:impactoDe(m,metric)}));
-  const nd=MODEL.filter(m=>!m.disponible);
+  const rows=MODEL.filter(m=>m.disponible&&viewAreas().includes(m.area)).map(m=>({m,imp:impactoDe(m,metric)}));
+  const nd=MODEL.filter(m=>!m.disponible&&viewAreas().includes(m.area));
   const fmtUds=n=>(n==null||isNaN(n))?'—':(n>0?'+':n<0?'−':'')+fmt(Math.abs(n),0)+' ud';
   let html=rows.map(({m,imp})=>{
     const v=valoresDe(m,metric);
@@ -2919,7 +2973,7 @@ function renderTrend(){
 // (v6.3) renderTrendInsights y renderTrendWatch eliminadas: no se invocaban desde ningún sitio
 
 /* ===== RADIOGRAFÍA ===== */
-function renderFichaTabs(){$('fichaTabs').innerHTML=AREAS.map(a=>{const m=MODEL.find(x=>x.area===a);let dc='';if(m&&m.disponible){if(m.estado==='crit'||m.estado==='revisar')dc='var(--bad)';else if(m.estado==='fuerte')dc='var(--good)';else if(m.estado==='estable')dc='var(--ref)';}const dot=dc?'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+dc+';margin-right:5px;vertical-align:middle;flex-shrink:0"></span>':'';return '<button class="tab'+(a===ST.fichaArea?' on':'')+'" data-fa="'+a+'">'+dot+a+'</button>';}).join('');$('fichaTabs').querySelectorAll('[data-fa]').forEach(b=>b.addEventListener('click',()=>{ST.fichaArea=b.dataset.fa;renderFichaTabs();renderFicha();}));}
+function renderFichaTabs(){$('fichaTabs').innerHTML=viewAreas().map(a=>{const m=MODEL.find(x=>x.area===a);let dc='';if(m&&m.disponible){if(m.estado==='crit'||m.estado==='revisar')dc='var(--bad)';else if(m.estado==='fuerte')dc='var(--good)';else if(m.estado==='estable')dc='var(--ref)';}const dot=dc?'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+dc+';margin-right:5px;vertical-align:middle;flex-shrink:0"></span>':'';return '<button class="tab'+(a===ST.fichaArea?' on':'')+'" data-fa="'+a+'">'+dot+a+'</button>';}).join('');$('fichaTabs').querySelectorAll('[data-fa]').forEach(b=>b.addEventListener('click',()=>{ST.fichaArea=b.dataset.fa;renderFichaTabs();renderFicha();}));}
 function fk(label,a,b,d,lower,dec,eps,neutral){const cls=neutral?'':(d==null?'':(Math.abs(d)<=(eps||0)?'':((lower?d<0:d>0)?'down':'up')));return '<div class="fk '+cls+'"><div class="l">'+label+'</div><div class="v">'+fmt(a,dec)+'</div><div class="d"><span>ref '+fmt(b,dec)+'</span>'+(neutral?'':deltaChip(d,lower,dec,'',eps))+'</div></div>';}
 const FASE2MK={p1:'arranque',p2:'picking',p3:'despl',p4:'pesaje',p5:'traslado',p6:'consol',p7:'entre',p23:'prep'};
 function renderFicha(){
@@ -3146,7 +3200,7 @@ $('pdf').addEventListener('click',()=>window.print());
 $('csv').addEventListener('click',()=>{
   const head=['area','prod_'+ST.nameA.replace(/[;,]/g,' '),'prod_'+ST.nameB.replace(/[;,]/g,' '),'dif_prod','tiempo_anal','tiempo_ref','dif_tiempo','despl_total_anal','ratio_dp_anal','impacto_min_mes','fase_explica','situacion'];
   const L=[head.join(';')];
-  MODEL.forEach(m=>L.push([m.area,m.prodA,m.prodB,m.dProd,m.tiempoA,m.tiempoB,m.dTiempo,m.desplTotA,m.ratioA,m.impacto,causaText(m),ESTADO_LBL[m.estado]].map(v=>v==null?'':String(v).replace('.',',')).join(';')));
+  MODEL.filter(m=>viewAreas().includes(m.area)).forEach(m=>L.push([m.area,m.prodA,m.prodB,m.dProd,m.tiempoA,m.tiempoB,m.dTiempo,m.desplTotA,m.ratioA,m.impacto,causaText(m),ESTADO_LBL[m.estado]].map(v=>v==null?'':String(v).replace('.',',')).join(';')));
   const b=new Blob(['\ufeff'+L.join('\n')],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='diagnostico_NTC.csv';a.click();URL.revokeObjectURL(u);
 });
 // Descargas (delegado a nivel documento → cubre gráficas y tablas de todos los bloques, incluso las que se pintan después)
@@ -3156,6 +3210,12 @@ function tableToCsv(id,name){const t=(typeof id==='string')?$(id):id;if(!t)retur
 document.addEventListener('click',function(e){
   const p=e.target.closest&&e.target.closest('[data-png]');
   if(p){const id=p.dataset.png;if($(id)&&$(id).data)Plotly.downloadImage(id,{format:'png',width:1200,height:620,scale:2,filename:p.dataset.pngname||id});return;}
+  // PNG de una TABLA (html2canvas): data-pngtbl="idDeLaTabla"
+  const pt=e.target.closest&&e.target.closest('[data-pngtbl]');
+  if(pt){ const el=$(pt.dataset.pngtbl);
+    if(typeof html2canvas==='undefined'){alert('No se pudo cargar la librería de captura (sin conexión).');return;}
+    if(el){ const bg=cssv('--panel','#fff'); html2canvas(el,{backgroundColor:bg,scale:2,useCORS:true}).then(cv=>{const a=document.createElement('a');a.download=(pt.dataset.pngname||pt.dataset.pngtbl)+'.png';a.href=cv.toDataURL('image/png');a.click();}).catch(err=>console.error(err)); }
+    return; }
   const c=e.target.closest&&e.target.closest('[data-csv]');
   if(c){tableToCsv(c.dataset.csv,c.dataset.csvname);}
 });
@@ -3273,6 +3333,8 @@ function fmtMes(m){ if(!m)return'—'; const d=mesDate(m); return isNaN(d)?m:d.t
 function aName(a){ if(a==='FYV')return'FYV'; if(a==='GLOBAL')return'Global'; if(a==='PENDIENTES')return'Pendientes'; return a.charAt(0)+a.slice(1).toLowerCase(); }
 
 const AREAS=['SECOS','REFRIGERADO','CONGELADO','FRESCOS','FYV','HORNO','PENDIENTES'];
+// En modo Simple PENDIENTES no se muestra (no está adherida a un objetivo). En Experto se ve todo.
+function viewAreas(){ return document.body.classList.contains('simple') ? AREAS.filter(a=>a!=='PENDIENTES') : AREAS; }
 const ACOL={SECOS:'#d6a64f',REFRIGERADO:'#4f8fe0',CONGELADO:'#5ec8d6',FRESCOS:'#26b079',FYV:'#7bc043',HORNO:'#e08a4f',PENDIENTES:'#9b8fd6'};
 const OBJ_PROD=0.306; const OBJ_MERC=0.306*1.08; // objetivo 0,306 MO (→0,33 Merca). Selección liebres sigue ≤0,315 (SQL + criterios)
 function MF(){return window.__MERC?1.08:1;}  // unidad global: MO=1, Mercadona=1,08 (solo min/ud)
@@ -3322,8 +3384,8 @@ function cvColUnit(k){ if(ST.mode==='pct')return '%'; if(ST.mode==='min')return 
 function cellInner2(v,isPct,mx,dec){ if(v==null||isNaN(v))return'<span class="lo-na">·</span>';
   return `<span>${isPct?es(v,1)+'%':es(v,dec)}</span>`; }
 
-const ST={corte:'util',mode:'min',uunit:'mo',per:'trim',mes:null,group:'agr',sel:null,detPer:'trim',monArea:'GLOBAL',
-  rkMetric:'g_real',rkOrder:'worst',rkCount:10,stCorte:'util',calcCorte:'util',calcView:'min',calcUnit:'merc',stSort:'prod',stSearch:'',stCount:20,
+const ST={corte:'util',mode:'objof',uunit:'mo',per:'trim',mes:null,group:'agr',sel:null,detPer:'trim',monArea:'GLOBAL',
+  rkMetric:'g_real',rkOrder:'worst',rkCount:10,stCorte:'util',calcCorte:'util',calcView:'objof',contribView:'pct',calcUnit:'merc',stSort:'prod',stSearch:'',stCount:20,
   objTrim:{},objMes:{},stTrim:{},stMes:{},glob:{trimGen:null,mesGen:{},trimStore:{},mesStore:{}},meses:[],stores:[],hasOf:false};
 
 window.loInit=function(){ if(window._loInit)return; window._loInit=1; Papa.parse(CSV_URL+(CSV_URL.includes('?')?'&':'?')+'cb='+Date.now(),{download:true,header:true,skipEmptyLines:true,
@@ -3357,7 +3419,7 @@ function build(data){
   
   document.getElementById('lo_mesSel').innerHTML=ST.meses.map(m=>`<option value="${m}">${fmtMes(m)}</option>`).join('');
   document.getElementById('lo_mesSel').value=ST.mes;
-  document.getElementById('lo_monArea').innerHTML='<option value="GLOBAL">Global (oficial)</option>'+AREAS.filter(a=>ST.objTrim[a]).map(a=>`<option value="${a}">${aName(a)}</option>`).join('');
+  document.getElementById('lo_monArea').innerHTML='<option value="GLOBAL">Global (oficial)</option>'+viewAreas().filter(a=>ST.objTrim[a]).map(a=>`<option value="${a}">${aName(a)}</option>`).join('');
   // selector de métricas del ranking (agrupado)
   {let og='',cur=''; rkMetrics().forEach(x=>{ if(x.grp&&x.grp!==cur){if(cur)og+='</optgroup>';og+=`<optgroup label="${x.grp}">`;cur=x.grp;} else if(!x.grp&&cur){og+='</optgroup>';cur='';} og+=`<option value="${x.k}">${x.lbl}</option>`; }); if(cur)og+='</optgroup>';
    const sel=document.getElementById('lo_rkMetric'); sel.innerHTML=og; sel.value=ST.rkMetric;}
@@ -3373,7 +3435,7 @@ function subActiva(){ return (ST.per==='mes'&&ST.mes&&ST.objMes[ST.mes])?ST.objM
 function globReal(){ return ST.glob.trimGen?ST.glob.trimGen.prod_real_oficial:NaN; }
 function globEfec(){ return ST.glob.trimGen?ST.glob.trimGen.prod_efec_oficial:NaN; }
 function estGlobalProd(src,key){ let su=0,sm=0; AREAS.forEach(a=>{const r=src[a];if(!r)return;const u=r.uds_total||0,p=r[key];if(!isNaN(p)){su+=u;sm+=p*u;}}); return su?sm/su:NaN; }
-function renderAll(){ renderHero(); renderMatrix(); renderCalc(); renderMonthly(); renderRanking(); renderStores(); if(ST.sel)renderDet(); renderFoot(); }
+function renderAll(){ renderHero(); renderContrib(); renderMatrix(); renderCalc(); renderMonthly(); renderRanking(); renderStores(); if(ST.sel)renderDet(); renderFoot(); }
 window.loRerender=function(){ if(window._loInit){try{renderAll();}catch(e){}} };  // re-pinta la vista objetivos al cambiar la unidad global
 
 /* ---------- CALCULADORA DE OBJETIVOS ---------- */
@@ -3437,19 +3499,49 @@ function renderCalc(){
   const colUC=d=>ST.calcView==='min'?'min/lote':(perUdC(d)?(merc?'min/ud Merca':'min/ud MO'):'min/lote');
   let head='<thead><tr><th class="lo-area">Área</th>';
   cs.forEach(d=>head+=`<th>${d.s}<span class="lo-sub">${colUC(d.k)}</span></th>`);
-  head+=(ST.calcView==='prod'?'':`<th class="lo-colgrp">Total<span class="lo-sub">min/lote</span></th>`)+`<th class="lo-colgrp">Prod obj<span class="lo-sub">${udName()}</span></th></tr></thead>`;
+  head+=(ST.calcView==='min'?`<th class="lo-colgrp">Total<span class="lo-sub">min/lote</span></th>`:'')+`<th class="lo-colgrp">Prod obj<span class="lo-sub">${udName()}</span></th></tr></thead>`;
   let body='<tbody>';
-  AREAS.forEach(a=>{ const r=ST.objTrim[a]; if(!r)return;
+  viewAreas().forEach(a=>{ const r=ST.objTrim[a]; if(!r)return;
     body+=`<tr><td class="lo-area"><span class="lo-adot" style="background:${ACOL[a]}"></span>${aName(a)}</td>`;
     cs.forEach(d=>{ const raw=mmin(r,C,d.k); if(isNaN(raw)){body+=`<td class="lo-cell"><span>·</span></td>`;return;}
       let val=raw*k, dec=2;
       if(perUdC(d.k)){const u=udsOf(r); if(!isNaN(u)){val=val/u*(merc?1.08:1); dec=3;}}
       body+=`<td class="lo-cell"><span>${es(val,dec)}</span></td>`; });
-    if(ST.calcView!=='prod'){const tot=(r[C.tot]||0)*k; body+=`<td class="lo-cell lo-tot lo-colgrp">${es(tot,2)}</td>`;}
+    if(ST.calcView==='min'){const tot=(r[C.tot]||0)*k; body+=`<td class="lo-cell lo-tot lo-colgrp">${es(tot,2)}</td>`;}
     const prMO=(r[C.prod])*k;
     body+=`<td class="lo-cell lo-prod lo-colgrp"><span>${es(prMO*MF(),3)}</span></td></tr>`;
   });
   document.getElementById('lo_calcTbl').innerHTML=head+body+'</tbody>';
+}
+
+/* ---------- CONTRIBUCIÓN AL OBJETIVO (de dónde sale la productividad) ---------- */
+function renderContrib(){
+  const el=document.getElementById('lo_contribTbl'); if(!el)return;
+  const C=cols(ST.corte), src=ST.objTrim, cs=activeCols(), AR=viewAreas(), pct=(ST.contribView!=='prod'), mf=MF();
+  let totMin=0,totUds=0;
+  AR.forEach(a=>{const r=src[a]; if(!r)return; const nl=r.n_lotes||0; totMin+=(r[C.tot]||0)*nl; totUds+=(r.uds_media_lote||0)*nl;});
+  const glob=totUds>0?totMin/totUds:NaN;
+  const cName=ST.corte==='efec'?"efectiva ≤6'":ST.corte==='par'?'solo paradas':"real ≤20'";
+  const cellMin=(r,k)=>{const v=mmin(r,C,k); return isNaN(v)?0:v*(r.n_lotes||0);};   // minutos de la fase = min/lote × nº de lotes
+  const val=m=> pct ? (totMin>0? m/totMin*100 : NaN) : (totUds>0? m/totUds*mf : NaN);   // % del total, o min/ud que aporta al global
+  const sfx=pct?'%':'', dec=pct?1:3, uni=pct?'%':udName();
+  document.getElementById('lo_contribSum').innerHTML=
+    `<div class="lo-cs"><div class="lo-cs-l">Productividad global objetivo · ${cName}</div><div class="lo-cs-v">${es(glob*mf,3)}<small> ${udName()}</small></div></div>`;
+  let head='<thead><tr><th class="lo-area">Área</th>';
+  cs.forEach(d=>head+=`<th>${d.s}<span class="lo-sub">${uni}</span></th>`);
+  head+=`<th class="lo-colgrp">Total área<span class="lo-sub">${uni}</span></th></tr></thead>`;
+  let body='<tbody>'; const colTot={}; let grand=0;
+  AR.forEach(a=>{ const r=src[a]; if(!r)return;
+    body+=`<tr><td class="lo-area"><span class="lo-adot" style="background:${ACOL[a]}"></span>${aName(a)}</td>`;
+    let rowMin=0;
+    cs.forEach(d=>{ const m=cellMin(r,d.k); rowMin+=m; colTot[d.k]=(colTot[d.k]||0)+m; body+=`<td class="lo-cell"><span>${es(val(m),dec)}${sfx}</span></td>`; });
+    grand+=rowMin;
+    body+=`<td class="lo-cell lo-tot lo-colgrp"><span>${es(val(rowMin),dec)}${sfx}</span></td></tr>`;
+  });
+  body+='<tr class="lo-sel"><td class="lo-area"><b>Total</b></td>';
+  cs.forEach(d=>body+=`<td class="lo-cell lo-tot"><span>${es(val(colTot[d.k]||0),dec)}${sfx}</span></td>`);
+  body+=`<td class="lo-cell lo-tot lo-colgrp"><span>${es(val(grand),dec)}${sfx}</span></td></tr>`;
+  el.innerHTML=head+body+'</tbody>';
 }
 
 /* ---------- TOOLTIP ---------- */
@@ -3478,12 +3570,12 @@ function renderHero(){
        <div>Efectiva (corte 6)<b>${es(efecD,3)}</b></div>
        <div>vs objetivo<b class="${okR?'lo-ok':'lo-bad'}">${(realD-objD>=0?'+':'')+es(realD-objD,3)}</b></div>
      </div>`;
-  let maxTot=0; AREAS.forEach(a=>{const r=src[a];if(r)maxTot=Math.max(maxTot,r[C.tot]||0);});
+  let maxTot=0; viewAreas().forEach(a=>{const r=src[a];if(r)maxTot=Math.max(maxTot,r[C.tot]||0);});
   document.getElementById('lo_faroCorte').textContent='· '+(ST.corte==='efec'?'efectivo':ST.corte==='par'?'solo paradas':'con paradas');
   // reparto por área: agrupado = 4 bloques (MACROS); desglosado = fases individuales (sigue el botón global)
   const SEG=window.__GROUP?MACROS:[{k:'p1',name:'Arranque',col:'#8089cc',sub:'P1'},{k:'pd',name:'Picking+Despl',col:'#16b87f',sub:'P2+P3'},{k:'pes',name:'Pesaje',col:'#e3ad57',sub:'P4'},{k:'p5',name:'Traslado',col:'#54a6da',sub:'P5'},{k:'p6',name:'Consolidación',col:'#bd7ec0',sub:'P6'},{k:'p7',name:'Entre lotes',col:'#8694ac',sub:'P7'}];
   let h='';
-  AREAS.forEach(a=>{ const r=src[a]; if(!r)return; const tot=r[C.tot]||0;
+  viewAreas().forEach(a=>{ const r=src[a]; if(!r)return; const tot=r[C.tot]||0;
     let segs=''; SEG.forEach(mc=>{ const v=mmin(r,C,mc.k)||0; const w=tot>0?v/tot*100:0;
       segs+=`<div class="lo-fseg" data-nm="${mc.name}" data-min="${es(v,2)}" data-pct="${es(w,0)}" style="width:${w}%;background:${mc.col}">${w>12?es(v,1):''}</div>`; });
     const barW=maxTot>0?Math.max(8,tot/maxTot*100):0;
@@ -3499,21 +3591,22 @@ function renderHero(){
 
 /* ---------- MATRIX ---------- */
 function renderMatrix(){
-  const C=cols(ST.corte), src=subActiva(), isPct=(ST.mode==='pct'), cs=activeCols();
-  const totUnit=isPct?'%':(ST.mode==='prod'?udLbl():'min/lote');
+  const C=cols(ST.corte), src=subActiva(), isPct=(ST.mode==='pct'), cs=activeCols(), AR=viewAreas();
+  const showTot=(ST.mode==='min'||ST.mode==='pct');   // Total (min/lote) solo en Tiempo y %; en Prod y Objetivo oficial NO
+  const totUnit=isPct?'%':'min/lote';
   let head='<thead><tr><th class="lo-area">Área</th>';
   cs.forEach(d=>head+=`<th>${d.s}<span class="lo-sub">${cvColUnit(d.k)}</span></th>`);
-  if(ST.mode!=='prod')head+=`<th class="lo-colgrp">Total<span class="lo-sub">${totUnit}</span></th>`;
+  if(showTot)head+=`<th class="lo-colgrp">Total<span class="lo-sub">${totUnit}</span></th>`;
   head+=`<th class="lo-colgrp">Prod<span class="lo-sub">${udName()} · oficial</span></th>`;
   head+='</tr></thead>';
-  const maxByK={}; if(!isPct){ cs.forEach(d=>{let mx=0;AREAS.forEach(a=>{const v=cvVal(src[a],C,d.k);if(!isNaN(v))mx=Math.max(mx,v);});maxByK[d.k]=mx;}); }
+  const maxByK={}; if(!isPct){ cs.forEach(d=>{let mx=0;AR.forEach(a=>{const v=cvVal(src[a],C,d.k);if(!isNaN(v))mx=Math.max(mx,v);});maxByK[d.k]=mx;}); }
   let body='<tbody>';
-  AREAS.forEach(a=>{ const r=src[a]; if(!r)return;
+  AR.forEach(a=>{ const r=src[a]; if(!r)return;
     body+=`<tr><td class="lo-area"><span class="lo-adot" style="background:${ACOL[a]}"></span>${aName(a)}</td>`;
     cs.forEach(d=>{ const v=cvVal(r,C,d.k); body+=`<td class="lo-cell">${cellInner2(v,isPct,maxByK[d.k],cvDec(d.k))}</td>`; });
-    if(ST.mode!=='prod'){const tv=cvTot(r,C); body+=`<td class="lo-cell lo-tot lo-colgrp">${isPct?'100%':es(tv,2)}</td>`;}
+    if(showTot){const tv=cvTot(r,C); body+=`<td class="lo-cell lo-tot lo-colgrp">${isPct?'100%':es(tv,2)}</td>`;}
     const pr=C.prod?r[C.prod]:NaN;
-    body+= C.prod? `<td class="lo-cell lo-prod ${pr<=OBJ_PROD?'lo-ok':'lo-bad'} lo-colgrp"><span>${es(pr*MF(),3)}</span></td>`
+    body+= C.prod? `<td class="lo-cell lo-prod ${pr<=OBJ_PROD?'lo-ok':'lo-bad'} lo-colgrp"><span>${es(pr*MF(),3)}</span></td>`   // matriz: verde=cumple objetivo, rojo=no
                  : `<td class="lo-cell lo-na lo-colgrp"><span>—</span></td>`;
     body+='</tr>';
   });
@@ -3569,11 +3662,11 @@ function rkMetrics(){
     {k:'g_real',lbl:'Productividad global · real (≤20)',get:t=>storeOf(t,'real'),sec:t=>storeOf(t,'efec'),obj:()=>isNaN(globReal())?estGlobalProd(ST.objTrim,'prod_total_min_ud_media'):globReal(),unit:'min/ud',dec:3},
     {k:'g_efec',lbl:'Productividad global · efectiva (≤6)',get:t=>storeOf(t,'efec'),sec:t=>storeOf(t,'real'),obj:()=>isNaN(globEfec())?estGlobalProd(ST.objTrim,'prod_efectiva_min_ud_media'):globEfec(),unit:'min/ud',dec:3},
   ];
-  AREAS.filter(a=>ST.objTrim[a]).forEach(a=>L.push({k:'pa_'+a,grp:'Productividad por área',lbl:aName(a),
+  viewAreas().filter(a=>ST.objTrim[a]).forEach(a=>L.push({k:'pa_'+a,grp:'Productividad por área',lbl:aName(a),
     get:t=>{const r=ST.stTrim[t]&&ST.stTrim[t][a];return r?r.prod_total_min_ud_media:NaN;},
     sec:t=>{const r=ST.stTrim[t]&&ST.stTrim[t][a];return r?r.prod_efectiva_min_ud_media:NaN;},
     obj:()=>ST.objTrim[a].prod_total_min_ud_media,unit:'min/ud',dec:3}));
-  AREAS.filter(a=>ST.objTrim[a]).forEach(a=>L.push({k:'ta_'+a,grp:'Tiempo de lote por área',lbl:aName(a),
+  viewAreas().filter(a=>ST.objTrim[a]).forEach(a=>L.push({k:'ta_'+a,grp:'Tiempo de lote por área',lbl:aName(a),
     get:t=>{const r=ST.stTrim[t]&&ST.stTrim[t][a];return r?r.total_min_util_medio:NaN;},
     sec:t=>{const r=ST.stTrim[t]&&ST.stTrim[t][a];return r?r.total_min_efec_medio:NaN;},
     obj:()=>ST.objTrim[a].total_min_util_medio,unit:'min/lote',dec:2}));
@@ -3586,15 +3679,22 @@ function renderRanking(){
   let arr=ST.stores.map(t=>({t,v:M.get(t)*rf,s:M.sec(t)*rf})).filter(x=>!isNaN(x.v)).map(x=>({...x,d:x.v-obj}));
   arr.sort((a,b)=> ST.rkOrder==='worst' ? b.d-a.d : a.d-b.d);
   const N=ST.rkCount>=999?arr.length:ST.rkCount, top=arr.slice(0,N);
-  const mxd=Math.max(0.0001,...arr.map(x=>Math.abs(x.d)));
-  const bigLbl=M.unit.includes('lote')?"t/lote ≤20'":"real ≤20'";
-  const smallLbl=M.k.startsWith('ta_')?"efec ≤6'":(M.k==='g_efec'?"real ≤20'":"efec ≤6'");
-  let h='<div class="lo-rkrow" style="cursor:default;grid-template-columns:1fr auto;color:var(--ink2);font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px"><div>Tienda · objetivo '+es(obj,dd)+' '+uLbl+'</div><div style="text-align:right">'+bigLbl+' · <span style="color:var(--ink3)">'+smallLbl+'</span></div></div>';
-  top.forEach(x=>{ const slow=x.d>0;
-    h+=`<div class="lo-rkrow" style="grid-template-columns:1fr auto" onclick="loSelStore('${x.t}')"><div class="lo-rkname">${window.stName(x.t)||('Tienda '+x.t)}</div>
-      <div class="lo-rkval"><span style="color:${slow?'var(--up)':'var(--down)'}">${es(x.v,dd)}</span><small style="color:var(--ink3)">${es(x.s,dd)}</small><span class="lo-delta ${slow?'lo-up':'lo-down'}">${slow?'▲':'▼'} ${es(Math.abs(x.d),dd)}</span></div></div>`;
+  const bigLbl=M.unit.includes('lote')?"Tiempo/lote ≤20'":"Real ≤20'";
+  const smallLbl=M.k.startsWith('ta_')?"Efec ≤6'":(M.k==='g_efec'?"Real ≤20'":"Efec ≤6'");
+  let h='<div class="lo-tbl-wrap"><table class="lo-mx lo-rktbl"><thead><tr>'
+    +'<th class="lo-area" style="width:40px">#</th><th class="lo-area">Tienda</th>'
+    +`<th class="lo-colgrp">${bigLbl}<span class="lo-sub">${uLbl}</span></th>`
+    +`<th>${smallLbl}<span class="lo-sub">${uLbl}</span></th>`
+    +`<th class="lo-colgrp">Distancia al objetivo<span class="lo-sub">obj ${es(obj,dd)} ${uLbl}</span></th></tr></thead><tbody>`;
+  top.forEach((x,i)=>{ const slow=x.d>0;
+    h+=`<tr class="lo-clk" onclick="loSelStore('${x.t}')"><td class="lo-area" style="color:var(--ink3);font-weight:800">${i+1}</td>`
+      +`<td class="lo-area">${window.stName(x.t)||('Tienda '+x.t)}</td>`
+      +`<td class="lo-cell lo-colgrp"><span style="color:${slow?'var(--up)':'var(--down)'}">${es(x.v,dd)}</span></td>`
+      +`<td class="lo-cell"><span style="color:var(--ink3)">${es(x.s,dd)}</span></td>`
+      +`<td class="lo-cell lo-colgrp"><span style="color:${slow?'var(--up)':'var(--down)'};font-weight:800">${slow?'+':'−'}${es(Math.abs(x.d),dd)}</span></td></tr>`;
   });
-  document.getElementById('lo_rkBox').innerHTML=h+`<div style="font-size:11px;color:var(--ink3);margin-top:10px">Centro = objetivo (${es(obj,dd)} ${uLbl}). Número grande = ${M.unit.includes('lote')?'tiempo/lote':'real'}; gris pequeño = ${M.k.startsWith('ta_')?'efectivo':(M.k==='g_efec'?'real':'efectiva')}. Mostrando ${top.length} de ${arr.length}.</div>`;
+  if(!top.length)h+='<tr><td class="lo-area">—</td><td class="lo-cell lo-na" colspan="4"><span>Sin datos</span></td></tr>';
+  document.getElementById('lo_rkBox').innerHTML=h+`</tbody></table></div><div style="font-size:11px;color:var(--ink3);margin-top:10px">Objetivo ${es(obj,dd)} ${uLbl}. Distancia <b>+</b> = por encima del objetivo (más lento); <b>−</b> = por debajo (más rápido). Mostrando ${top.length} de ${arr.length}.</div>`;
 }
 
 /* ---------- STORES ---------- */
@@ -3616,20 +3716,20 @@ function renderStores(){
   const sub=(ST.stCorte==='par'?udName()+' paradas':udName());
   const og=globObjCorte();
   let h='<thead><tr><th class="lo-area">Tienda</th>';
-  AREAS.forEach(a=>h+=`<th><span class="lo-adot" style="background:${ACOL[a]};margin-right:5px"></span>${a==='PENDIENTES'?'PEND':a.slice(0,5)}<span class="lo-sub">${sub}</span></th>`);
+  viewAreas().forEach(a=>h+=`<th><span class="lo-adot" style="background:${ACOL[a]};margin-right:5px"></span>${a==='PENDIENTES'?'PEND':a.slice(0,5)}<span class="lo-sub">${sub}</span></th>`);
   h+=`<th class="lo-colgrp">Global<span class="lo-sub">${sub}</span></th></tr></thead><tbody>`;
   list.forEach(t=>{ const m=ST.stTrim[t]||{};
     h+=`<tr class="lo-clk ${ST.sel===t?'lo-sel':''}" onclick="loSelStore('${t}')"><td class="lo-area">${window.stName(t)||('Tienda '+t)}</td>`;
-    AREAS.forEach(a=>{ const r=m[a]; if(!r){h+='<td class="lo-cell lo-na"><span>·</span></td>';return;}
+    viewAreas().forEach(a=>{ const r=m[a]; if(!r){h+='<td class="lo-cell lo-na"><span>·</span></td>';return;}
       const v=stCorteVal(r),o=stCorteVal(ST.objTrim[a]),d=v-o;
-      h+=`<td class="lo-cell lo-prod ${isNaN(d)?'':(d<=0?'lo-ok':'lo-bad')}"><span>${es(v*MF(),3)}</span></td>`; });
+      h+=`<td class="lo-cell lo-prod ${isNaN(d)?'':(d<=0?'lo-ok':'lo-bad')}"><span>${es(v*MF(),3)}</span></td>`; });   // liebre: verde=más rápida que el objetivo, rojo=más lenta
     const pg=storeGlobCorte(t),dg=pg-og; h+=`<td class="lo-cell lo-prod ${isNaN(dg)?'':(dg<=0?'lo-ok':'lo-bad')} lo-tot lo-colgrp"><span>${es(pg*MF(),3)}</span></td></tr>`;
   });
   if(!list.length)h+='<tr><td class="lo-area">—</td><td class="lo-cell lo-na" colspan="8"><span>Sin resultados</span></td></tr>';
   document.getElementById('lo_stTbl').innerHTML=h+'</tbody>';
   try{var _n=document.getElementById('lo_stNote');if(_n)_n.textContent='Mostrando '+list.length+' de '+totalN+' tiendas'+(ST.stSearch?' · búsqueda "'+ST.stSearch+'"':'')+'.';}catch(e){}
 }
-window.loSelStore=function(t){ ST.sel=String(t); if(ST.detPer!=='trim'&&!(ST.stMes[t]&&ST.stMes[t][ST.detPer]))ST.detPer='trim'; renderStores(); renderDet(); try{var _d=document.getElementById('lo_stDet');if(_d)_d.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){} };
+window.loSelStore=function(t){ ST.sel=String(t); if(ST.detPer!=='trim'&&!(ST.stMes[t]&&ST.stMes[t][ST.detPer]))ST.detPer='trim'; renderStores(); renderDet(); try{var _d=document.getElementById('secLiebre')||document.getElementById('lo_stDet');if(_d)_d.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){} };
 window.loSetDetPer=function(p){ ST.detPer=p; renderDet(); };
 window.loCloseDet=function(){ ST.sel=null; renderStores(); renderDet(); };
 window.loRerenderStores=function(){ try{renderStores();}catch(e){} try{renderRanking();}catch(e){} };
@@ -3648,7 +3748,7 @@ function renderDet(){
     <div class="lo-seg lo-sm" id="lo_detPerSeg">${pers}</div></div>`;
   h+='<div class="lo-tbl-wrap"><table class="lo-mx"><thead><tr><th class="lo-area">Área</th>';
   cs.forEach(d=>h+=`<th>${d.s}</th>`); h+=`<th class="lo-colgrp">Total</th><th>Prod</th><th>vs obj área</th></tr></thead><tbody>`;
-  AREAS.forEach(a=>{ const r=m[a]; if(!r)return; const o=objSrc[a];
+  viewAreas().forEach(a=>{ const r=m[a]; if(!r)return; const o=objSrc[a];
     h+=`<tr><td class="lo-area"><span class="lo-adot" style="background:${ACOL[a]}"></span>${aName(a)}</td>`;
     cs.forEach(d=>h+=`<td class="lo-cell"><span>${es(mmin(r,C,d.k),2)}</span></td>`);
     h+=`<td class="lo-cell lo-tot lo-colgrp">${es(r[C.tot],2)}</td>`;
@@ -3673,7 +3773,8 @@ function renderFoot(){
 /* ---------- eventos ---------- */
 function seg(id,fn){const el=document.getElementById(id);el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;[...el.children].forEach(c=>c.classList.remove('lo-on'));b.classList.add('lo-on');fn(b.dataset.v);});}
 function wire(){
-  seg('lo_corteSeg',v=>{ST.corte=v;renderHero();renderMatrix();if(ST.sel)renderDet();});
+  seg('lo_corteSeg',v=>{ST.corte=v;renderHero();renderContrib();renderMatrix();if(ST.sel)renderDet();});
+  seg('lo_contribViewSeg',v=>{ST.contribView=v;renderContrib();});
   seg('lo_calcCorteSeg',v=>{ST.calcCorte=v;renderCalc();});
   seg('lo_calcViewSeg',v=>{ST.calcView=v;renderCalc();});
   document.getElementById('lo_calcTarget').addEventListener('input',renderCalc);
@@ -4066,7 +4167,12 @@ function downloadRank(){ if(!LOADED)return; const arr=rankData(), by=RK.by;
   const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
   const u=URL.createObjectURL(blob),a=document.createElement('a'); a.href=u; a.download='caudal_ranking.csv'; a.click(); URL.revokeObjectURL(u);
 }
-window.addEventListener('resize',()=>{ if(LOADED&&$('caudalTab')&&$('caudalTab').style.display!=='none'){ try{Plotly.Plots.resize('cd_chart');}catch(e){} } });
+// Resize robusto del chart de Caudal: debounce + ResizeObserver del contenedor (evita que se quede "encogido" al agrandar/achicar la ventana)
+let _cdRT=null;
+function cdResize(){ if(!LOADED)return; const box=$('cd_chart'); if(!box||!box.data)return; if($('caudalTab')&&$('caudalTab').style.display==='none')return; if(box.clientWidth<10)return; try{Plotly.Plots.resize(box);}catch(e){} }
+function cdResizeSoon(){ clearTimeout(_cdRT); _cdRT=setTimeout(cdResize,140); }
+window.addEventListener('resize',cdResizeSoon);
+try{ if(window.ResizeObserver){ const _b=$('cd_chart'); if(_b)new ResizeObserver(cdResizeSoon).observe(_b); } }catch(e){}
 })();
 </script>
 <script>
@@ -4082,6 +4188,9 @@ window.addEventListener('resize',()=>{ if(LOADED&&$('caudalTab')&&$('caudalTab')
     apply(m);
     // Objetivos no es para modo Simple: al pasar a Simple estando en Objetivos, ir a Comparar tienda
     if(m==='simple'){ var mo=document.getElementById('mObj'); if(mo&&mo.classList.contains('on')){ var mc=document.getElementById('mComp'); if(mc) mc.click(); } }
+    // PENDIENTES aparece/desaparece según el modo → re-pintar comparador y objetivos
+    try{ if(window.__rerenderComp) window.__rerenderComp(); }catch(e){}
+    try{ if(window.loRerender) window.loRerender(); }catch(e){}
     setTimeout(function(){
       try{ window.dispatchEvent(new Event('resize')); }catch(e){}
       try{ if(window.Plotly) document.querySelectorAll('.js-plotly-plot').forEach(function(el){ try{ window.Plotly.Plots.resize(el); }catch(e){} }); }catch(e){}
