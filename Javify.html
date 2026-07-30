@@ -2146,8 +2146,7 @@ function populate(){
   fillSel($('rkShift'),ST.shifts,shiftLabel,s0);
   fillSel($('rkMes'),ST.meses,k=>ST.mesLabel[k],last);
   $('rkRef').innerHTML=ST.synthPresent.map(t=>opt(t,shortStore(t),t===OBJ_NAME)).join('')||opt(first,'Tienda '+first,true);
-  ['mA','sA','mB','sB','nA','nB'].forEach(id=>$(id).addEventListener('change',preview));
-  ['nA','nB'].forEach(id=>$(id).addEventListener('input',e=>{e.target.dataset.touched=e.target.value.trim()?'1':'';preview();}));
+  ['mA','sA','mB','sB'].forEach(id=>$(id).addEventListener('change',preview));
   $('trArea').addEventListener('change',()=>{ST.trArea=$('trArea').value;refreshTrMetricOptions();if(ST.analyzed)renderTrend();});
   $('trMetric').addEventListener('change',()=>{if(ST.analyzed)renderTrend();});
   ['rkMetric','rkArea','rkShift','rkMes','rkRef','rkVet','rkModel','rkLimit'].forEach(id=>$(id).addEventListener('change',renderRank));
@@ -2160,7 +2159,7 @@ function smartName(s,other){
   const dT=s.tienda!==other.tienda,dM=s.mesKey!==other.mesKey,dS=s.shift!==other.shift,sameYear=s.mesKey.slice(0,4)===other.mesKey.slice(0,4);
   const parts=[];if(dT||(!dT&&!dM&&!dS))parts.push(shortStore(s.tienda));if(dM)parts.push(mesCorto(s.mesKey,!sameYear));if(dS)parts.push(shiftLabel(s.shift));if(!parts.length)parts.push(shortStore(s.tienda));return parts.join(' · ');
 }
-function syncAutoNames(){['A','B'].forEach(w=>{const inp=$('n'+w);if(inp.dataset.touched!=='1')inp.value=smartName(scn(w),scn(w==='A'?'B':'A'));});}
+function syncAutoNames(){['A','B'].forEach(w=>{const inp=$('n'+w);if(inp&&inp.dataset.touched!=='1')inp.value=smartName(scn(w),scn(w==='A'?'B':'A'));});}
 function resolveNames(){const A=scn('A'),B=scn('B'),_nA=$('nA'),_nB=$('nB'),cA=_nA?_nA.value.trim():'',cB=_nB?_nB.value.trim():'';ST.nameA=cA||smartName(A,B);ST.nameB=cB||smartName(B,A);if(ST.nameA===ST.nameB){ST.nameA+=' (analizado)';ST.nameB+=' (ref.)';}}
 function preview(){syncAutoNames();resolveNames();$('pvA').textContent=ST.nameA;$('pvB').textContent=ST.nameB;}
 
