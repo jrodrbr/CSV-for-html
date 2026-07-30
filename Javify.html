@@ -360,6 +360,8 @@ optgroup{font-weight:800;font-style:normal;color:var(--ink2)}
 .cbox-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px}
 .ctitle{font-size:14px;font-weight:750}
 .csub{font-size:11.5px;color:var(--ink2);margin-top:3px;line-height:1.4}
+/* En móvil, la cabecera de las cajas (título + subtítulo + su selector) se apila ordenada en vez de descentrarse */
+@media(max-width:640px){.cbox-hd{flex-wrap:wrap}.cbox-hd>div:first-child{flex:1 1 100%;min-width:0}.cbox-hd>select{width:100%!important;min-width:0!important;margin-top:8px}}
 .chart{width:100%;margin-top:8px}
 .png,.csv{position:absolute;top:15px;right:17px;z-index:4;padding:6px 11px;border-radius:8px;background:var(--panel2);border:1px solid var(--line2);color:var(--ink2);font:inherit;font-size:10px;font-weight:750;cursor:pointer;transition:.15s}
 .png:hover,.csv:hover{color:var(--ink);border-color:var(--brand)}
@@ -483,6 +485,7 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outlin
 /* ===== tabla de fases (radiografía con valores absolutos) ===== */
 .ptable-wrap{overflow-x:auto}
 .ptable{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
+#fichaFaseTbl{min-width:660px}   /* 6 columnas: en iPhone hace scroll horizontal en vez de solaparse */
 .ptable th{text-align:right;padding:9px 13px;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink3);font-weight:750;border-bottom:1px solid var(--line2);white-space:nowrap}
 .ptable th:first-child{text-align:left}
 .ptable td{padding:11px 13px;border-bottom:1px solid var(--line);text-align:right;font-family:ui-monospace,monospace;font-weight:600;white-space:nowrap}
@@ -791,6 +794,8 @@ details.calc .calc-cards{padding-bottom:14px;margin-top:0}
 }
 /* Faro agrupado (Juntar): 4 bloques en vez de 7 fases */
 .mxgrid.grouped{min-width:0}
+/* Faro agrupado: las cabeceras de bloque envuelven (muestran la palabra entera) en vez de recortarse por el medio en móvil */
+.mxgrid.grouped .mxh{white-space:normal;overflow:visible;line-height:1.12;overflow-wrap:anywhere;padding-left:2px;padding-right:2px}
 .mxgrid.grouped .mxrow{grid-template-columns:140px repeat(4,1fr) 116px}
 @media(max-width:620px){ .mxgrid.grouped .mxrow{grid-template-columns:92px repeat(4,1fr) 84px;gap:4px} }
 
@@ -1436,7 +1441,7 @@ body.simple #secPick .grid.g2{display:none!important}
     <div class="sec" id="secDiff">
       <div class="sec-hd"><div>
         <div class="sec-n">Dónde actuar primero · impacto</div>
-        <div class="sec-h">Diferencias frente a la referencia, ordenadas por impacto</div>
+        <div class="sec-h">Diferencias frente a la referencia</div>
         <div class="sec-s">La diferencia traducida a <b>tiempo al mes</b> (impacto). La línea de color es el analizado; la gris, la referencia.</div>
       </div>
       <div class="modes" id="diffMetric"></div></div>
@@ -1512,7 +1517,7 @@ body.simple #secPick .grid.g2{display:none!important}
     <div class="sec" id="secFicha">
       <div class="sec-hd"><div>
         <div class="sec-n">Radiografía por área</div>
-        <div class="sec-h">Todo el detalle, con valores reales</div>
+        <div class="sec-h">Todo el detalle</div>
         <div class="sec-s">Todo el detalle del área: tiempos, composición del lote, picking/desplazamiento y evolución.</div>
       </div></div>
       <div class="tabs" id="fichaTabs" style="margin-bottom:18px"></div>
@@ -1879,7 +1884,6 @@ body.simple #secPick .grid.g2{display:none!important}
   <button class="tg" id="groupBtn" title="Fases agrupadas en 4 bloques o desglosadas. Afecta al faro, la composición, objetivos y tendencias.">Vista: Desglosado</button>
   <button class="tg" id="unitBtn" title="Unidad de la productividad: MO (Mercadona Online) o Mercadona (×1,08). Tiempos y caudal no cambian.">Unidad: MO</button>
   <button class="tg" id="themeBtn">Tema: Claro</button>
-  <button class="tg" id="fsBtn" title="Pantalla completa: oculta la barra superior de la ventana (ideal para presentar). Sal con Esc o con este botón.">Pantalla completa</button>
 </div>
 <button class="fab" id="fab" style="display:none"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3c4.97 0 9 3.36 9 7.5S16.97 18 12 18c-1.02 0-2-.13-2.9-.37L4 19l1.2-3.3C4.16 14.4 3 12.6 3 10.5 3 6.36 7.03 3 12 3Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><circle cx="8.5" cy="10.5" r="1" fill="currentColor"/><circle cx="12" cy="10.5" r="1" fill="currentColor"/><circle cx="15.5" cy="10.5" r="1" fill="currentColor"/></svg></button>
 <div class="assistant" id="assistant">
@@ -2416,10 +2420,12 @@ function renderSummary(){
     const chip=(v,bg)=>v?'<span style="display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:'+(bg||'var(--panel3)')+';border:1px solid var(--line2);color:var(--ink2)">'+v+'</span>':'';
     const titulo=gA.center_name||shortStore(curA.tienda);
     const vetTxt=gA.estado==='Veterana'?'Veterana':gA.estado==='Sintética: todas'?'':'No veterana';
+    const _liebreReal=!SYNTH.includes(curA.tienda)&&curA.tienda!==OBJ_NAME;
+    const liebreChip=(_liebreReal&&window.__liebreSet)?(window.__liebreSet.has(String(curA.tienda))?chip('Tienda liebre','var(--brand-soft)'):chip('No liebre')):'';
     $('execSummary').innerHTML='<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(135deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:18px 22px;margin-bottom:14px">'+
       '<div style="flex:1;min-width:220px"><div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--brand)">Tienda analizada</div>'+
       '<div style="font-size:19px;font-weight:850;margin-top:3px">'+titulo+'</div>'+
-      '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'+chip(gA.region&&('Región '+gA.region))+chip(gA.zona&&('Zona '+gA.zona))+chip(gA.model)+chip(vetTxt,gA.estado==='Veterana'?'var(--brand-soft)':'var(--panel3)')+'</div></div>'+
+      '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'+chip(gA.region&&('Región '+gA.region))+chip(gA.zona&&('Zona '+gA.zona))+chip(gA.model)+chip(vetTxt,gA.estado==='Veterana'?'var(--brand-soft)':'var(--panel3)')+liebreChip+'</div></div>'+
       '<div style="text-align:right"><div style="font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px">'+(ST.mesLabel[curA.mesKey]||'')+'</div><div style="font-size:12px;color:var(--ink2);margin-top:2px">'+(gA.n_dias!=null?fmt(gA.n_dias,0)+' días con datos':'')+'</div></div>'+
       '</div>';
     // ---- PRODUCTIVIDADES (real y efectiva vs objetivo 0,315 + uds/día) ----
@@ -3421,6 +3427,7 @@ function build(data){
   }
   ST.meses=Object.keys(ST.objMes).sort((a,b)=>mesDate(a)-mesDate(b));
   ST.stores=Object.keys(ST.stTrim).sort((a,b)=>(+a||0)-(+b||0));
+  try{ window.__liebreSet=new Set(ST.stores.map(String)); if(window.__rerenderComp)window.__rerenderComp(); }catch(e){}   // lista de tiendas liebre para el resumen del comparador
   ST.mes=ST.meses[ST.meses.length-1]||null;
 
   
@@ -4214,21 +4221,8 @@ try{ if(window.ResizeObserver){ const _b=$('cd_chart'); if(_b)new ResizeObserver
   if(x) x.addEventListener('click',function(){ p.classList.remove('open'); });
   document.addEventListener('click',function(e){ if(p.classList.contains('open') && !p.contains(e.target) && e.target!==f && !f.contains(e.target)) p.classList.remove('open'); });
 })();
-/* Botón Pantalla completa (API Fullscreen): oculta la barra superior de la ventana de la app */
-(function(){
-  var b=document.getElementById('fsBtn'); if(!b) return;
-  var isFs=function(){ return document.fullscreenElement||document.webkitFullscreenElement; };
-  var sync=function(){ b.textContent=isFs()?'Salir de pantalla completa':'Pantalla completa'; };
-  b.addEventListener('click',function(){
-    try{
-      if(!isFs()){ var el=document.documentElement; (el.requestFullscreen||el.webkitRequestFullscreen).call(el); }
-      else{ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
-    }catch(e){}
-  });
-  document.addEventListener('fullscreenchange',sync);
-  document.addEventListener('webkitfullscreenchange',sync);
-  sync();
-})();
+/* Precarga la vista Objetivos en segundo plano (oculta) tras cargar → deja lista la lista de tiendas liebre para el resumen del comparador, sin tener que abrir la pestaña */
+window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window.loInit) window.loInit(); }catch(e){} }, 800); });
 </script>
 </body>
 </html>
