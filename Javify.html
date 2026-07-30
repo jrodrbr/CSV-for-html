@@ -1302,13 +1302,13 @@ body.simple #secPick .grid.g2{display:none!important}
         <div class="scn a">
           <div class="scn-h"><div class="scn-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v9l5 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg></div><div class="scn-name">Escenario analizado<small>El que quieres estudiar</small></div></div>
           <div class="fld"><label for="tA">Tienda</label><div class="combo"><input class="combo-in" id="tA" placeholder="Buscar tienda (código o nombre)…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="tApop"><div class="combo-pop" id="tApop" role="listbox"></div></div></div>
-          <div class="f3" style="margin-top:12px"><div class="fld"><label for="mA">Mes</label><select id="mA"></select></div><div class="fld"><label for="sA">Turno</label><select id="sA"></select></div><div class="fld"><label for="nA">Nombre</label><input class="tin" id="nA" placeholder="Nombre a mostrar"></div></div>
+          <div class="f3" style="margin-top:12px"><div class="fld"><label for="mA">Mes</label><select id="mA"></select></div><div class="fld"><label for="sA">Turno</label><select id="sA"></select></div></div>
           <div class="quick" style="margin-top:12px"><button class="qb" data-q="swap">⇄ Intercambiar con la referencia</button></div>
         </div>
         <div class="scn b">
           <div class="scn-h"><div class="scn-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 18V9m5 9V5m5 13v-7m5 7V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><div class="scn-name">Referencia<small>Con qué lo comparas</small></div></div>
           <div class="fld"><label for="tB">Tienda</label><div class="combo"><input class="combo-in" id="tB" placeholder="Buscar tienda o referencia…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="tBpop"><div class="combo-pop" id="tBpop" role="listbox"></div></div></div>
-          <div class="f3" style="margin-top:12px"><div class="fld"><label for="mB">Mes</label><select id="mB"></select></div><div class="fld"><label for="sB">Turno</label><select id="sB"></select></div><div class="fld"><label for="nB">Nombre</label><input class="tin" id="nB" placeholder="Nombre a mostrar"></div></div>
+          <div class="f3" style="margin-top:12px"><div class="fld"><label for="mB">Mes</label><select id="mB"></select></div><div class="fld"><label for="sB">Turno</label><select id="sB"></select></div></div>
           <div class="quick" style="margin-top:12px"><span class="quick-l">Atajos para la referencia</span><button class="qb" data-q="copy">Mismo mes y turno</button><button class="qb" data-q="prev">Mes anterior</button><button class="qb" data-q="shift">Turno opuesto</button></div>
         </div>
       </div>
@@ -1473,8 +1473,8 @@ body.simple #secPick .grid.g2{display:none!important}
         <div class="sec-s">La preparación separada en <b>picking</b> (coger) y <b>desplazamiento</b> (moverse), con su mix y ratio. Frescos y FYV no se separan.</div>
       </div></div>
       <div class="grid g2" style="margin-bottom:16px">
-        <div class="cbox"><div class="cbox-in"><button class="png" data-png="cPick">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle">Picking · min/lote</div><div class="csub">coger producto · analizado vs referencia</div></div></div><div class="chart" id="cPick"></div></div></div>
-        <div class="cbox"><div class="cbox-in"><button class="png" data-png="cDespl">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle">Desplazamiento · min/lote</div><div class="csub">moverse por el área · analizado vs referencia</div></div></div><div class="chart" id="cDespl"></div></div></div>
+        <div class="cbox"><div class="cbox-in"><button class="png" data-png="cPick">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle">Picking · min/ud</div><div class="csub">coger producto · productividad (min/ud, escala con las unidades) · analizado vs referencia</div></div></div><div class="chart" id="cPick"></div></div></div>
+        <div class="cbox"><div class="cbox-in"><button class="png" data-png="cDespl">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle">Desplazamiento · min/lote</div><div class="csub">moverse por el área · min/lote (según el recorrido, no las unidades) · analizado vs referencia</div></div></div><div class="chart" id="cDespl"></div></div></div>
       </div>
       <div class="ctitle" style="margin-bottom:4px">Equilibrio picking / desplazamiento por área</div>
       <div class="csub" style="margin-bottom:12px">qué parte de la preparación es cada cosa, y el ratio desplazamiento ÷ picking frente a la referencia</div>
@@ -1951,9 +1951,9 @@ const METRICS={
   entre:{label:'Tiempo entre lotes',unit:'min',dec:2,col:'p7_min_medio'},
   // bloques agrupados (para la tendencia en vista Agrupado): suman las fases del bloque
   m_prep:{label:'Preparación',unit:'min',dec:2,sumk:['p1','p2','p3','p23']},
-  m_pes:{label:'Pesaje (P4)',unit:'min',dec:2,col:'p4_min_medio'},
-  m_cons:{label:'Consolidación (P5+P6)',unit:'min',dec:2,sumk:['p5','p6']},
-  m_entre:{label:'Entre lotes (P7)',unit:'min',dec:2,col:'p7_min_medio'},
+  m_pes:{label:'Pesaje',unit:'min',dec:2,col:'p4_min_medio'},
+  m_cons:{label:'Consolidación',unit:'min',dec:2,sumk:['p5','p6']},
+  m_entre:{label:'Entre lotes',unit:'min',dec:2,col:'p7_min_medio'},
   // productividad (min/ud) por subproceso: minutos de la fase ÷ uds/lote (respeta la unidad global MO/Merca)
   prodp_arranque:{label:'Arranque · productividad',unit:'min/ud',dec:3,col:'p1_min_medio',perud:true},
   prodp_prep:{label:'Preparación · productividad',unit:'min/ud',dec:3,sumk:['p1','p2','p3','p23'],perud:true},
@@ -2025,7 +2025,7 @@ function mesKeyFromCell(v){if(v==null)return '';const t=String(v).trim();let m=t
 function mesLabel(k){const m=k.match(/^(\d{4})-(\d{2})$/);if(m){const me=MESES_ES[+m[2]-1];return (me?me.charAt(0).toUpperCase()+me.slice(1):m[2])+' '+m[1];}return k;}
 function mesCorto(k,withYear){const m=k.match(/^(\d{4})-(\d{2})$/);if(!m)return k;const me=MESES_ES[+m[2]-1];const c=me?me.charAt(0).toUpperCase()+me.slice(1):m[2];return withYear?c+' '+m[1]:c;}
 function setStatus(t,s){var d=$('dotTxt');if(d)d.textContent=t;var o=$('dot');if(o)o.className='sdot'+(s?(' '+s):'');}
-function shortStore(t){return t==='Tiendas Veteranas'?'Veteranas':t==='Todas las tiendas'?'Todas las tiendas':t==='Objetivos Tiendas Liebre'?'Objetivo':'Tienda '+t;}
+function shortStore(t){return t==='Tiendas Veteranas'?'Veteranas':t==='Todas las tiendas'?'Todas las tiendas':t==='Objetivos Tiendas Liebre'?'Liebres':'Tienda '+t;}
 let _cssvCache={}; // caché de variables CSS: getComputedStyle es costoso y cssv() se llama en cada render
 function cssv(n){let v=_cssvCache[n];if(v===undefined){v=getComputedStyle(document.documentElement).getPropertyValue(n).trim();_cssvCache[n]=v;}return v;}
 /* ===== OBJETIVOS TIENDAS LIEBRE (CSV de la calculadora) como tienda de referencia ===== */
@@ -2161,7 +2161,7 @@ function smartName(s,other){
   const parts=[];if(dT||(!dT&&!dM&&!dS))parts.push(shortStore(s.tienda));if(dM)parts.push(mesCorto(s.mesKey,!sameYear));if(dS)parts.push(shiftLabel(s.shift));if(!parts.length)parts.push(shortStore(s.tienda));return parts.join(' · ');
 }
 function syncAutoNames(){['A','B'].forEach(w=>{const inp=$('n'+w);if(inp.dataset.touched!=='1')inp.value=smartName(scn(w),scn(w==='A'?'B':'A'));});}
-function resolveNames(){const A=scn('A'),B=scn('B'),cA=$('nA').value.trim(),cB=$('nB').value.trim();ST.nameA=cA||smartName(A,B);ST.nameB=cB||smartName(B,A);if(ST.nameA===ST.nameB){ST.nameA+=' (analizado)';ST.nameB+=' (ref.)';}}
+function resolveNames(){const A=scn('A'),B=scn('B'),_nA=$('nA'),_nB=$('nB'),cA=_nA?_nA.value.trim():'',cB=_nB?_nB.value.trim():'';ST.nameA=cA||smartName(A,B);ST.nameB=cB||smartName(B,A);if(ST.nameA===ST.nameB){ST.nameA+=' (analizado)';ST.nameB+=' (ref.)';}}
 function preview(){syncAutoNames();resolveNames();$('pvA').textContent=ST.nameA;$('pvB').textContent=ST.nameB;}
 
 document.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click',()=>{
@@ -2346,6 +2346,8 @@ function baseLayout(extra){
     legend:{orientation:'h',y:1.13,x:0,font:{color:ink2,size:10.5},bgcolor:'rgba(0,0,0,0)'},
     hoverlabel:{font:{family:'-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,Helvetica,Arial,sans-serif',size:12},bordercolor:line2},barmode:'stack',bargap:0.42};
   const lay=Object.assign(base,extra||{});
+  // Tooltips: como máximo 3 decimales (antes salían hasta 6). Respeta el yaxis que traiga cada gráfica.
+  lay.yaxis=Object.assign({hoverformat:'.3~f'},lay.yaxis||{});
   // En móvil: sin zoom/pan (no hay botón de reset y un toque accidental rompía la gráfica)
   if(typeof window!=='undefined'&&window.innerWidth<=640){
     lay.xaxis=Object.assign({},lay.xaxis,{fixedrange:true});
@@ -2827,7 +2829,9 @@ function barGroupSem(id,kA,kB,areas,dec,h,eps){
 function renderPickDespl(){
   const ad=viewAreasD().filter(a=>{const m=MODEL.find(x=>x.area===a);return m&&m.disponible;}).sort((a,b)=>AREAS.indexOf(a)-AREAS.indexOf(b));
   if(!ad.length){Plotly.purge('cPick');Plotly.purge('cDespl');$('ratioGrid').innerHTML='';$('pickNote').textContent='No hay áreas con separación fiable de picking y desplazamiento en estos escenarios.';return;}
-  barGroupSem('cPick','p2A','p2B',ad,2,H.pick,0.1);
+  // Picking = productividad (min/ud): escala con las unidades del lote. Desplazamiento = min/lote (depende del recorrido, no de las uds).
+  ad.forEach(a=>{const m=MODEL.find(x=>x.area===a); m._pickAud=(m.p2A!=null&&m.udsA)?m.p2A/m.udsA*MF():null; m._pickBud=(m.p2B!=null&&m.udsB)?m.p2B/m.udsB*MF():null;});
+  barGroupSem('cPick','_pickAud','_pickBud',ad,3,H.pick,0.1);
   barGroupSem('cDespl','p3A','p3B',ad,2,H.pick,0.1);
   $('ratioGrid').innerHTML=ad.map(a=>{
     const m=MODEL.find(x=>x.area===a),pk=m.pctPickA!=null?m.pctPickA*100:null,dp=m.pctDesplA!=null?m.pctDesplA*100:null;
