@@ -113,15 +113,17 @@ table.lo-mx tbody tr.lo-sel td,table.lo-mx tbody tr.lo-sel td.lo-area{background
 .lo-rkval{font-family:ui-monospace,monospace;font-weight:800;font-size:12.5px;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:8px}
 /* Ranking de objetivos como tabla: dar espacio a la columna Tienda (que se vea el nombre completo) */
 /* Ranking: números con ancho FIJO (siempre visibles) y Tienda se lleva el resto (nombre entero, normalmente en una línea) */
+/* Ranking: la regla base "table.lo-mx td.lo-area{width:118px}" (más específica) dejaba Tienda estrecha.
+   Con el prefijo table.lo-mx.lo-rktbl gano en especificidad: números con ancho FIJO (siempre visibles) y Tienda ocupa el RESTO. */
 .lo-rktbl{table-layout:fixed;width:100%}
-.lo-rktbl th{white-space:normal;line-height:1.15}
-.lo-rktbl td{white-space:nowrap}
-.lo-rktbl th:nth-child(1),.lo-rktbl td:nth-child(1){width:32px;text-align:center}          /* # */
-.lo-rktbl th:nth-child(2),.lo-rktbl td:nth-child(2){white-space:normal;line-height:1.2}    /* Tienda: SIN width → ocupa el ancho sobrante */
-.lo-rktbl th:nth-child(3),.lo-rktbl td:nth-child(3){width:76px;text-align:right}           /* valor */
-.lo-rktbl th:nth-child(4),.lo-rktbl td:nth-child(4){width:70px;text-align:right}           /* efectivo */
-.lo-rktbl th:nth-child(5),.lo-rktbl td:nth-child(5){width:104px;text-align:right}          /* distancia */
-.lo-rktbl td.lo-area{font-weight:700}
+table.lo-mx.lo-rktbl th{white-space:normal;line-height:1.15}
+table.lo-mx.lo-rktbl td{white-space:nowrap}
+table.lo-mx.lo-rktbl td.lo-area,table.lo-mx.lo-rktbl th.lo-area{position:static}   /* # y Tienda no van sticky (evita solape de las dos primeras) */
+table.lo-mx.lo-rktbl th:nth-child(1),table.lo-mx.lo-rktbl td:nth-child(1){width:40px;text-align:center}          /* # */
+table.lo-mx.lo-rktbl th:nth-child(2),table.lo-mx.lo-rktbl td:nth-child(2){width:auto;white-space:normal;text-overflow:clip;line-height:1.2;font-weight:700}   /* Tienda: RESTO del ancho */
+table.lo-mx.lo-rktbl th:nth-child(3),table.lo-mx.lo-rktbl td:nth-child(3){width:80px;text-align:right}           /* valor */
+table.lo-mx.lo-rktbl th:nth-child(4),table.lo-mx.lo-rktbl td:nth-child(4){width:72px;text-align:right}           /* efectivo */
+table.lo-mx.lo-rktbl th:nth-child(5),table.lo-mx.lo-rktbl td:nth-child(5){width:108px;text-align:right}          /* distancia */
 
 .lo-det{margin-top:16px;border:1px solid var(--line2);border-radius:var(--r);background:var(--bg2);padding:16px 18px}
 .lo-det-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
