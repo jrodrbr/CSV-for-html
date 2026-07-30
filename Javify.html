@@ -2830,7 +2830,7 @@ function renderPickDespl(){
   if(!ad.length){Plotly.purge('cPick');Plotly.purge('cDespl');$('ratioGrid').innerHTML='';$('pickNote').textContent='No hay áreas con separación fiable de picking y desplazamiento en estos escenarios.';return;}
   // Picking = productividad (min/ud): escala con las unidades del lote. Desplazamiento = min/lote (depende del recorrido, no de las uds).
   ad.forEach(a=>{const m=MODEL.find(x=>x.area===a); m._pickAud=(m.p2A!=null&&m.udsA)?m.p2A/m.udsA*MF():null; m._pickBud=(m.p2B!=null&&m.udsB)?m.p2B/m.udsB*MF():null;});
-  barGroupSem('cPick','_pickAud','_pickBud',ad,3,H.pick,0.1);
+  barGroupSem('cPick','_pickAud','_pickBud',ad,3,H.pick,0.005);   // min/ud: umbral fino para que salga verde/rojo (0,1 era de min/lote)
   barGroupSem('cDespl','p3A','p3B',ad,2,H.pick,0.1);
   $('ratioGrid').innerHTML=ad.map(a=>{
     const m=MODEL.find(x=>x.area===a),pk=m.pctPickA!=null?m.pctPickA*100:null,dp=m.pctDesplA!=null?m.pctDesplA*100:null;
