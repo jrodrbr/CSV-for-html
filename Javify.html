@@ -1423,17 +1423,19 @@ body.simple #mObj{display:none!important}
       <div id="faroDetail" style="margin-top:16px"></div>
     </div>
 
-    <!-- TIEMPOS REALES -->
-    <div class="sec" id="secReal">
-      <div class="sec-hd">
-        <div>
-          <div class="sec-n">Tiempos reales</div>
-          <div class="sec-h">Cuánto tarda cada tipo de lote y en qué se va</div>
-          <div class="sec-s">Tiempo total por lote y su reparto por fases. En Frescos y FYV la preparación va en un único bloque.</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start"><div class="modes" id="realWho"></div><div class="modes" id="realOrder"></div></div>
+    <!-- PARETO ÁREA + FASE (junto al mapa de calor) -->
+    <div class="sec" id="secPareto">
+      <div class="sec-hd"><div>
+        <div class="sec-n">Prioridad · área + fase</div>
+        <div class="sec-h">Qué revisar primero</div>
+        <div class="sec-s">Cada fila es un <b>área + fase</b> ordenada por cuánto aporta a la productividad media mensual. Pulsa para ver su detalle.</div>
       </div>
-      <div class="cbox"><div class="cbox-in"><button class="png" data-png="cReal" data-pngname="composicion_tiempo">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle" id="realTitle">Composición del tiempo por área</div><div class="csub">minutos por lote · el número al final es el tiempo total del lote · pasa el ratón por cada tramo para el detalle</div></div></div><div class="chart" id="cReal"></div><div class="proc-legend" id="realLegend"></div></div></div>
+      <div class="lo-seg lo-sm" id="paretoUnitSeg" style="flex:none"><button data-v="prod" class="lo-on">Productividad</button><button data-v="tiempo">Tiempo</button></div></div>
+      <div class="grid" style="grid-template-columns:1.7fr 1fr;gap:16px;align-items:start">
+        <div class="cbox"><div class="cbox-in" style="padding-top:38px"><button class="csv" data-csv="paretoTable" data-csvname="prioridad_area_fase">⤓ CSV</button><div class="ptable-wrap" style="max-height:340px;overflow:auto"><table class="ptable" id="paretoTable"></table></div></div></div>
+        <div class="cbox"><div class="cbox-in"><button class="png" data-png="cParetoDonut">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle">Reparto por área</div><div class="csub">de más frente a la referencia</div></div></div><div class="chart" id="cParetoDonut" style="height:310px"></div></div></div>
+      </div>
+      <div class="notice info" style="margin-top:14px"><span class="ic">i</span><span id="paretoNote">—</span></div>
     </div>
 
     <!-- DÓNDE ACTUAR -->
@@ -1449,19 +1451,17 @@ body.simple #mObj{display:none!important}
       <div class="notice info" style="margin-top:14px"><span class="ic">i</span><span id="diffNote">—</span></div>
     </div>
 
-    <!-- PARETO ÁREA + FASE -->
-    <div class="sec" id="secPareto">
-      <div class="sec-hd"><div>
-        <div class="sec-n">Prioridad · área + fase</div>
-        <div class="sec-h">Qué combinación revisar primero</div>
-        <div class="sec-s">Cada fila es un <b>área + fase</b> ordenada por cuánto aporta a la productividad media mensual. Pulsa para ver su detalle.</div>
+    <!-- TIEMPOS REALES (debajo de Diferencias) -->
+    <div class="sec" id="secReal">
+      <div class="sec-hd">
+        <div>
+          <div class="sec-n">Tiempos reales</div>
+          <div class="sec-h">Cuánto tarda cada tipo de lote y en qué se va</div>
+          <div class="sec-s">Tiempo total por lote y su reparto por fases. En Frescos y FYV la preparación va en un único bloque.</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start"><div class="modes" id="realWho"></div><div class="modes" id="realOrder"></div></div>
       </div>
-      <div class="lo-seg lo-sm" id="paretoUnitSeg" style="flex:none"><button data-v="prod" class="lo-on">Productividad</button><button data-v="tiempo">Tiempo</button></div></div>
-      <div class="grid" style="grid-template-columns:1.7fr 1fr;gap:16px;align-items:start">
-        <div class="cbox"><div class="cbox-in" style="padding-top:38px"><button class="csv" data-csv="paretoTable" data-csvname="prioridad_area_fase">⤓ CSV</button><div class="ptable-wrap" style="max-height:340px;overflow:auto"><table class="ptable" id="paretoTable"></table></div></div></div>
-        <div class="cbox"><div class="cbox-in"><button class="png" data-png="cParetoDonut">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle">Reparto por área</div><div class="csub">de más frente a la referencia</div></div></div><div class="chart" id="cParetoDonut" style="height:310px"></div></div></div>
-      </div>
-      <div class="notice info" style="margin-top:14px"><span class="ic">i</span><span id="paretoNote">—</span></div>
+      <div class="cbox"><div class="cbox-in"><button class="png" data-png="cReal" data-pngname="composicion_tiempo">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle" id="realTitle">Composición del tiempo por área</div><div class="csub">minutos por lote · el número al final es el tiempo total del lote · pasa el ratón por cada tramo para el detalle</div></div></div><div class="chart" id="cReal"></div><div class="proc-legend" id="realLegend"></div></div></div>
     </div>
 
     <!-- PREPARACIÓN: PICKING / DESPLAZAMIENTO + RATIOS -->
@@ -2709,7 +2709,7 @@ function renderMatrix(){
     h+='</div>';
   });
   $('matBody').innerHTML=h;
-  $('matBody').querySelectorAll('.mxc[data-fase]').forEach(c=>c.addEventListener('click',()=>renderFaroDetail(c.dataset.area,c.dataset.fase)));
+  $('matBody').querySelectorAll('.mxc[data-fase]').forEach(c=>c.addEventListener('click',()=>{renderFaroDetail(c.dataset.area,c.dataset.fase);requestAnimationFrame(()=>{var fd=$('faroDetail');if(fd)fd.scrollIntoView({behavior:'smooth',block:'center'});});}));
   $('matBody').querySelectorAll('.mxa[data-area]').forEach(c=>c.addEventListener('click',()=>{ST.fichaArea=c.dataset.area;renderFichaTabs();renderFicha();$('secFicha').scrollIntoView({behavior:'smooth',block:'start'});}));
   $('matFoot').innerHTML=ST.single
     ? '<div class="mx-imp-legend">Ficha de la tienda · valores propios, sin comparación · pulsa una celda para su tendencia de 12 meses</div>'
@@ -3305,7 +3305,7 @@ function loadGeneral(){
 (function reorderDash(){
   const dash=$('dash'); if(!dash)return;
   // secFlow (El proceso) se queda primero como intro; el resto en este orden:
-  ['secSummary','secTrend','secCorte','secMatrix','secDiff','secPareto','secReal','secPick','secDesplTot','secCont','secFicha']
+  ['secSummary','secTrend','secCorte','secMatrix','secPareto','secDiff','secReal','secPick','secDesplTot','secCont','secFicha']
     .forEach(id=>{const el=document.getElementById(id);if(el)dash.appendChild(el);});
 })();
 
