@@ -1242,6 +1242,18 @@ body.simple #mObj{display:none!important}
 @media(max-width:640px){
   #cfgPanel{right:12px;left:12px;width:auto;max-width:none;bottom:calc(76px + env(safe-area-inset-bottom))}
 }
+/* Botón de info de unidades en el resumen ("Lo más importante") + su popover */
+.uinfo{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;position:relative;top:-2px;margin-left:9px;width:21px;height:21px;padding:0;border-radius:50%;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);cursor:pointer;transition:color .15s,border-color .15s}
+.uinfo:hover,.uinfo:focus-visible{color:var(--brand);border-color:var(--brand);outline:none}
+.uinfo svg{width:12px;height:12px}
+.uinfo-pop{position:fixed;z-index:80;max-width:290px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.28);padding:13px 15px;font-size:12.5px;line-height:1.5;color:var(--ink2)}
+.uinfo-pop[hidden]{display:none}
+.uinfo-pop b{color:var(--ink);font-weight:750}
+.uinfo-go{margin-top:11px;display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:750;padding:7px 13px;border-radius:8px;border:1px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer}
+.uinfo-go svg{width:14px;height:14px}
+.uinfo-go:hover{filter:brightness(1.06)}
+@keyframes uPulse{0%{box-shadow:0 0 0 0 rgba(22,184,127,.55)}70%{box-shadow:0 0 0 12px rgba(22,184,127,0)}100%{box-shadow:0 0 0 0 rgba(22,184,127,0)}}
+.pulse-hi{animation:uPulse 1.1s ease-out 2}
 
 /* ==================================================================
    v7.11 · anti-zoom comparador + ranking compacto + fase con … (2026-07-23)
@@ -1389,7 +1401,7 @@ body.simple #mObj{display:none!important}
     <div class="sec" id="secSummary">
       <div class="sec-hd"><div>
         <div class="sec-n">Resumen</div>
-        <div class="sec-h">Lo más importante de un vistazo</div>
+        <div class="sec-h">Lo más importante de un vistazo<button class="uinfo" id="uinfo" type="button" aria-label="Sobre las unidades: MO o Mercadona"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12" y2="8"/></svg></button></div>
         <div class="sec-s" id="summaryScope">—</div>
       </div></div>
       <div id="execSummary"></div>
@@ -1647,7 +1659,7 @@ body.simple #mObj{display:none!important}
         <div class="lo-ctrls">
           <div class="lo-fld"><label>Corte</label>
             <div class="lo-seg lo-sm" id="lo_calcCorteSeg"><button data-v="util" class="lo-on">Con paradas ≤20'</button><button data-v="efec">Efectivo ≤6'</button></div></div>
-          <div class="lo-fld"><label for="lo_calcTarget">Productividad objetivo</label><input class="lo-tin" id="lo_calcTarget" value="0,33" style="min-width:110px"></div>
+          <div class="lo-fld"><label for="lo_calcTarget">Productividad objetivo</label><input class="lo-tin" id="lo_calcTarget" value="0,306" style="min-width:110px"></div>
           <div class="lo-fld"><label>Ver tabla como</label>
             <div class="lo-seg lo-sm" id="lo_calcViewSeg"><button data-v="objof" class="lo-on">Objetivo oficial</button><button data-v="min">Min / lote</button><button data-v="prod">Prod (min/ud)</button></div></div>
           <div class="lo-fld"><label>Fijar como oficiales</label>
@@ -2024,7 +2036,16 @@ function mesKeyFromCell(v){if(v==null)return '';const t=String(v).trim();let m=t
 function mesLabel(k){const m=k.match(/^(\d{4})-(\d{2})$/);if(m){const me=MESES_ES[+m[2]-1];return (me?me.charAt(0).toUpperCase()+me.slice(1):m[2])+' '+m[1];}return k;}
 function mesCorto(k,withYear){const m=k.match(/^(\d{4})-(\d{2})$/);if(!m)return k;const me=MESES_ES[+m[2]-1];const c=me?me.charAt(0).toUpperCase()+me.slice(1):m[2];return withYear?c+' '+m[1]:c;}
 function setStatus(t,s){var d=$('dotTxt');if(d)d.textContent=t;var o=$('dot');if(o)o.className='sdot'+(s?(' '+s):'');}
-function shortStore(t){return t==='Tiendas Veteranas'?'Veteranas':t==='Todas las tiendas'?'Todas las tiendas':t==='Objetivos Tiendas Liebre'?'Liebres':'Tienda '+t;}
+const LIEBRE_HIST='__LIEBRE_HIST__';   // media histórica de las tiendas liebre (se agrega en cliente)
+function sNorm(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+function shortStore(t){
+  if(t===LIEBRE_HIST)return 'Tiendas Liebre';
+  if(t==='Tiendas Veteranas')return 'Veteranas';
+  if(t==='Todas las tiendas')return 'Todas las tiendas';
+  if(t==='Objetivos Tiendas Liebre')return 'Objetivo';
+  if(typeof ST!=='undefined'&&ST.aggMeta&&ST.aggMeta[t])return ST.aggMeta[t].label;
+  return 'Tienda '+t;
+}
 let _cssvCache={}; // caché de variables CSS: getComputedStyle es costoso y cssv() se llama en cada render
 function cssv(n){let v=_cssvCache[n];if(v===undefined){v=getComputedStyle(document.documentElement).getPropertyValue(n).trim();_cssvCache[n]=v;}return v;}
 /* ===== OBJETIVOS TIENDAS LIEBRE (CSV de la calculadora) como tienda de referencia ===== */
@@ -2088,21 +2109,49 @@ function buildFromRows(raw,fname){
   // (Veteranas · GLOBAL · último mes disponible). El usuario puede cambiar escenarios arriba.
   try{analyze(false);}catch(e){console.warn('auto-analyze',e);}  // sin scroll: se queda arriba en "Elige dos escenarios"
   try{applyObjetivos();}catch(e){}  // si los objetivos ya se cargaron, inyéctalos como referencia
+  try{if(window.__buildAgg)window.__buildAgg();}catch(e){}  // construye Liebre-histórico + agregadas Zona/Región si ya hay datos
 }
 
 /* ===== COMBOBOX BUSCADOR DE TIENDA ===== */
 function genName(t){const o=ST.gen[t];if(!o)return null;for(const mk in o){if(o[mk]&&o[mk].center_name)return o[mk].center_name;}return null;}
 window.genName=genName;
 window.stName=function(t){ if(t==null)return ''; var n=window.genName&&window.genName(t); if(!n&&window.genName){ var d=String(t).replace(/\D/g,''); if(d&&d!==String(t)) n=window.genName(d); } if(!n) n=window.__CENTRONOM&&(window.__CENTRONOM[t]||window.__CENTRONOM[String(t).replace(/\D/g,'')]); if(n){ n=String(n).replace(/\s*\([^)]*\)\s*$/,'').trim(); } return n||''; };
-function comboItems(){const it=[];ST.synthPresent.forEach(t=>it.push({val:t,label:shortStore(t),group:'Referencias',tag:'ref'}));ST.realStores.forEach(t=>{const nm=genName(t);it.push({val:t,label:nm||('Tienda '+t),group:'Tiendas'});});return it;}
+function comboItems(side){const it=[];
+  ST.synthPresent.forEach(t=>{ if(side==='A'&&t===OBJ_NAME)return; it.push({val:t,label:shortStore(t),group:'Referencias',tag:'ref'}); });
+  (ST.geoAgg||[]).forEach(k=>{ const m=(ST.aggMeta||{})[k]; if(m)it.push({val:k,label:m.label,group:'Zonas y regiones',search:m.search}); });
+  ST.realStores.forEach(t=>{const nm=genName(t);it.push({val:t,label:nm||('Tienda '+t),group:'Tiendas'});});
+  return it;}
+function pad2(n){n=String(n).replace(/\D/g,'');return n?('0'+n).slice(-2):n;}
+function zonaAggMeta(z){var lab='Zona '+z;return {label:lab,search:sNorm(lab+' z'+z+' z'+pad2(z)+' '+z)};}
+function regAggMeta(rc){var n=String(rc).replace(/\D/g,'');var lab='Región '+(n?String(+n):rc);return {label:lab,search:sNorm(lab+' region '+n+' r'+n+' r'+pad2(n)+' '+rc)};}
+function buildAggregates(){
+  if(!ST.rows||!ST.rows.length||!ST.meses||!ST.meses.length)return;
+  ST.aggMeta=ST.aggMeta||{};
+  Object.keys(ST.index).forEach(k=>{ if(k===LIEBRE_HIST||k.indexOf('ZONE::')===0||k.indexOf('REG::')===0) delete ST.index[k]; });
+  Object.keys(ST.gen).forEach(k=>{ if(k===LIEBRE_HIST||k.indexOf('ZONE::')===0||k.indexOf('REG::')===0) delete ST.gen[k]; });
+  Object.keys(ST.aggMeta).forEach(k=>delete ST.aggMeta[k]);
+  ST.synthPresent=ST.synthPresent.filter(t=>t!==LIEBRE_HIST);
+  ST.tiendas=ST.tiendas.filter(t=>t!==LIEBRE_HIST&&t.indexOf('ZONE::')!==0&&t.indexOf('REG::')!==0);
+  ST.geoAgg=[];
+  const build=members=>{ const idx={}; ST.meses.forEach(mk=>ST.shifts.forEach(sh=>AREAS.forEach(a=>{ const rows=[]; members.forEach(m=>{const r=(((ST.index[m]||{})[mk]||{})[sh]||{})[a]; if(r)rows.push(r);}); if(!rows.length)return; const o={shift:sh,mesKey:mk,area:a}; NUMC.forEach(c=>{let s=0,n=0;rows.forEach(r=>{const v=r[c];if(v!=null&&!isNaN(v)){s+=v;n++;}});if(n)o[c]=s/n;}); (((idx[mk]=idx[mk]||{})[sh]=idx[mk][sh]||{}))[a]=o; }))); return idx; };
+  // Media de los datos GLOBALES del centro (CSV general) por mes → la usan el resumen ("Lo más importante"), la evolución 12 meses y la tendencia global (genRow/genSerie). Sin esto, los agregados no tenían histórico.
+  const buildGen=(members,meta)=>{ const g={}; ST.meses.forEach(mk=>{ const rows=[]; members.forEach(m=>{const r=(ST.gen[m]||{})[mk]; if(r)rows.push(r);}); if(!rows.length)return; const o={center_name:meta.center_name,region:meta.region||'',zona:meta.zona||'',model:'',fase:'',estado:'Sintética: todas'}; GEN_NUMC.forEach(c=>{let s=0,n=0;rows.forEach(r=>{const v=r[c];if(v!=null&&!isNaN(v)){s+=v;n++;}});o[c]=n?s/n:null;}); g[mk]=o; }); return g; };
+  if(window.__liebreSet&&window.__liebreSet.size){ const mem=ST.realStores.filter(t=>window.__liebreSet.has(String(t))); if(mem.length){ const idx=build(mem); if(Object.keys(idx).length){ ST.index[LIEBRE_HIST]=idx; if(ST.synthPresent.indexOf(LIEBRE_HIST)<0)ST.synthPresent.push(LIEBRE_HIST); if(ST.tiendas.indexOf(LIEBRE_HIST)<0)ST.tiendas.push(LIEBRE_HIST); if(ST.genReady){const g=buildGen(mem,{center_name:'Tiendas Liebre'});if(Object.keys(g).length)ST.gen[LIEBRE_HIST]=g;} } } }
+  if(ST.genReady){ const zMem={},rMem={}; ST.realStores.forEach(t=>{ const o=ST.gen[t]; if(!o)return; let z=null,rg=null; for(const mk in o){ if(z==null&&o[mk].zona!=null&&o[mk].zona!=='')z=o[mk].zona; if(rg==null&&o[mk].region)rg=o[mk].region; } if(z!=null&&z!=='')(zMem[z]=zMem[z]||[]).push(t); if(rg)(rMem[rg]=rMem[rg]||[]).push(t); });
+    Object.keys(zMem).sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true})).forEach(z=>{ const idx=build(zMem[z]); if(!Object.keys(idx).length)return; const key='ZONE::'+z; ST.index[key]=idx; ST.aggMeta[key]=zonaAggMeta(z); ST.geoAgg.push(key); ST.tiendas.push(key); const g=buildGen(zMem[z],{center_name:'Zona '+z,zona:z}); if(Object.keys(g).length)ST.gen[key]=g; });
+    Object.keys(rMem).sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true})).forEach(rc=>{ const idx=build(rMem[rc]); if(!Object.keys(idx).length)return; const key='REG::'+rc; ST.index[key]=idx; ST.aggMeta[key]=regAggMeta(rc); ST.geoAgg.push(key); ST.tiendas.push(key); var rn=String(rc).replace(/\D/g,''); const g=buildGen(rMem[rc],{center_name:regAggMeta(rc).label,region:rn?String(+rn):rc}); if(Object.keys(g).length)ST.gen[key]=g; });
+  }
+}
+function refreshScenarioOptions(){ const rk=$('rkRef'); if(rk){ const cur=rk.value,first=ST.realStores[0]; rk.innerHTML=ST.synthPresent.map(t=>opt(t,shortStore(t),t===OBJ_NAME)).join('')||opt(first,'Tienda '+first,true); if(cur&&ST.synthPresent.indexOf(cur)>=0)rk.value=cur; } }
+window.__buildAgg=function(){ try{ buildAggregates(); refreshScenarioOptions(); }catch(e){console.warn('buildAgg',e);} };
 function setCombo(id,val){const inp=$(id);inp.dataset.val=val;inp.value=val?shortStore(val):'';}
 function makeCombo(id){
   const inp=$(id),pop=$(id+'pop');let hi=-1,shown=[];
   // delegación: un único listener para todas las opciones (la lista se reconstruye en cada pulsación)
   pop.addEventListener('mousedown',ev=>{const el=ev.target.closest('[data-i]');if(!el)return;ev.preventDefault();pick(+el.dataset.i);});
   function render(q){
-    const items=comboItems();q=(q||'').trim().toLowerCase();
-    shown=q?items.filter(o=>o.val.toLowerCase().includes(q)||o.label.toLowerCase().includes(q)):items;
+    const items=comboItems(id.slice(-1));const nq=sNorm(q);
+    shown=nq?items.filter(o=>sNorm(o.val).includes(nq)||sNorm(o.label).includes(nq)||(o.search&&o.search.includes(nq))):items;
     if(!shown.length){pop.innerHTML='<div class="combo-none">Sin resultados</div>';return;}
     let h='',lastG=null;shown.forEach((o,i)=>{if(o.group!==lastG){h+='<div class="combo-grp">'+o.group+'</div>';lastG=o.group;}h+='<div class="combo-it'+(o.tag?' synth':'')+(i===hi?' hi':'')+'" data-i="'+i+'">'+o.label+(o.tag?'<span class="tag">referencia</span>':'')+'</div>';});
     pop.innerHTML=h;
@@ -2420,7 +2469,7 @@ function renderSummary(){
     const chip=(v,bg)=>v?'<span style="display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:'+(bg||'var(--panel3)')+';border:1px solid var(--line2);color:var(--ink2)">'+v+'</span>':'';
     const titulo=gA.center_name||shortStore(curA.tienda);
     const vetTxt=gA.estado==='Veterana'?'Veterana':gA.estado==='Sintética: todas'?'':'No veterana';
-    const _liebreReal=!SYNTH.includes(curA.tienda)&&curA.tienda!==OBJ_NAME;
+    const _liebreReal=!SYNTH.includes(curA.tienda)&&curA.tienda!==OBJ_NAME&&curA.tienda!==LIEBRE_HIST&&!(ST.aggMeta&&ST.aggMeta[curA.tienda]);
     const liebreChip=(_liebreReal&&window.__liebreSet)?(window.__liebreSet.has(String(curA.tienda))?chip('Tienda liebre','var(--brand-soft)'):chip('No liebre')):'';
     $('execSummary').innerHTML='<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(135deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:18px 22px;margin-bottom:14px">'+
       '<div style="flex:1;min-width:220px"><div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--brand)">Tienda analizada</div>'+
@@ -3257,9 +3306,9 @@ function applyGroup(){
   if(window.loRerender){try{window.loRerender();}catch(e){}}
 }
 $('groupBtn').addEventListener('click',()=>{window.__GROUP=!window.__GROUP;applyGroup();});
-// Predeterminado: vista Agrupado + unidad Mercadona (×1,08)
-window.__MERC=true; window.__GROUP=true;
-$('unitBtn').textContent='Unidad: Mercadona';
+// Predeterminado: vista Agrupado + unidad MO (Mercadona ×1,08 se activa en Ajustes)
+window.__MERC=false; window.__GROUP=true;   // unidad por defecto: MO (Mercadona Online). Mercadona (×1,08) se activa en Ajustes.
+$('unitBtn').textContent='Unidad: MO';
 $('groupBtn').textContent='Vista: Agrupado';
 (function(){var fd=$('flowDes'),fa=$('flowAgr'); if(fd)fd.style.display='none'; if(fa)fa.style.display='';})();
 
@@ -3290,6 +3339,7 @@ function loadGeneral(){
           (idx[t]=idx[t]||{})[mk]=o;
         });
         ST.gen=idx;ST.genReady=true;
+        try{if(window.__buildAgg)window.__buildAgg();}catch(e){}  // ya hay zona/región: (re)construye agregadas geográficas
         let nfilas=0,ntiendas=0;for(const t in idx){if(!SYNTH.includes(t))ntiendas++;for(const mk in idx[t])nfilas++;}
         if($('src2s'))$('src2s').textContent=nfilas.toLocaleString('es-ES')+' filas · '+ntiendas+' tiendas';
         if($('dot2'))$('dot2').classList.add('on');
@@ -3429,7 +3479,7 @@ function build(data){
   }
   ST.meses=Object.keys(ST.objMes).sort((a,b)=>mesDate(a)-mesDate(b));
   ST.stores=Object.keys(ST.stTrim).sort((a,b)=>(+a||0)-(+b||0));
-  try{ window.__liebreSet=new Set(ST.stores.map(String)); if(window.__rerenderComp)window.__rerenderComp(); }catch(e){}   // lista de tiendas liebre para el resumen del comparador
+  try{ window.__liebreSet=new Set(ST.stores.map(String)); if(window.__buildAgg)window.__buildAgg(); if(window.__rerenderComp)window.__rerenderComp(); }catch(e){}   // lista de tiendas liebre para el resumen del comparador
   ST.mes=ST.meses[ST.meses.length-1]||null;
 
   
@@ -3855,6 +3905,12 @@ function optLabel(k,v){ if(k==='mes')return mesLabel(v); if(k==='semana')return 
   if(k==='zona')return zonaLabel(v);
   if(k==='centro'){const r=ROWS&&ROWS.find(x=>x.centro===v); return r&&r.centro_nombre?v+' · '+r.centro_nombre:v;}
   return v; }
+function cdNorm(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+function optSearchKey(k,v){ var s=cdNorm(optLabel(k,v))+' '+cdNorm(v);
+  if(k==='zona'){var n=String(v).replace(/\D/g,'');if(n)s+=' zona '+n+' z'+n+' z'+('0'+n).slice(-2);}
+  if(k==='region'){var r=String(v).replace(/\D/g,'');if(r)s+=' region '+r+' r'+r+' r'+('0'+r).slice(-2);}
+  if(k==='centro'){var row=ROWS&&ROWS.find(x=>x.centro===v);if(row&&row.centro_nombre)s+=' '+cdNorm(row.centro_nombre);}
+  return s; }
 
 window.caudalInit=function(){
   if(LOADED||LOADING)return; LOADING=true;
@@ -3919,12 +3975,12 @@ function dimDropdown(d){
   f.innerHTML=`<label>${d.lab}</label>
     <button class="cd-btn" data-dim="${d.k}"><span class="cd-txt"></span><span class="cd-cnt"></span></button>
     <div class="cd-pop">
-      ${OPTS[d.k].length>8?'<input class="cd-srch" placeholder="Buscar…" aria-label="Filtrar opciones">':''}
+      ${(OPTS[d.k].length>8||d.k==='centro'||d.k==='zona'||d.k==='region')?'<input class="cd-srch" placeholder="Buscar…" aria-label="Filtrar opciones">':''}
       <div class="cd-p-act"><button data-a="all">Todos</button><button data-a="none">Ninguno</button></div>
       <div class="cd-list"></div></div>`;
   const pop=f.querySelector('.cd-pop'), list=f.querySelector('.cd-list');
   pop.addEventListener('click',e=>e.stopPropagation());
-  OPTS[d.k].forEach(v=>{ const o=document.createElement('label'); o.className='cd-opt';
+  OPTS[d.k].forEach(v=>{ const o=document.createElement('label'); o.className='cd-opt'; o.dataset.search=optSearchKey(d.k,v);
     o.innerHTML='<input type="checkbox"><span></span>';
     o.querySelector('span').textContent=optLabel(d.k,v);
     const chk=o.querySelector('input'); chk.checked=SEL[d.k].has(v);
@@ -3935,7 +3991,7 @@ function dimDropdown(d){
   f.querySelectorAll('.cd-p-act button').forEach(b=>b.addEventListener('click',()=>{ const all=b.dataset.a==='all';
     SEL[d.k]=all?new Set(OPTS[d.k]):new Set(); list.querySelectorAll('input').forEach(i=>i.checked=all); syncBtn(d.k); render(); }));
   const srch=f.querySelector('.cd-srch');
-  if(srch)srch.addEventListener('input',()=>{ const q=srch.value.toLowerCase(); f.querySelectorAll('.cd-opt').forEach(o=>o.style.display=o.textContent.toLowerCase().includes(q)?'':'none'); });
+  if(srch)srch.addEventListener('input',()=>{ const q=cdNorm(srch.value); f.querySelectorAll('.cd-opt').forEach(o=>o.style.display=(o.dataset.search||cdNorm(o.textContent)).includes(q)?'':'none'); });
   return f;
 }
 function syncBtn(k){ const btn=document.querySelector(`#cd_filts .cd-btn[data-dim="${k}"]`); if(!btn)return;
@@ -4224,6 +4280,23 @@ try{ if(window.ResizeObserver){ const _b=$('cd_chart'); if(_b)new ResizeObserver
   document.addEventListener('click',function(e){ if(p.classList.contains('open') && !p.contains(e.target) && e.target!==f && !f.contains(e.target)) p.classList.remove('open'); });
 })();
 /* Precarga la vista Objetivos en segundo plano (oculta) tras cargar → deja lista la lista de tiendas liebre para el resumen del comparador, sin tener que abrir la pestaña */
+/* Info de unidades en el resumen: explica MO/Mercadona y lleva al botón de Unidad (Ajustes). Texto según la unidad activa. */
+(function(){
+  var btn=document.getElementById('uinfo'); if(!btn) return;
+  var pop=document.createElement('div'); pop.className='uinfo-pop'; pop.hidden=true;
+  pop.innerHTML='<div class="uinfo-tx"></div><button class="uinfo-go" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Abrir Ajustes</button>';
+  document.body.appendChild(pop);
+  var tx=pop.querySelector('.uinfo-tx'), go=pop.querySelector('.uinfo-go');
+  function msg(){ return window.__MERC
+    ? 'Ahora ves la productividad en unidades <b>Mercadona</b> (MO ×1,08). Para volver a <b>MO</b> (Mercadona Online), abre <b>Ajustes</b> y pulsa el botón de <b>Unidad</b>.'
+    : 'Ahora ves la productividad en unidades <b>MO</b> (Mercadona Online). Para cambiar a <b>Mercadona</b> (×1,08), abre <b>Ajustes</b> y pulsa el botón de <b>Unidad</b>.'; }
+  function place(){ var r=btn.getBoundingClientRect(), w=Math.min(290, window.innerWidth-20); pop.style.width=w+'px'; var left=Math.max(10, Math.min(r.left, window.innerWidth-w-10)); pop.style.left=left+'px'; pop.style.top=(r.bottom+8)+'px'; }
+  function open(){ tx.innerHTML=msg(); pop.hidden=false; place(); setTimeout(function(){ document.addEventListener('click',outside,true); window.addEventListener('resize',place); window.addEventListener('scroll',close,true); },0); }
+  function close(){ if(pop.hidden) return; pop.hidden=true; document.removeEventListener('click',outside,true); window.removeEventListener('resize',place); window.removeEventListener('scroll',close,true); }
+  function outside(e){ if(e.target!==btn && !btn.contains(e.target) && !pop.contains(e.target)) close(); }
+  btn.addEventListener('click',function(e){ e.stopPropagation(); if(pop.hidden){open();}else{close();} });
+  go.addEventListener('click',function(e){ e.stopPropagation(); close(); var p=document.getElementById('cfgPanel'), u=document.getElementById('unitBtn'); if(p) p.classList.add('open'); if(u){ try{u.scrollIntoView({block:'center',behavior:'smooth'});}catch(_){} u.classList.remove('pulse-hi'); void u.offsetWidth; u.classList.add('pulse-hi'); setTimeout(function(){ u.classList.remove('pulse-hi'); }, 2500); } });
+})();
 window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window.loInit) window.loInit(); }catch(e){} }, 800); });
 </script>
 </body>
