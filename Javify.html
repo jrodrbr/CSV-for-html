@@ -2,7 +2,7 @@
 <html lang="es" class="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Javify</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -20,6 +20,35 @@
 <link rel="manifest" href="site.webmanifest">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+/* Sin zoom en NINGUNA grafica: se envuelven newPlot/react para forzar la configuracion
+   (asi vale para todas las llamadas del dashboard, presentes y futuras). */
+(function(){
+  if(!window.Plotly) return;
+  var _new=Plotly.newPlot, _react=Plotly.react;
+  function fix(lay,cfg){
+    lay=lay||{}; lay.dragmode=false;
+    if(lay.xaxis){ lay.xaxis.fixedrange=true; } else { lay.xaxis={fixedrange:true}; }
+    if(lay.yaxis){ lay.yaxis.fixedrange=true; } else { lay.yaxis={fixedrange:true}; }
+    cfg=cfg||{};
+    cfg.displayModeBar=false; cfg.scrollZoom=false; cfg.doubleClick=false;
+    cfg.showAxisDragHandles=false; cfg.showAxisRangeEntryBoxes=false; cfg.editable=false;
+    return [lay,cfg];
+  }
+  Plotly.newPlot=function(d,data,lay,cfg){ var f=fix(lay,cfg); return _new.call(Plotly,d,data,f[0],f[1]); };
+  Plotly.react =function(d,data,lay,cfg){ var f=fix(lay,cfg); return _react.call(Plotly,d,data,f[0],f[1]); };
+})();
+/* Sin zoom en la PAGINA: ni pellizco, ni doble toque, ni ctrl+rueda (se comporta como una app) */
+(function(){
+  document.addEventListener('gesturestart',function(e){ e.preventDefault(); },{passive:false});
+  document.addEventListener('gesturechange',function(e){ e.preventDefault(); },{passive:false});
+  document.addEventListener('gestureend',function(e){ e.preventDefault(); },{passive:false});
+  document.addEventListener('wheel',function(e){ if(e.ctrlKey) e.preventDefault(); },{passive:false});
+  document.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&['+','-','=','0'].indexOf(e.key)>=0) e.preventDefault(); });
+  var t=0;
+  document.addEventListener('touchend',function(e){ var n=Date.now(); if(n-t<=320){ e.preventDefault(); } t=n; },{passive:false});
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <!-- Fuente del sistema (San Francisco en Apple) — sin webfont externa -->
 <style>
@@ -186,7 +215,9 @@ html.light{
   --sh:0 10px 30px rgba(20,40,70,.08);--sh-sm:0 3px 12px rgba(20,40,70,.06);--sh-lg:0 22px 54px rgba(20,40,70,.13);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;scrollbar-gutter:stable}
+html{scroll-behavior:smooth;scrollbar-gutter:stable;touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* las graficas solo dejan hacer scroll vertical: nada de pellizcar para hacer zoom */
+.js-plotly-plot,.plot-container,.js-plotly-plot .draglayer{touch-action:pan-y!important}
 body{font-family:var(--ui);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.55;font-size:14px;letter-spacing:-.011em}
 body:before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(1000px 460px at 10% -10%,rgba(22,184,127,.07),transparent),radial-gradient(900px 440px at 92% -6%,rgba(84,166,218,.05),transparent)}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:24px 26px 40px;position:relative;z-index:1}
@@ -1407,6 +1438,7 @@ body.simple #mObj{display:none!important}
       <div id="execSummary"></div>
       <div class="kpis" id="kpis" style="margin-top:16px"></div>
       <div id="kpiWarn"></div>
+      <div id="cfFarolas" class="no-print" style="margin-top:20px"></div>
       <details class="calc"><summary>Ver cómo se calcula cada dato</summary><div class="calc-cards" id="kpiCalc"></div></details>
     </div>
 
@@ -1915,13 +1947,16 @@ body.simple #mObj{display:none!important}
     .fa-ring{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:11px 8px 13px;text-align:center}
     .fa-ring .rl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--ink2)}
     .fa-ring .rc{height:138px;margin:2px 0 2px}
-    .fa-ring .rref{font-size:11.5px;color:var(--ink2);line-height:1.5}
+    .fa-ring .rref{font-size:10px;color:var(--ink3);line-height:1.45}
     .fa-ring .rdel{font-size:12px;font-weight:800}
-    .fa-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));gap:11px}
+    .fa-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:11px}
     .fa-card{border:1px solid var(--line);border-left-width:4px;border-radius:12px;padding:12px 14px;background:var(--panel);display:flex;flex-direction:column;gap:3px}
-    .fa-card .l{font-size:10.5px;font-weight:750;color:var(--ink2);text-transform:uppercase;letter-spacing:.3px}
-    .fa-card .v{font-size:22px;font-weight:850;line-height:1.1}
-    .fa-card .o{font-size:12px;color:var(--ink2);font-weight:600}
+    .fa-card .l{font-size:10px;font-weight:750;color:var(--ink2);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .fa-card .l .s2,.fa-card .l .s3{display:none}
+    .fa-card .v{white-space:nowrap}
+    .fa-card .v u{font-style:normal;text-decoration:none;font-size:.5em;font-weight:750;color:var(--ink3);margin-left:3px;letter-spacing:0}
+    .fa-card .v{font-size:29px;font-weight:850;line-height:1.06;letter-spacing:-.4px}
+    .fa-card .o{font-size:10px;color:var(--ink3);font-weight:600;letter-spacing:.1px}
     .fa-g-green{border-left-color:var(--good)} .fa-g-green .v{color:var(--good)}
     .fa-g-amber{border-left-color:#d9932b} .fa-g-amber .v{color:#c9821f}
     .fa-g-red{border-left-color:var(--bad)} .fa-g-red .v{color:var(--bad)}
@@ -1929,11 +1964,13 @@ body.simple #mObj{display:none!important}
     .fa-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
     .fa-cbox{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 12px 8px;position:relative}
     .fa-cbox .ct{font-size:12.5px;font-weight:800;margin:0 0 5px 2px}
-    .fa-cbox .fch{height:320px;width:100%}
+    .fa-cbox .fch{height:340px;width:100%}
     .fa-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2);align-items:center}
     .fa-legend i{width:15px;height:3px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle}
     @media(max-width:1180px){ .fa-charts{grid-template-columns:1fr} }
     @media(min-width:1900px){ .fa-cbox .fch{height:360px} }
+    @media(max-width:1240px){ .fa-card .l .s1{display:none} .fa-card .l .s2{display:inline} }
+    @media(max-width:820px){ .fa-card .l .s2{display:none} .fa-card .l .s3{display:inline} }
     @media(max-width:640px){
       .fa-cards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
       .fa-rings{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
@@ -1950,7 +1987,9 @@ body.simple #mObj{display:none!important}
         <div class="fa-combo"><div class="fa-lbl">Grupo</div><input id="fa_val" type="text" autocomplete="off" placeholder="Buscar…"><div class="fa-pop" id="fa_valPop"></div></div>
         <div><div class="fa-lbl">Tiendas</div><div class="fa-seg" id="fa_scope"><button data-s="vet" class="on">Veteranas</button><button data-s="all">Todas</button></div></div>
         <div class="fa-combo"><div class="fa-lbl">Comparar con</div><input id="fa_ref" type="text" autocomplete="off" placeholder="Buscar…"><div class="fa-pop" id="fa_refPop"></div></div>
-        <div><div class="fa-lbl">Mes</div><select class="fa-sel" id="fa_mes"></select></div>
+        <div><div class="fa-lbl">Periodo de las gráficas</div><div class="fa-seg" id="fa_per">
+          <button data-p="a2" class="on">2 años</button><button data-p="m12">12 meses</button><button data-p="m3">3 meses</button><button data-p="d30">30 días</button>
+        </div></div>
       </div>
 
       <div class="fa-head"><div class="fa-title" id="fa_gname">—</div><div class="fa-sub" id="fa_gsub"></div></div>
@@ -1959,10 +1998,7 @@ body.simple #mObj{display:none!important}
 
       <div class="fa-sec">
         <div class="fa-sech"><div class="t">Evolución por año</div><div class="r"></div></div>
-        <div class="fa-legend">
-          <span><i style="background:var(--good)"></i><span id="fa_lgA">Este año</span></span>
-          <span><i style="background:var(--bad)"></i><span id="fa_lgB">Año anterior</span></span>
-        </div>
+        <div class="fa-legend" id="fa_legend2"></div>
         <div id="fa_chartSecs"></div>
       </div>
     </div>
@@ -1971,6 +2007,52 @@ body.simple #mObj{display:none!important}
 </div><!-- /.wrap -->
 
 <!-- ASISTENTE FLOTANTE -->
+<!-- BANDEJA DE DESCARGAS (imprescindible en iPad: ahi se pueden guardar las imagenes) -->
+<button class="fab" id="dlFab" title="Descargas" aria-label="Descargas" style="display:none;right:16px;bottom:calc(132px + env(safe-area-inset-bottom))">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M4 21h16"/></svg>
+  <span id="dlCount" style="position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;border-radius:999px;background:var(--brand);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px">0</span>
+</button>
+<div id="dlPanel" role="dialog" aria-label="Descargas" style="display:none;position:fixed;right:16px;bottom:calc(184px + env(safe-area-inset-bottom));z-index:64;width:320px;max-width:calc(100vw - 32px);max-height:min(70vh,560px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 44px rgba(0,0,0,.3);padding:12px 13px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <span style="font-size:10.5px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--ink2)">Descargas</span>
+    <button id="dlClose" aria-label="Cerrar" style="width:26px;height:26px;border-radius:7px;background:var(--panel2);border:1px solid var(--line2);color:var(--ink2);cursor:pointer;font-size:13px">&#10005;</button>
+  </div>
+  <div id="dlHint" style="font-size:11.5px;color:var(--ink3);line-height:1.5;margin-bottom:9px">En iPad o iPhone: manten pulsada la imagen y elige <b>Guardar en Fotos</b>.</div>
+  <div id="dlList" style="display:flex;flex-direction:column;gap:10px"></div>
+</div>
+<script>
+/* Bandeja de descargas: cada imagen/tabla generada queda aqui para poder guardarla
+   (en iOS la descarga directa no funciona; manteniendo pulsada la imagen si). */
+(function(){
+  var items=[];
+  function $id(i){ return document.getElementById(i); }
+  function render(){
+    var l=$id('dlList'); if(!l) return;
+    l.innerHTML=items.map(function(it,ix){
+      return '<div style="border:1px solid var(--line2);border-radius:10px;padding:8px;background:var(--panel2)">'+
+        '<div style="font-size:11.5px;font-weight:750;color:var(--ink);margin-bottom:6px;word-break:break-word">'+it.name+'</div>'+
+        (it.url? '<a href="'+it.url+'" download="'+it.name+'" target="_blank" rel="noopener">'+
+            (it.img? '<img src="'+it.url+'" alt="'+it.name+'" style="width:100%;border-radius:7px;display:block;border:1px solid var(--line2)">' : '')+
+          '</a>' : '')+
+        '<div style="display:flex;gap:6px;margin-top:7px">'+
+          '<a href="'+it.url+'" download="'+it.name+'" style="flex:1;text-align:center;font-size:11.5px;font-weight:750;padding:6px 8px;border-radius:7px;border:1px solid var(--brand);background:var(--brand);color:#fff;text-decoration:none">Descargar</a>'+
+          (it.img?'<a href="'+it.url+'" target="_blank" rel="noopener" style="flex:1;text-align:center;font-size:11.5px;font-weight:750;padding:6px 8px;border-radius:7px;border:1px solid var(--line2);background:var(--panel);color:var(--ink2);text-decoration:none">Abrir</a>':'')+
+        '</div></div>';
+    }).join('');
+    var c=$id('dlCount'); if(c) c.textContent=items.length;
+    var f=$id('dlFab'); if(f) f.style.display=items.length?'flex':'none';
+  }
+  window.__addDownload=function(name,url,isImg){
+    items.unshift({name:name,url:url,img:!!isImg}); if(items.length>12) items.pop();
+    render(); var p=$id('dlPanel'); if(p) p.style.display='block';
+  };
+  document.addEventListener('DOMContentLoaded',function(){
+    var f=$id('dlFab'), p=$id('dlPanel'), x=$id('dlClose');
+    if(f) f.addEventListener('click',function(e){ e.stopPropagation(); p.style.display=(p.style.display==='none'?'block':'none'); });
+    if(x) x.addEventListener('click',function(){ p.style.display='none'; });
+  });
+})();
+</script>
 <button class="fab" id="cfgFab" title="Ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
 <div class="cfg-panel" id="cfgPanel" role="dialog" aria-label="Ajustes">
   <div class="cfg-h"><span>Ajustes</span><button class="cfg-x" id="cfgClose" aria-label="Cerrar">✕</button></div>
@@ -2155,6 +2237,35 @@ function applyObjetivos(){
     rk.innerHTML=ST.synthPresent.map(t=>opt(t,shortStore(t),t===OBJ_NAME)).join('')||opt(first,'Tienda '+first,true);
     if(cur)rk.value=cur; }
 }
+/* Farolas en el resumen del comparador: el escenario A frente al escenario B, en el mes de A.
+   Vale para tienda, zona, region, veteranas, todas y TIENDAS LIEBRE (lista de la vista de objetivos).
+   Si la referencia es "Objetivo" no se compara con nadie: solo se muestran los objetivos.
+   El turno no aplica (las farolas son globales del centro). Se ve en modo simple y en experto. */
+function faLiebreList(){ try{ if(window.__liebreSet&&window.__liebreSet.size) return Array.from(window.__liebreSet).map(String); }catch(e){} return null; }
+function faSelFromScenario(t){
+  if(t==null) return null;
+  if(t===OBJ_NAME) return null;                       // "Objetivo": no hay conjunto de tiendas
+  if(t==='Todas las tiendas') return {kind:'all'};
+  if(t==='Tiendas Veteranas') return {kind:'vet'};
+  if(t===LIEBRE_HIST){ var L=faLiebreList(); return L?{kind:'list',list:L,name:'Tiendas Liebre'}:null; }
+  if(typeof t==='string'&&t.indexOf('ZONE::')===0){ var z=String(t.slice(6)).replace(/\D/g,''); return {kind:'Zona', val:'Z'+('0'+z).slice(-2)}; }
+  if(typeof t==='string'&&t.indexOf('REG::')===0){ var g=String(t.slice(5)).replace(/\D/g,''); return {kind:'Region', val:'R'+('0'+g).slice(-2)}; }
+  return {kind:'Tienda', val:String(t)};
+}
+function renderCompFarolas(){
+  var host=$('cfFarolas'); if(!host)return;
+  if(!ST.analyzed){ host.innerHTML=''; return; }
+  if(!window.faSummary||!window.__faReady||!window.__faReady()){ host.innerHTML=''; return; }
+  var grp=faSelFromScenario(curA?curA.tienda:null);
+  if(!grp){ host.innerHTML=''; return; }                       // A = Objetivo -> no hay farolas que mostrar
+  var ref=ST.single?null:faSelFromScenario(curB?curB.tienda:null);
+  var head='<div class="fa-sech" style="margin-bottom:12px"><div class="t">Farolas'+
+    (ref&&window.__faSelName?(' · frente a '+window.__faSelName(ref)):'')+'</div><div class="r"></div></div>';
+  host.innerHTML=head+'<div id="cfFaBody"></div>';
+  var ok=window.faSummary($('cfFaBody'),{group:grp, mesKey:curA.mesKey, ref:ref});
+  if(!ok&&!$('cfFaBody').innerHTML) host.innerHTML='';
+}
+window.__cfFarolas=function(){ try{ renderCompFarolas(); }catch(e){ console.warn('cfFarolas',e); } };
 function barColor(diff,eps){if(diff==null)return cssv('--ref');eps=eps||0;if(Math.abs(diff)<=eps)return cssv('--ref');return diff>0?cssv('--bad'):cssv('--good');}
 
 /* ===== CARGA CSV ===== */
@@ -2278,6 +2389,18 @@ function populate(){
   fillSel($('rkMes'),ST.meses,k=>ST.mesLabel[k],last);
   $('rkRef').innerHTML=ST.synthPresent.map(t=>opt(t,shortStore(t),t===OBJ_NAME)).join('')||opt(first,'Tienda '+first,true);
   ['mA','sA','mB','sB'].forEach(id=>$(id).addEventListener('change',preview));
+  // restaurar lo ultimo que se estuvo mirando (si sigue existiendo en los datos)
+  try{ var cf=loadCfg();
+    if(cf){
+      if(cf.tA&&ST.tiendas.indexOf(cf.tA)>=0) setCombo('tA',cf.tA);
+      if(cf.tB&&ST.tiendas.indexOf(cf.tB)>=0) setCombo('tB',cf.tB);
+      syncShift('A'); syncShift('B');
+      if(cf.mA&&ST.meses.indexOf(cf.mA)>=0) $('mA').value=cf.mA;
+      if(cf.mB&&ST.meses.indexOf(cf.mB)>=0) $('mB').value=cf.mB;
+      if(cf.sA&&[...$('sA').options].some(o=>o.value===cf.sA)) $('sA').value=cf.sA;
+      if(cf.sB&&[...$('sB').options].some(o=>o.value===cf.sB)) $('sB').value=cf.sB;
+    }
+  }catch(e){ console.warn('cfg',e); }
   $('trArea').addEventListener('change',()=>{ST.trArea=$('trArea').value;refreshTrMetricOptions();if(ST.analyzed)renderTrend();});
   $('trMetric').addEventListener('change',()=>{if(ST.analyzed)renderTrend();});
   ['rkMetric','rkArea','rkShift','rkMes','rkRef','rkVet','rkModel','rkLimit'].forEach(id=>$(id).addEventListener('change',renderRank));
@@ -2339,7 +2462,7 @@ $('corteSw').querySelectorAll('[data-corte]').forEach(b=>b.addEventListener('cli
     if(hideFoot)foot.style.display=''; b.disabled=false; b.textContent=old;
   }).catch(e=>{if(hideFoot)foot.style.display=''; b.disabled=false; b.textContent=old; console.error(e);});
 });})();
-function setMode(m){ST.mode=m;
+function setMode(m){ST.mode=m; try{ if(typeof saveCfg==='function') saveCfg(); }catch(e){}
   const modeOn=(el,on)=>{if(!el)return;el.classList.toggle('on',on);el.setAttribute('aria-pressed',on);};
   modeOn($('mComp'),m==='comp');modeOn($('mRank'),m==='rank');modeOn($('mObj'),m==='obj');modeOn($('mCaud'),m==='caudal');modeOn($('mFarolas'),m==='farolas');
   $('step2').style.display=m==='comp'?'':'none';
@@ -2353,7 +2476,15 @@ function setMode(m){ST.mode=m;
   var fv=$('farolasTab');if(fv)fv.style.display=(m==='farolas')?'block':'none';if(m==='farolas'&&window.farolasInit)window.farolasInit();
   if(m==='rank'){initRank();renderRank();}
 }
-function analyze(scroll){curA=scn('A');curB=scn('B');resolveNames();
+/* Recordar la ultima configuracion entre sesiones (se guarda en este navegador) */
+function saveCfg(){ try{
+  var st={tA:$('tA')?$('tA').dataset.val:null, mA:$('mA')?$('mA').value:null, sA:$('sA')?$('sA').value:null,
+          tB:$('tB')?$('tB').dataset.val:null, mB:$('mB')?$('mB').value:null, sB:$('sB')?$('sB').value:null,
+          mode:ST.mode};
+  localStorage.setItem('javify_cfg', JSON.stringify(st));
+}catch(e){} }
+function loadCfg(){ try{ var s=localStorage.getItem('javify_cfg'); return s?JSON.parse(s):null; }catch(e){ return null; } }
+function analyze(scroll){curA=scn('A');curB=scn('B');resolveNames();saveCfg();
   // modo "ficha de una sola tienda": A y B idénticos (misma tienda, mes y turno) → no comparar, mostrar solo esa tienda
   ST.single=(curA.tienda===curB.tienda&&curA.mesKey===curB.mesKey&&curA.shift===curB.shift);
   MODEL=buildModel(curA,curB);ST.analyzed=true;$('empty').style.display='none';$('dash').style.display='block';$('fab').style.display='';renderAll();if(scroll!==false)$('dash').scrollIntoView({behavior:'smooth',block:'start'});}
@@ -2545,6 +2676,8 @@ function renderSummary(){
   if(ST.single){badge='var(--brand)';tx='<b>Ficha de '+ST.nameA+'</b>. Vista individual de la tienda, sin comparación: sus tiempos, productividad y tendencia propios. Cambia la referencia por otra tienda para pasar a modo comparación.';}
   const icon=ST.single?'<svg viewBox="0 0 24 24" fill="none"><path d="M9 7h6M9 11h6M9 15h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="4" y="3" width="16" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/></svg>':impTot>30?'<svg viewBox="0 0 24 24" fill="none"><path d="M12 8v5m0 3.5v.1M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>':impTot<-30?'<svg viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 7v6m0 3v.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   $('execSummary').innerHTML='<div class="exec"><div class="exec-ic" style="background:'+badge+'">'+icon+'</div><div class="exec-tx">'+tx+'</div></div>';
+  // FAROLAS de la tienda analizada (mismas tarjetas que la pestana Farolas), frente a la referencia B
+  try{ renderCompFarolas(); }catch(e){ console.warn('cfFarolas',e); }
   // (Fase general) si hay valores GLOBALES del centro para A, el vistazo muestra datos REALES.
   const gA=genRow(curA.tienda,curA.mesKey), gB=genRow(curB.tienda,curB.mesKey);
   const k=[];
@@ -3358,15 +3491,27 @@ $('csv').addEventListener('click',()=>{
 // Descargas (delegado a nivel documento → cubre gráficas y tablas de todos los bloques, incluso las que se pintan después)
 function tableToCsv(id,name){const t=(typeof id==='string')?$(id):id;if(!t)return;
   const rows=[...t.querySelectorAll('tr')].map(tr=>[...tr.querySelectorAll('th,td')].map(c=>{const s=(c.innerText||c.textContent||'').replace(/\s+/g,' ').trim();return '"'+s.replace(/"/g,'""')+'"';}).join(';')).filter(r=>r.replace(/[";]/g,'').trim().length);
-  const blob=new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=(name||id||'tabla')+'.csv';a.click();URL.revokeObjectURL(u);}
+  const blob=new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(blob),fn=(name||id||'tabla')+'.csv';
+  if(window.__addDownload) window.__addDownload(fn,u,false);   // queda en la bandeja
+  const a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();}
 document.addEventListener('click',function(e){
   const p=e.target.closest&&e.target.closest('[data-png]');
-  if(p){const id=p.dataset.png;if($(id)&&$(id).data)Plotly.downloadImage(id,{format:'png',width:1200,height:620,scale:2,filename:p.dataset.pngname||id});return;}
+  if(p){const id=p.dataset.png; const el=$(id);
+    if(el&&el.data){ const fn=(p.dataset.pngname||id)+'.png';
+      Plotly.toImage(el,{format:'png',width:1200,height:620,scale:2}).then(function(url){
+        if(window.__addDownload) window.__addDownload(fn,url,true);
+        try{ const a=document.createElement('a'); a.href=url; a.download=fn; document.body.appendChild(a); a.click(); a.remove(); }catch(e){}
+      }).catch(function(e){ console.warn('png',e); }); }
+    return;}
   // PNG de una TABLA (html2canvas): data-pngtbl="idDeLaTabla"
   const pt=e.target.closest&&e.target.closest('[data-pngtbl]');
   if(pt){ const el=$(pt.dataset.pngtbl);
     if(typeof html2canvas==='undefined'){alert('No se pudo cargar la librería de captura (sin conexión).');return;}
-    if(el){ const bg=cssv('--panel','#fff'); html2canvas(el,{backgroundColor:bg,scale:2,useCORS:true}).then(cv=>{const a=document.createElement('a');a.download=(pt.dataset.pngname||pt.dataset.pngtbl)+'.png';a.href=cv.toDataURL('image/png');a.click();}).catch(err=>console.error(err)); }
+    if(el){ const bg=cssv('--panel','#fff'); html2canvas(el,{backgroundColor:bg,scale:2,useCORS:true}).then(cv=>{
+      const fn=(pt.dataset.pngname||pt.dataset.pngtbl)+'.png', url=cv.toDataURL('image/png');
+      if(window.__addDownload) window.__addDownload(fn,url,true);
+      const a=document.createElement('a');a.download=fn;a.href=url;document.body.appendChild(a);a.click();a.remove();
+    }).catch(err=>console.error(err)); }
     return; }
   const c=e.target.closest&&e.target.closest('[data-csv]');
   if(c){tableToCsv(c.dataset.csv,c.dataset.csvname);}
@@ -3461,8 +3606,8 @@ if(CSV_URL){
     skipEmptyLines:true,
     delimiter:'',
     transformHeader:h=>h.trim(),
-    complete:res=>{$('empty').classList.remove('loading');try{buildFromRows(res.data,'GitHub · auto');}catch(err){showErr(['Error procesando el CSV: '+err.message]);}},
-    error:err=>showErr(['No se pudo descargar el CSV de GitHub: '+err.message+'. Puedes cargarlo manualmente con el drop.'])
+    complete:res=>{$('empty').classList.remove('loading');try{buildFromRows(res.data,'GitHub · auto');}catch(err){showErr(['Error procesando el CSV: '+err.message]);}finally{try{if(window.__bootStep)window.__bootStep('main');}catch(e){}}},
+    error:err=>{showErr(['No se pudo descargar el CSV de GitHub: '+err.message+'. Puedes cargarlo manualmente con el drop.']);try{if(window.__bootStep)window.__bootStep('main');}catch(e){}}
   });
 }
 loadObjetivos();  // carga (si existe) el CSV de objetivos liebre como tienda de referencia
@@ -4390,52 +4535,74 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
    Siempre unidades Mercadona. Objetivos fijos. Dos modos: contra referencia o contra si mismo. ===== */
 (function(){
   var FAR_URL='https://raw.githubusercontent.com/jrodrbr/CSV-for-html/refs/heads/main/Javify_Farolas.csv';
-  var LOADED=false, LOADING=false, ROWS=[], DIMV={}, NAMES={}, MESES=[];
+  var LOADED=false, LOADING=false, PENDING=false, ROWS=[], DIMV={}, NAMES={}, MESES=[];
   var $=function(id){return document.getElementById(id);};
-  var DIMS=[{k:'Tienda',lab:'Tienda'},{k:'Zona',lab:'Zona'},{k:'Region',lab:'Región'},{k:'Fase',lab:'Fase'},{k:'Modelo',lab:'Modelo'}];
+  var DIMS=[{k:'Tienda',lab:'Tienda'},{k:'Zona',lab:'Zona'},{k:'Region',lab:'Región'},{k:'Fase',lab:'Fase'},{k:'Modelo',lab:'Modelo'},{k:'Otros',lab:'Otros'}];
+  /* GRUPOS PROPIOS de tiendas ("Otros"): aqui se iran anadiendo los grupos raros (laboratorio, etc.).
+     'test' recibe una fila y decide si pertenece al grupo. */
+  var OTROS=[{name:'Tiendas liebre', test:function(r){ return isLiebre(r); }, need:function(){ return !!liebreSet(); }}];
+  function liebreSet(){ try{ return (window.__liebreSet&&window.__liebreSet.size)?window.__liebreSet:null; }catch(e){ return null; } }
+  function isLiebre(r){ var s=liebreSet(); return s?s.has(String(r.Tienda)):false; }
   var AZUL='#3b82c4', AMBAR='#d9932b';
   var FONT='-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,Helvetica,Arial,sans-serif';
 
   var GLOB=[
     {k:'P_10_pct',label:'Pedido 10',unit:'%',dec:2,ring:'good',obj:100,low:false,pair:'A'},
     {k:'P_Completo_pct',label:'Pedido completo',unit:'%',dec:2,ring:'bad',obj:100,low:false,pair:'A'},
-    {k:'P_Perfecto_Estado_pct',label:'Pedido en perfecto estado',unit:'%',dec:2,ring:'amber',obj:100,low:false,pair:'B'},
+    {k:'P_Perfecto_Estado_pct',label:'Pedido en perfecto estado',l2:'Perfecto estado',l3:'Perf. estado',unit:'%',dec:2,ring:'amber',obj:100,low:false,pair:'B'},
     {k:'P_a_Tiempo_pct',label:'Pedido a tiempo',unit:'%',dec:2,ring:'blue',obj:100,low:false,pair:'B'}
   ];
   var GRUPOS=[
     {t:'Pedido completo', ms:[
-      {k:'LNS_Stock_pct',label:'LNS con stock',unit:'%',dec:2,obj:0.15,low:true},
-      {k:'LNS_Total_pct',label:'LNS totales',unit:'%',dec:2,obj:0.40,low:true},
-      {k:'Inputs_Incompleto_pct',label:'Inputs pedido incompleto',unit:'%',dec:2,obj:0.96,low:true},
+      {k:'LNS_Stock_pct',label:'LNS con stock',l2:'LNS c/stock',l3:'LNS stock',unit:'%',dec:2,obj:0.15,low:true},
+      {k:'LNS_Total_pct',label:'LNS totales',l2:'LNS totales',l3:'LNS tot.',unit:'%',dec:2,obj:0.40,low:true},
+      {k:'Inputs_Incompleto_pct',label:'Inputs pedido incompleto',l2:'Inputs incompleto',l3:'Inp. incomp.',unit:'%',dec:2,obj:0.96,low:true},
       {k:'Pendientes',label:'Pendientes',unit:'',dec:0,obj:10,low:true}
     ]},
     {t:'Pedido en perfecto estado', ms:[
-      {k:'Inputs_Estado_pct',label:'Inputs estado del pedido',unit:'%',dec:2,obj:1.16,low:true}
+      {k:'Inputs_Estado_pct',label:'Inputs estado del pedido',l2:'Inputs estado',l3:'Inp. estado',unit:'%',dec:2,obj:1.16,low:true}
     ]},
     {t:'Pedido a tiempo', ms:[
       {k:'Retrasos_pct',label:'Retrasos',unit:'%',dec:2,obj:2,low:true},
-      {k:'Inputs_Impuntualidad_pct',label:'Inputs impuntualidad y servicio',unit:'%',dec:2,obj:0.36,low:true},
-      {k:'Hora_Fin_TM_min',label:'Hora fin TM',unit:'min',dec:0,obj:510,low:true,isMin:true},
-      {k:'Hora_Fin_TT_min',label:'Hora fin TT',unit:'min',dec:0,obj:null,isMin:true}
+      {k:'Inputs_Impuntualidad_pct',label:'Inputs imp. y servicio',l2:'Inputs imp/serv',l3:'Inp. imp.',unit:'%',dec:2,obj:0.36,low:true},
+      {k:'Hora_Fin_TM_min',label:'Hora fin TM',unit:'',dec:0,obj:510,low:true,isMin:true},
+      {k:'Hora_Fin_TT_min',label:'Hora fin TT',unit:'',dec:0,obj:null,isMin:true}
     ]},
     {t:'Pedido eficiente', ms:[
-      {k:'Productividad_min_ud',label:'Productividad',unit:'min/ud',dec:3,obj:0.34,low:true},
-      {k:'Caudal',label:'Caudal (h/día)',unit:'h',dec:2,obj:0,low:true},
+      {k:'Productividad_min_ud',label:'Productividad',l2:'Productividad',l3:'Prod.',unit:'min/ud',dec:3,obj:0.34,low:true},
+      {k:'Caudal',label:'Caudal',l2:'Caudal',l3:'Caudal',unit:'h/día',dec:2,obj:0,low:true},
       {k:'Ocupacion_pct',label:'Ocupación',unit:'%',dec:2,obj:null}
     ]}
   ];
   var M=GLOB.slice(); GRUPOS.forEach(function(g){ M=M.concat(g.ms); });
-  var ST={dim:'Fase', val:'Veterana', scope:'vet', mes:null, refKind:'vet', refVal:null};
+  var ST={dim:'Fase', val:'Veterana', scope:'vet', mes:null, per:'a2', refKind:'vet', refVal:null};
+  /* recordar la ultima vista de Farolas entre sesiones */
+  function saveFa(){ try{ localStorage.setItem('javify_farolas_cfg', JSON.stringify({dim:ST.dim,val:ST.val,scope:ST.scope,per:ST.per,refKind:ST.refKind,refVal:ST.refVal})); }catch(e){} }
+  function loadFa(){ try{ var s=localStorage.getItem('javify_farolas_cfg'); return s?JSON.parse(s):null; }catch(e){ return null; } }
 
   function num(v){ if(v==null)return null; v=(''+v).trim(); if(v==='')return null; var x=parseFloat(v.replace(/\s/g,'').replace(',','.')); return isNaN(x)?null:x; }
   function mkeyOf(d){ var p=(''+d).split('/'); if(p.length<3)return null; return p[2]+'-'+('0'+p[1]).slice(-2); }
+  function isoOf(d){ var p=(''+d).split('/'); if(p.length<3)return null; return p[2]+'-'+('0'+p[1]).slice(-2)+'-'+('0'+p[0]).slice(-2); }
+  function dOf(iso){ var p=iso.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
+  function isoFrom(dt){ return dt.getFullYear()+'-'+('0'+(dt.getMonth()+1)).slice(-2)+'-'+('0'+dt.getDate()).slice(-2); }
+  function addD(iso,n){ var d=dOf(iso); d.setDate(d.getDate()+n); return isoFrom(d); }
+  /* lunes de la semana de una fecha (semana lunes-domingo) */
+  function monOf(iso){ var d=dOf(iso), w=d.getDay(); d.setDate(d.getDate()+(w===0?-6:1-w)); return isoFrom(d); }
+  function dLab(iso){ var p=iso.split('-'); return (+p[2])+' '+MM[(+p[1])-1]; }
   var MM=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   function mesLab(mk){ if(!mk)return ''; var p=mk.split('-'); return MM[(+p[1])-1]+' '+p[0]; }
+  function mesLabS(mk){ if(!mk)return ''; var p=mk.split('-'); return MM[(+p[1])-1]+' '+p[0].slice(2); }
   function fmtN(x,dec){ if(x==null||isNaN(x))return '—'; return x.toLocaleString('es-ES',{minimumFractionDigits:dec,maximumFractionDigits:dec}); }
   function hhmm(x){ var h=Math.floor(x/60), mm=Math.round(x-h*60); if(mm===60){h++;mm=0;} return h+':'+('0'+mm).slice(-2); }
   function fmtVal(m,x){ if(x==null||isNaN(x))return '—'; if(m.isMin)return hhmm(x); return fmtN(x,m.dec)+(m.unit?(m.unit==='%'?'%':' '+m.unit):''); }
   function fmtPt(m,x){ if(x==null||isNaN(x))return ''; if(m.isMin)return hhmm(x); return fmtN(x,m.dec); }
   function cvar(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888'; }
+  /* titulo de tarjeta en UNA linea: se sustituye por la abreviatura segun el ancho (CSS) */
+  function labHTML(m){ var a=m.label, b=m.l2||m.label, d=m.l3||m.l2||m.label;
+    return '<span class="s1">'+a+'</span><span class="s2">'+b+'</span><span class="s3">'+d+'</span>'; }
+  /* numero grande + unidad pequena al lado (misma linea) */
+  function valHTML(m,x){ if(x==null||isNaN(x))return '—'; if(m.isMin)return hhmm(x);
+    return fmtN(x,m.dec)+(m.unit?(m.unit==='%'?'<u>%</u>':'<u>'+m.unit+'</u>'):''); }
   function ringColor(m){ return m.ring==='good'?cvar('--good'):m.ring==='bad'?cvar('--bad'):m.ring==='amber'?AMBAR:m.ring==='blue'?AZUL:cvar('--brand'); }
 
   function objClass(m,v){ if(v==null||isNaN(v)||m.obj==null)return 'fa-g-neu';
@@ -4450,38 +4617,62 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     return better?'fa-g-green':'fa-g-red'; }
   function clsColor(cc){ return cc==='fa-g-green'?cvar('--good'):cc==='fa-g-red'?cvar('--bad'):cc==='fa-g-amber'?AMBAR:cvar('--ink3'); }
 
+  /* los graficos pintados con el div oculto se quedan con el ancho antiguo -> forzar resize.
+     OJO: mantener esta funcion AQUI (zona de helpers); si se pone entre la descarga y render()
+     los reemplazos de esos bloques se la llevan por delante. */
+  function faResize(){ if(!window.Plotly)return; var tab=$('farolasTab'); if(!tab||tab.style.display==='none')return;
+    M.forEach(function(m){ var d=$('fa_ch_'+m.k); if(d&&d.data){ try{ Plotly.Plots.resize(d); }catch(e){} } });
+    GLOB.forEach(function(m){ var d=$('fa_r_'+m.k); if(d&&d.data){ try{ Plotly.Plots.resize(d); }catch(e){} } }); }
+  window.__faResize=faResize;
+  (function(){ var t=null, lastW=(window.innerWidth||0);
+    window.addEventListener('resize',function(){ clearTimeout(t); t=setTimeout(function(){
+      var w=window.innerWidth||0;
+      if(Math.abs(w-lastW)>120 && LOADED){ lastW=w; try{ renderCharts(); }catch(e){} }   // recalcular etiquetas
+      faResize(); },200); }); })();
+
   function dayIgual(rows,key){ var s=0,n=0; for(var i=0;i<rows.length;i++){ var v=rows[i][key]; if(v!=null&&!isNaN(v)){s+=v;n++;} } return n? s/n : null; }
   function scopeOk(r){ if(ST.dim==='Fase')return true; return ST.scope==='all'?true:(r.Fase==='Veterana'); }
-  function groupRows(mk){ return ROWS.filter(function(r){ return r[ST.dim]===ST.val && scopeOk(r) && (mk?r.mk===mk:true); }); }
+  function dimMatch(r){ if(ST.dim==='Otros'){ var g=OTROS.filter(function(x){ return x.name===ST.val; })[0]; return g?!!g.test(r):false; }
+    return r[ST.dim]===ST.val; }
+  function groupRows(sel){ return ROWS.filter(function(r){ return dimMatch(r) && scopeOk(r) && (sel?sel.test(r):true); }); }
   /* referencia: 'vet' y 'all' son absolutas; Region/Zona/Tienda respetan el ambito elegido */
   function refOk(r){ var k=ST.refKind;
     if(k==='vet')return r.Fase==='Veterana';
     if(k==='all')return true;
+    if(k==='liebre')return isLiebre(r);
     return r[k]===ST.refVal && scopeOk(r); }
-  function refRows(mk){ return ROWS.filter(function(r){ return refOk(r) && (mk?r.mk===mk:true); }); }
+  function refRows(sel){ return ROWS.filter(function(r){ return refOk(r) && (sel?sel.test(r):true); }); }
   function refLabel(){ var k=ST.refKind;
     if(k==='vet')return 'Veteranas';
     if(k==='all')return 'Todas las tiendas';
+    if(k==='liebre')return 'Tiendas Liebre';
     if(k==='Tienda')return valLabel('Tienda',ST.refVal);
     var d=DIMS.filter(function(x){return x.k===k;})[0]; return (d?d.lab:k)+' '+ST.refVal; }
   /* mismo conjunto -> no tiene sentido comparar: solo objetivo */
   function sameSet(){ if(ST.refKind==='vet' && ST.dim==='Fase' && ST.val==='Veterana')return true;
+    if(ST.refKind==='liebre' && ST.dim==='Otros' && ST.val==='Tiendas liebre')return true;
     return ST.refKind===ST.dim && ST.refVal===ST.val; }
 
   function build(data){ ROWS=[]; DIMV={}; NAMES={}; var mset={};
     for(var i=0;i<data.length;i++){ var r=data[i]; if(!r||r.Tienda===undefined)continue;
       var o={ Region:(r.Region||'').trim(), Zona:(r.Zona||'').trim(), Tienda:(r.Tienda||'').trim(), Nombre:(r.Nombre||'').trim(),
-              Modelo:(r.Modelo||'').trim(), Fase:(r.Fase||'').trim(), mk:mkeyOf(r.Fecha) };
+              Modelo:(r.Modelo||'').trim(), Fase:(r.Fase||'').trim(), mk:mkeyOf(r.Fecha), d:isoOf(r.Fecha) };
       if(!o.Tienda)continue;
       for(var j=0;j<M.length;j++){ o[M[j].k]=num(r[M[j].k]); }
       if(o.mk)mset[o.mk]=1; ROWS.push(o); }
     ROWS.forEach(function(r){ if(r.Nombre&&r.Tienda)NAMES[r.Tienda]=r.Nombre; });
     MESES=Object.keys(mset).sort();
-    DIMS.forEach(function(d){ var set={}; ROWS.forEach(function(r){ var v=r[d.k]; if(v)set[v]=1; }); var arr=Object.keys(set);
+    DIMS.forEach(function(d){ if(d.k==='Otros'){ DIMV[d.k]=OTROS.filter(function(g){ return !g.need||g.need(); }).map(function(g){ return g.name; }); return; }
+      var set={}; ROWS.forEach(function(r){ var v=r[d.k]; if(v)set[v]=1; }); var arr=Object.keys(set);
       if(d.k==='Tienda') arr.sort(function(a,b){ var na=+a,nb=+b; if(!isNaN(na)&&!isNaN(nb))return na-nb; return a.localeCompare(b,'es'); });
       else arr.sort(function(a,b){ return a.localeCompare(b,'es',{numeric:true}); });
       DIMV[d.k]=arr; }); }
 
+  function lastDay(){ var mx=null; for(var i=0;i<ROWS.length;i++){ var d=ROWS[i].d; if(d&&(mx===null||d>mx))mx=d; } return mx; }
+  /* que periodo resumen las tarjetas y los roscos: 30 dias -> ultimos 30 dias reales; resto -> ultimo mes cerrado */
+  function cardSel(){ if(ST.per==='d30'){ var to=lastDay(); if(to){ var from=addD(to,-29);
+        return {test:function(r){ return r.d&&r.d>=from&&r.d<=to; }, label:'últimos 30 días · '+dLab(from)+' – '+dLab(to)}; } }
+    var mk=lastClosed(); return {test:function(r){ return r.mk===mk; }, label:mesLab(mk)}; }
   function lastClosed(){ var now=new Date(); var cur=now.getFullYear()+'-'+('0'+(now.getMonth()+1)).slice(-2);
     for(var i=MESES.length-1;i>=0;i--){ if(MESES[i]<cur) return MESES[i]; } return MESES[MESES.length-1]||null; }
   /* meses ofrecidos: desde enero del año anterior al del ultimo mes cerrado */
@@ -4489,12 +4680,20 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     return MESES.filter(function(mk){ return mk>=min && mk<=lc; }); }
   function valLabel(dim,v){ if(dim==='Tienda'){ var nm=NAMES[v]; return nm?(v+' · '+nm):v; } return v; }
   function defVal(dim){ var arr=DIMV[dim]||[]; if(dim==='Fase'&&arr.indexOf('Veterana')>=0)return 'Veterana'; return arr.length?arr[0]:null; }
+  function dimAvail(d){ return (DIMV[d]||[]).length>0; }
+  /* nombre corto para el titulo de la imagen: Veteranas / R08 / Z24 / 2004 · Nombre / NTC60 */
+  function shortGroup(){ if(ST.dim==='Fase') return ST.val==='Veterana'?'Veteranas':ST.val;
+    if(ST.dim==='Otros') return ST.val;
+    if(ST.dim==='Tienda') return valLabel('Tienda',ST.val);
+    return ST.val||''; }
   function groupName(){ if(ST.dim==='Tienda')return valLabel('Tienda',ST.val);
+    if(ST.dim==='Otros')return ST.val;
     if(ST.dim==='Fase')return (ST.val==='Veterana'?'Tiendas veteranas':ST.val);
     var d=DIMS.filter(function(x){return x.k===ST.dim;})[0]; return (d?d.lab:ST.dim)+' '+(ST.val||''); }
 
   function renderDim(){ var el=$('fa_dim'); if(!el)return;
-    el.innerHTML=DIMS.map(function(d){ return '<button data-d="'+d.k+'"'+(d.k===ST.dim?' class="on"':'')+'>'+d.lab+'</button>'; }).join('');
+    el.innerHTML=DIMS.filter(function(d){ return d.k!=='Otros'||dimAvail('Otros'); })
+      .map(function(d){ return '<button data-d="'+d.k+'"'+(d.k===ST.dim?' class="on"':'')+'>'+d.lab+'</button>'; }).join('');
     el.querySelectorAll('[data-d]').forEach(function(b){ b.addEventListener('click',function(){ ST.dim=b.getAttribute('data-d');
       el.querySelectorAll('[data-d]').forEach(function(x){x.classList.toggle('on',x===b);});
       ST.val=defVal(ST.dim); var inp=$('fa_val'); if(inp)inp.value=ST.val?valLabel(ST.dim,ST.val):'';
@@ -4504,10 +4703,9 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
   function wireScope(){ var sc=$('fa_scope'); if(!sc||sc._w)return; sc._w=1;
     sc.querySelectorAll('[data-s]').forEach(function(b){ b.addEventListener('click',function(){ if(b.disabled)return; ST.scope=b.getAttribute('data-s');
       sc.querySelectorAll('[data-s]').forEach(function(x){x.classList.toggle('on',x===b);}); render(); }); }); }
-  function renderMes(){ var s=$('fa_mes'); if(!s)return; var opts=mesesSel();
-    if(!s.options.length){ s.innerHTML=opts.slice().reverse().map(function(mk){ return '<option value="'+mk+'">'+mesLab(mk)+'</option>'; }).join('');
-      s.addEventListener('change',function(){ ST.mes=s.value; render(); }); }
-    s.value=ST.mes; }
+  function wirePer(){ var el=$('fa_per'); if(!el||el._w)return; el._w=1;
+    el.querySelectorAll('[data-p]').forEach(function(b){ b.addEventListener('click',function(){ ST.per=b.getAttribute('data-p');
+      el.querySelectorAll('[data-p]').forEach(function(x){x.classList.toggle('on',x===b);}); render(); requestAnimationFrame(faResize); }); }); }
 
   function renderCombo(q){ var pop=$('fa_valPop'); if(!pop)return; var arr=DIMV[ST.dim]||[]; q=(q||'').trim().toLowerCase();
     var sh=arr.filter(function(v){ return !q||valLabel(ST.dim,v).toLowerCase().indexOf(q)>=0; });
@@ -4521,6 +4719,7 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
       ST.val=el.getAttribute('data-v'); inp.value=valLabel(ST.dim,ST.val); pop.classList.remove('open'); render(); }); }
 
   function refItems(){ var it=[{kind:'vet',val:null,label:'Veteranas',grp:'Referencias'},{kind:'all',val:null,label:'Todas las tiendas',grp:'Referencias'}];
+    if(liebreSet()) it.push({kind:'liebre',val:null,label:'Tiendas Liebre',grp:'Referencias'});
     (DIMV['Region']||[]).forEach(function(v){ it.push({kind:'Region',val:v,label:'Región '+v,grp:'Regiones'}); });
     (DIMV['Zona']||[]).forEach(function(v){ it.push({kind:'Zona',val:v,label:'Zona '+v,grp:'Zonas'}); });
     (DIMV['Tienda']||[]).forEach(function(v){ it.push({kind:'Tienda',val:v,label:valLabel('Tienda',v),grp:'Tiendas'}); });
@@ -4545,10 +4744,16 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     GLOB.forEach(function(m){ var v=dayIgual(rows,m.k), ref=same?null:dayIgual(rrows,m.k);
       var box=$('fa_r_'+m.k), col=ringColor(m), pct=(v==null||isNaN(v))?0:Math.max(0,Math.min(100,v));
       if(box&&window.Plotly){
-        var data=[{type:'pie',values:[pct,100-pct],hole:.73,sort:false,direction:'clockwise',marker:{colors:[col,line]},textinfo:'none',hoverinfo:'skip'}];
+        var data=[{type:'pie',domain:{x:[0,1],y:[0,1]},values:[pct,100-pct],hole:.73,sort:false,direction:'clockwise',marker:{colors:[col,line]},textinfo:'none',hoverinfo:'skip'}];
+        /* marca de la referencia: anillo concentrico con un sector finisimo en su posicion */
+        if(!same&&ref!=null&&!isNaN(ref)){ var rp=Math.max(0,Math.min(100,ref)), w=0.9;
+          data.push({type:'pie',domain:{x:[0,1],y:[0,1]},hole:.6,sort:false,direction:'clockwise',textinfo:'none',hoverinfo:'skip',
+            values:[Math.max(0,rp-w/2), w, Math.max(0,100-rp-w/2)],
+            marker:{colors:['rgba(0,0,0,0)',cvar('--ink'),'rgba(0,0,0,0)']}}); }
         var lay={margin:{l:6,r:6,t:6,b:6},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',showlegend:false,
+          transition:{duration:0},
           annotations:[{text:(v==null?'—':fmtN(v,m.dec)+'%'),x:.5,y:.5,showarrow:false,font:{size:19,color:ink,family:FONT}}]};
-        try{ Plotly.react(box,data,lay,{displayModeBar:false,responsive:true}); }catch(e){} }
+        try{ Plotly.newPlot(box,data,lay,{displayModeBar:false,responsive:true}); }catch(e){} }
       var d=$('fa_rd_'+m.k), rr=$('fa_rr_'+m.k);
       if(d) d.innerHTML=(same||v==null||ref==null)?'':('<span style="color:'+clsColor(cmpClass(m,v,ref))+'">'+((v-ref)>0?'+':'')+fmtN(v-ref,m.dec)+' pp</span>');
       if(rr) rr.textContent=(same||ref==null)?'':(refLabel()+' '+fmtN(ref,m.dec)+'%');
@@ -4560,89 +4765,289 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
       var cards=g.ms.map(function(m){ var v=dayIgual(rows,m.k), ref=same?null:dayIgual(rrows,m.k);
         var obj=(m.obj==null)?'':('objetivo '+(m.low?'≤ ':'')+fmtVal(m,m.obj));
         var cmp=(same||ref==null)?'':('<div class="o">'+refLabel()+' '+fmtVal(m,ref)+'</div>');
-        return '<div class="fa-card '+objClass(m,v)+'"><div class="l">'+m.label+'</div><div class="v">'+fmtVal(m,v)+'</div><div class="o">'+obj+'</div>'+cmp+'</div>'; }).join('');
+        return '<div class="fa-card '+objClass(m,v)+'" title="'+m.label+'"><div class="l">'+labHTML(m)+'</div><div class="v">'+valHTML(m,v)+'</div><div class="o">'+obj+'</div>'+cmp+'</div>'; }).join('');
       return '<div class="fa-sec"><div class="fa-sech"><div class="t">'+g.t+'</div><div class="r"></div></div><div class="fa-cards">'+cards+'</div></div>'; }).join('');
     host.innerHTML='<div style="display:flex;flex-direction:column;gap:22px">'+h+'</div>';
     renderRings(rows,rrows,same); }
 
+  var PERS={a2:{lab:'2 años',mode:'mes',n:24},m12:{lab:'12 meses',mode:'mes',n:12},
+            m3:{lab:'3 meses',mode:'sem',n:13},d30:{lab:'30 días',mode:'dia',n:30}};
+
+  /* medias del grupo activo por MES, por SEMANA (lunes-domingo) y por DIA. Dia-igual: cada tienda-dia pesa lo mismo */
+  function accums(){ var byM={}, byW={}, byD={};
+    ROWS.forEach(function(r){ if(!dimMatch(r))return; if(!scopeOk(r))return;
+      var am=r.mk?(byM[r.mk]||(byM[r.mk]={})):null;
+      var aw=r.d?(byW[monOf(r.d)]||(byW[monOf(r.d)]={})):null;
+      var ad=r.d?(byD[r.d]||(byD[r.d]={})):null;
+      for(var i=0;i<M.length;i++){ var k=M[i].k, v=r[k]; if(v==null||isNaN(v))continue;
+        if(am){ var o=am[k]||(am[k]={s:0,n:0}); o.s+=v; o.n++; }
+        if(aw){ var p=aw[k]||(aw[k]={s:0,n:0}); p.s+=v; p.n++; }
+        if(ad){ var q=ad[k]||(ad[k]={s:0,n:0}); q.s+=v; q.n++; } } });
+    return {m:byM,w:byW,d:byD}; }
+  function gv(acc,key,k){ var a=acc[key]; if(!a)return null; var o=a[k]; return (o&&o.n)?o.s/o.n:null; }
+  /* cuantas etiquetas caben en una grafica: en movil y en periodos densos se muestran menos,
+     pero el ULTIMO punto se muestra SIEMPRE (es el que mas interesa). */
+  function labelMask(ys,dosSeries){
+    var n=ys.length, w=(window.innerWidth||1200);
+    var chartW=(w<=1180)?(w-56):((w-104)/2);          // 1 o 2 graficas por fila
+    /* con dos series hay el doble de numeros en el mismo ancho -> se piden mas separados */
+    var need = dosSeries?70:40;
+    var maxLab=Math.max(3, Math.floor(chartW/need));
+    var mask=new Array(n); for(var i=0;i<n;i++)mask[i]=false;
+    /* ancla = ULTIMO punto CON DATO (no el final del array: los meses futuros van vacios) */
+    var last=-1; for(var q=n-1;q>=0;q--){ if(ys[q]!=null&&!isNaN(ys[q])){ last=q; break; } }
+    if(last<0) return mask;
+    var conDato=0; for(var z=0;z<=last;z++){ if(ys[z]!=null&&!isNaN(ys[z]))conDato++; }
+    var step=Math.max(1, Math.ceil(conDato/maxLab));
+    for(var j=last;j>=0;j-=step) mask[j]=true;        // hacia atras desde el ultimo dato real
+    mask[last]=true;                                  // el ultimo dato SIEMPRE se ve
+    return mask; }
+
   function renderCharts(){ var host=$('fa_chartSecs'); if(!host)return;
-    var end=ST.mes||lastClosed(); if(!end)return;
+    var P=PERS[ST.per]||PERS.a2, modo=P.mode, dosAnios=(ST.per==='a2');
+    var end=lastClosed(), ld=lastDay(); if(!end)return;
     var yA=+end.split('-')[0], yB=yA-1;
-    var lgA=$('fa_lgA'), lgB=$('fa_lgB'); if(lgA)lgA.textContent=yA; if(lgB)lgB.textContent=yB;
     var SECS=[{t:'Indicadores globales',ms:GLOB}].concat(GRUPOS);
-    if(host._key!==String(yA)){ host.innerHTML=SECS.map(function(s){
+    if(host._key!=='built'){ host.innerHTML=SECS.map(function(s){
         return '<div class="fa-sec" style="margin-top:14px"><div class="fa-sech"><div class="t">'+s.t+'</div><div class="r"></div></div><div class="fa-charts">'+
           s.ms.map(function(m){ return '<div class="fa-cbox"><button class="png" data-fapng="fa_ch_'+m.k+'" data-faname="farolas_'+m.k+'" style="position:absolute;top:8px;right:10px">⤓ PNG</button><div class="ct">'+m.label+'</div><div class="fch" id="fa_ch_'+m.k+'"></div></div>'; }).join('')+
-        '</div></div>'; }).join(''); host._key=String(yA); }
-    var acc={};
-    ROWS.forEach(function(r){ if(!r.mk)return; if(r[ST.dim]!==ST.val)return; if(!scopeOk(r))return;
-      var a=acc[r.mk]||(acc[r.mk]={});
-      for(var i=0;i<M.length;i++){ var k=M[i].k, v=r[k]; if(v==null||isNaN(v))continue; var o=a[k]||(a[k]={s:0,n:0}); o.s+=v; o.n++; } });
-    function avg(mk,k){ var a=acc[mk]; if(!a)return null; var o=a[k]; return (o&&o.n)?o.s/o.n:null; }
-    function series(k){ var A=[],B=[]; for(var i=1;i<=12;i++){ var mm=('0'+i).slice(-2); A.push(avg(yA+'-'+mm,k)); B.push(avg(yB+'-'+mm,k)); } return {A:A,B:B}; }
-    /* ejes compartidos: pair A = Pedido 10 + Completo; pair B = Perfecto estado + A tiempo */
+        '</div></div>'; }).join(''); host._key='built'; }
+
+    var acc=accums(), src, xs=[], keysA=[], keysB=[], tickvals=null, ticktext=null, monthLines=[];
+    if(modo==='dia'){ src=acc.d;
+      var to=ld||end+'-28';
+      for(var i=P.n-1;i>=0;i--){ var k=addD(to,-i); keysA.push(k); xs.push(k); }
+      tickvals=[]; ticktext=[]; var lm=null;
+      keysA.forEach(function(k,ix){ var p=k.split('-'), dd=+p[2], mo=+p[1];
+        if(ix===0||dd===1||ix%3===0){ tickvals.push(k); ticktext.push(mo!==lm?(dd+'<br><b>'+MM[mo-1]+'</b>'):String(dd)); lm=mo; }
+        if(dd===1&&ix>0) monthLines.push(k); });
+    } else if(modo==='sem'){ src=acc.w;
+      /* ultima semana COMPLETA (domingo ya cerrado) para no pintar una semana a medias */
+      var base=ld||end+'-28', mon=monOf(base);
+      if(addD(mon,6)>base) mon=addD(mon,-7);
+      for(var w=P.n-1;w>=0;w--){ var mk2=addD(mon,-7*w); keysA.push(mk2); xs.push(mk2); }
+      tickvals=keysA.slice(); ticktext=[]; var lm2=null;
+      keysA.forEach(function(k){ var p=k.split('-'), dd=+p[2], mo=+p[1];
+        ticktext.push(mo!==lm2?(dd+'<br><b>'+MM[mo-1]+'</b>'):String(dd));
+        if(mo!==lm2&&lm2!==null) monthLines.push(k);
+        lm2=mo; });
+    } else if(dosAnios){ src=acc.m;
+      for(var q=1;q<=12;q++){ var mm=('0'+q).slice(-2); keysA.push(yA+'-'+mm); keysB.push(yB+'-'+mm); xs.push(MM[q-1]); }
+    } else { src=acc.m;
+      var pp=end.split('-'), ey=+pp[0], em=+pp[1];
+      for(var z=P.n-1;z>=0;z--){ var dd2=new Date(ey,em-1-z,1); var mk3=dd2.getFullYear()+'-'+('0'+(dd2.getMonth()+1)).slice(-2);
+        keysA.push(mk3); xs.push(mesLabS(mk3)); } }
+    /* en series mensuales, el mes en curso (sin cerrar) NO se pinta: falsearia la media */
+    function ser(k,keys){ return keys.map(function(kk){
+      if(modo==='mes' && kk>end) return null;
+      return gv(src,kk,k); }); }
+
+    var lg=$('fa_legend2');
+    if(lg) lg.innerHTML = dosAnios
+      ? '<span><i style="background:var(--good)"></i>'+yA+'</span><span><i style="background:var(--bad)"></i>'+yB+'</span>'
+      : '<span><i style="background:var(--good)"></i>'+P.lab+' · '+(modo==='dia'?'media diaria':modo==='sem'?'media semanal (lunes a domingo)':'media mensual')+'</span>';
+
     var PR={};
-    ['A','B'].forEach(function(p){ var vals=[]; GLOB.forEach(function(m){ if(m.pair!==p)return; var s=series(m.k);
-        s.A.concat(s.B).forEach(function(v){ if(v!=null&&!isNaN(v))vals.push(v); }); vals.push(m.obj); });
-      if(vals.length){ var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals), pad=Math.max(0.4,(mx-mn)*0.12);
-        PR[p]=[mn-pad, Math.min(100.6,mx+pad)]; } });
+    ['A','B'].forEach(function(pr){ var vals=[]; GLOB.forEach(function(m){ if(m.pair!==pr)return;
+        ser(m.k,keysA).concat(dosAnios?ser(m.k,keysB):[]).forEach(function(v){ if(v!=null&&!isNaN(v))vals.push(v); }); vals.push(m.obj); });
+      if(vals.length){ var mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals), pad=Math.max(0.4,(mx-mn)*0.16);
+        PR[pr]=[mn-pad, Math.min(100.8,mx+pad)]; } });
+
     var good=cvar('--good'), bad=cvar('--bad'), ink=cvar('--ink2'), grid=cvar('--line2'), panel=cvar('--panel'), line=cvar('--line'), inkS=cvar('--ink');
     M.forEach(function(m){ var box=$('fa_ch_'+m.k); if(!box||!window.Plotly)return;
-      var s=series(m.k), xs=MM.slice(), hf='.'+(m.isMin?0:m.dec)+'f';
-      var txtA=s.A.map(function(v){return fmtPt(m,v);}), txtB=s.B.map(function(v){return fmtPt(m,v);});
-      var data=[
-        {x:xs,y:s.B,name:String(yB),type:'scatter',mode:'lines+markers',connectgaps:false,line:{color:bad,width:2,dash:'dot'},marker:{size:4,color:bad},
-         text:txtB,textposition:'bottom center',textfont:{size:9,color:bad,family:FONT},
-         hovertemplate:m.isMin?(yB+': %{text}<extra></extra>'):(yB+': %{y:'+hf+'}<extra></extra>')},
-        {x:xs,y:s.A,name:String(yA),type:'scatter',mode:'lines+markers+text',connectgaps:false,line:{color:good,width:2.6},marker:{size:5,color:good},
-         text:txtA,textposition:'top center',textfont:{size:9,color:inkS,family:FONT},
-         hovertemplate:m.isMin?(yA+': %{text}<extra></extra>'):(yA+': %{y:'+hf+'}<extra></extra>')}
-      ];
+      var A=ser(m.k,keysA), B=dosAnios?ser(m.k,keysB):null;
+      var hf='.'+(m.isMin?0:m.dec)+'f';
+      /* tamano de los numeros segun cuantos puntos haya (legibilidad sin amontonar) */
+      var np=A.length, tsz = np<=13?12 : np<=20?10.5 : np<=27?9.5 : 9;
+      if(dosAnios) tsz=10.5;
+      var mask=labelMask(A,dosAnios), maskB=dosAnios?labelMask(B,true):null;
+      var txtA=A.map(function(v,ix){ return mask[ix]?fmtPt(m,v):''; }), posA='top center', txtB=null, posB=null;
+      /* con muchos puntos, alternar arriba/abajo: cada vecino cae en una fila distinta y no se solapan */
+      if(!dosAnios && np>14){ posA=A.map(function(v,ix){ return ix%2===0?'top center':'bottom center'; }); }
+      if(dosAnios){ txtB=B.map(function(v,ix){ return maskB[ix]?fmtPt(m,v):''; }); posA=[]; posB=[];
+        for(var t=0;t<A.length;t++){ var a=A[t], b=B[t];
+          if(a!=null&&b!=null){ if(a>=b){posA.push('top center');posB.push('bottom center');} else {posA.push('bottom center');posB.push('top center');} }
+          else { posA.push('top center'); posB.push('bottom center'); } } }
+      var data=[];
+      if(dosAnios) data.push({x:xs,y:B,name:String(yB)+'  ',type:'scatter',mode:'lines+markers+text',connectgaps:false,
+          line:{color:bad,width:2,dash:'dot'},marker:{size:4,color:bad},text:txtB,textposition:posB,
+          textfont:{size:tsz,color:bad,family:FONT},cliponaxis:false,
+          customdata:B.map(function(v){return fmtPt(m,v);}),
+          hovertemplate:m.isMin?(yB+': %{customdata}<extra></extra>'):(yB+': %{y:'+hf+'}<extra></extra>')});
+      data.push({x:xs,y:A,name:(dosAnios?String(yA):P.lab)+'  ',type:'scatter',mode:'lines+markers+text',connectgaps:false,
+          line:{color:good,width:2.6},marker:{size:5,color:good},text:txtA,textposition:posA,
+          textfont:{size:tsz,color:inkS,family:FONT},cliponaxis:false,
+          customdata:A.map(function(v){return fmtPt(m,v);}),
+          hovertemplate:(modo!=='mes'?'%{x|%d %b}<br>':'')+(m.isMin?'%{customdata}<extra></extra>':'%{y:'+hf+'}<extra></extra>')});
       var shapes=[], anns=[];
+      monthLines.forEach(function(k){ shapes.push({type:'line',x0:k,x1:k,yref:'paper',y0:0,y1:1,line:{color:grid,width:1}}); });
       if(m.obj!=null){ shapes.push({type:'line',xref:'paper',x0:0,x1:1,y0:m.obj,y1:m.obj,line:{color:ink,width:1.2,dash:'dash'},opacity:.7});
         anns.push({xref:'paper',x:1,y:m.obj,yref:'y',text:'Objetivo '+fmtVal(m,m.obj),showarrow:false,xanchor:'right',yanchor:'bottom',
-          font:{size:9,color:ink,family:FONT},bgcolor:panel,opacity:.95}); }
-      var lay={margin:{l:48,r:12,t:8,b:34},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',
-        font:{family:FONT,color:ink,size:10},showlegend:false,shapes:shapes,annotations:anns,hovermode:'x unified',
-        hoverlabel:{bgcolor:panel,bordercolor:line,font:{color:inkS,size:11,family:FONT}},
-        xaxis:{gridcolor:grid,automargin:true},
-        yaxis:{gridcolor:grid,zeroline:false,automargin:true,hoverformat:hf}};
+          font:{size:11,color:ink,family:FONT},bgcolor:panel,opacity:.95}); }
+      var lay={margin:{l:56,r:14,t:10,b:(modo==='mes'?40:52)},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',
+        font:{family:FONT,color:ink,size:12},showlegend:false,shapes:shapes,annotations:anns,hovermode:'x unified',
+        hoverlabel:{bgcolor:panel,bordercolor:line,font:{color:inkS,size:13,family:FONT}},
+        xaxis:{gridcolor:grid,automargin:true,tickfont:{size:11.5}},
+        yaxis:{gridcolor:grid,zeroline:false,automargin:true,hoverformat:hf,tickfont:{size:11.5}}};
+      if(modo!=='mes'){ lay.xaxis.type='date'; lay.xaxis.tickmode='array'; lay.xaxis.tickvals=tickvals; lay.xaxis.ticktext=ticktext; lay.xaxis.tickfont={size:11}; }
+      else if(ST.per==='m12'){ lay.xaxis.tickangle=-45; lay.margin.b=58; }   // "ago 25" x12 se pega si va recto
       if(m.pair&&PR[m.pair]) lay.yaxis.range=PR[m.pair];
-      if(m.isMin){ /* eje en horas, no en minutos */
-        var vv=s.A.concat(s.B).filter(function(x){return x!=null&&!isNaN(x);}); if(m.obj!=null)vv.push(m.obj);
+      else { var av=A.concat(dosAnios?B:[]).filter(function(x){return x!=null&&!isNaN(x);}); if(m.obj!=null)av.push(m.obj);
+        if(av.length){ var an=Math.min.apply(null,av), ax=Math.max.apply(null,av), ap=Math.max(Math.abs(ax)*0.02,(ax-an)*(np>14?0.30:0.20))||0.5;
+          lay.yaxis.range=[an-ap,ax+ap]; } }
+      if(m.isMin){ var vv=A.concat(dosAnios?B:[]).filter(function(x){return x!=null&&!isNaN(x);}); if(m.obj!=null)vv.push(m.obj);
         if(vv.length){ var lo=Math.min.apply(null,vv), hi=Math.max.apply(null,vv);
-          var t0=Math.floor((lo-8)/30)*30, t1=Math.ceil((hi+8)/30)*30, tv=[], tt=[];
-          for(var q=t0;q<=t1;q+=30){ tv.push(q); tt.push(hhmm(q)); }
-          lay.yaxis.tickvals=tv; lay.yaxis.ticktext=tt; lay.yaxis.range=[t0,t1]; } }
-      try{ Plotly.react(box,data,lay,{displayModeBar:false,responsive:true}); }catch(e){} }); }
+          var q0=Math.floor((lo-8)/30)*30, q1=Math.ceil((hi+8)/30)*30, tv=[], tt=[];
+          for(var zz=q0;zz<=q1;zz+=30){ tv.push(zz); tt.push(hhmm(zz)); }
+          lay.yaxis.tickvals=tv; lay.yaxis.ticktext=tt; lay.yaxis.range=[q0,q1]; } }
+      /* newPlot (no react): con react las etiquetas de texto no se pintaban hasta un resize */
+      try{ Plotly.newPlot(box,data,lay,{displayModeBar:false,responsive:true}); }catch(e){}
+      var bt=document.querySelector('[data-fapng="fa_ch_'+m.k+'"]');
+      if(bt){ bt.setAttribute('data-fatitle', m.label+' — '+shortGroup());
+        bt.setAttribute('data-faname','farolas_'+m.k+'_'+String(shortGroup()).replace(/[^A-Za-z0-9]+/g,'_')+'_'+ST.per); }
+    }); }
 
-  /* descarga: leyenda con los años + valores de AMBOS años */
+  /* descarga: se pinta en un div OCULTO aparte -> la grafica de pantalla no se toca (sin parpadeo).
+     Titulo arriba, leyenda SIEMPRE entre el titulo y el area de la grafica, y numeros grandes. */
   document.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('[data-fapng]'); if(!b)return;
-    e.stopPropagation(); var id=b.getAttribute('data-fapng'), div=$(id); if(!div||!div.data||!window.Plotly)return;
-    Plotly.restyle(div,{mode:['lines+markers+text','lines+markers+text']})
-      .then(function(){ return Plotly.relayout(div,{showlegend:true,'legend.orientation':'h','legend.y':1.13,'legend.x':0,'legend.font.size':11,'margin.t':34}); })
-      .then(function(){ return Plotly.downloadImage(div,{format:'png',width:1100,height:620,scale:2,filename:b.getAttribute('data-faname')||id}); })
-      .then(function(){ return Plotly.restyle(div,{mode:['lines+markers','lines+markers+text']}); })
-      .then(function(){ return Plotly.relayout(div,{showlegend:false,'margin.t':8}); })
-      .catch(function(err){ console.warn('fa png',err); });
+    e.stopPropagation(); var id=b.getAttribute('data-fapng'), src=$(id); if(!src||!src.data||!window.Plotly)return;
+    var W=1800,H=1020, tit=b.getAttribute('data-fatitle')||'';
+    var tmp=document.createElement('div');
+    tmp.style.cssText='position:fixed;left:-10000px;top:0;width:'+W+'px;height:'+H+'px;pointer-events:none';
+    document.body.appendChild(tmp);
+    var data=JSON.parse(JSON.stringify(src.data)), lay=JSON.parse(JSON.stringify(src.layout));
+    data.forEach(function(t){ if(t.textfont)t.textfont.size=26; if(t.line)t.line.width=(t.line.dash?5:6);
+      if(t.marker)t.marker.size=13; t.showlegend=true;
+      if(t.customdata&&t.customdata.length) t.text=t.customdata.slice();   // en la imagen, todos los valores
+      });
+    /* la leyenda se muestra SIEMPRE (aunque haya una sola serie) y va en el margen superior */
+    lay.showlegend=true;
+    lay.legend={orientation:'h',xref:'paper',yref:'paper',x:0,xanchor:'left',y:1,yanchor:'bottom',
+      font:{size:30,family:FONT,color:cvar('--ink')},bgcolor:'rgba(0,0,0,0)',borderwidth:0,itemsizing:'constant',tracegroupgap:0};
+    lay.font={family:FONT,color:cvar('--ink2'),size:28};
+    lay.paper_bgcolor=cvar('--panel'); lay.plot_bgcolor=cvar('--panel');
+    if(lay.xaxis){ lay.xaxis.tickfont={size:27,family:FONT}; lay.xaxis.automargin=true;
+      /* con muchas etiquetas de texto (12 meses / 2 anios) se pegan: rotarlas */
+      var nx=(data[0]&&data[0].x)?data[0].x.length:0;
+      if(lay.xaxis.type!=='date' && nx>=10){ lay.xaxis.tickangle=-45; lay.xaxis.tickfont.size=23; }
+      else if(lay.xaxis.type==='date'){ lay.xaxis.tickangle=0; } }
+    if(lay.yaxis){ lay.yaxis.tickfont={size:27,family:FONT}; lay.yaxis.automargin=true; }
+    if(lay.annotations&&lay.annotations.length) lay.annotations.forEach(function(a){ a.font=a.font||{}; a.font.size=26; });
+    if(lay.shapes) lay.shapes.forEach(function(s){ if(s.line)s.line.width=2; });
+    /* espacio arriba: titulo (si hay) + banda de la leyenda */
+    var tH = tit?86:0, lH = 66;
+    var nxx=(data[0]&&data[0].x)?data[0].x.length:0, rot=(lay.xaxis&&lay.xaxis.type!=='date'&&nxx>=10);
+    lay.margin={l:132,r:110,t:(tH+lH+26),b:(rot?168:104)};
+    if(tit) lay.title={text:tit,x:0,xanchor:'left',yref:'container',y:1,yanchor:'top',pad:{t:26,l:6},
+      font:{size:42,family:FONT,color:cvar('--ink')}};
+    else lay.title=undefined;
+    lay.width=W; lay.height=H;
+    var fname=(b.getAttribute('data-faname')||id)+'.png';
+    Plotly.newPlot(tmp,data,lay,{displayModeBar:false,staticPlot:true})
+      .then(function(){ return Plotly.toImage(tmp,{format:'png',width:W,height:H,scale:2}); })
+      .then(function(url){
+        if(window.__addDownload) window.__addDownload(fname,url,true);   // queda en la bandeja (iPad)
+        try{ var a2=document.createElement('a'); a2.href=url; a2.download=fname; document.body.appendChild(a2); a2.click(); a2.remove(); }catch(_){}
+        try{Plotly.purge(tmp);}catch(_){} tmp.remove(); })
+      .catch(function(err){ console.warn('fa png',err); try{Plotly.purge(tmp);}catch(_){} tmp.remove(); });
   },true);
 
-  function render(){ if(!ST.val) ST.val=defVal(ST.dim);
+  function render(){ try{ saveFa(); }catch(e){}
+    try{ render_(); }catch(e){ console.warn('farolas render',e);
+      var st=$('fa_status'); if(st){ st.style.display='block'; st.innerHTML='<span style="color:var(--bad)">No se ha podido pintar Farolas: '+e.message+'</span>'; } } }
+  function render_(){ if(!ST.val) ST.val=defVal(ST.dim);
     if(!ST.mes) ST.mes=lastClosed();
     var inp=$('fa_val'); if(inp&&document.activeElement!==inp) inp.value=ST.val?valLabel(ST.dim,ST.val):'';
     var ri=$('fa_ref'); if(ri&&document.activeElement!==ri) ri.value=refLabel();
-    renderMes();
-    var same=sameSet(), rows=groupRows(ST.mes), rrows=same?[]:refRows(ST.mes);
+    var sel=cardSel(), same=sameSet(), rows=groupRows(sel), rrows=same?[]:refRows(sel);
     if($('fa_gname')) $('fa_gname').textContent=groupName();
-    if($('fa_gsub')) $('fa_gsub').textContent=mesLab(ST.mes)+(same?'':' · frente a '+refLabel());
-    renderBlocks(rows,rrows,same); renderCharts(); }
+    if($('fa_gsub')) $('fa_gsub').textContent=same?'':('frente a '+refLabel());
+    var pe=$('fa_per'); if(pe) pe.querySelectorAll('[data-p]').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-p')===ST.per); });
+    var sc=$('fa_scope'); if(sc) sc.querySelectorAll('[data-s]').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-s')===ST.scope); });
+    var dm=$('fa_dim'); if(dm) dm.querySelectorAll('[data-d]').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-d')===ST.dim); });
+    renderBlocks(rows,rrows,same); renderCharts();
+    requestAnimationFrame(faResize); setTimeout(faResize,240); }
 
   function tabBtn(){ return document.getElementById('mFarolas'); }
-  function markLoading(){ var b=tabBtn(); if(!b)return; b.disabled=true; b.style.opacity='.5'; b.style.cursor='progress'; b.title='Cargando los datos de Farolas…'; }
-  function markReady(){ var b=tabBtn(); if(!b)return; b.disabled=false; b.style.opacity=''; b.style.cursor=''; b.title=''; }
-  function markFail(msg){ var b=tabBtn(); if(!b)return; b.disabled=true; b.style.opacity='.5'; b.style.cursor='not-allowed'; b.title=msg||'No se pudieron cargar los datos de Farolas'; }
+  function markLoading(){ }
+  function markReady(){ var b=tabBtn(); if(b){ b.disabled=false; b.style.opacity=''; b.style.cursor=''; b.title=''; } }
+  /* si algo falla NO se bloquea la pestana: se puede entrar y reintentar */
+  function markFail(msg){ var b=tabBtn(); if(b){ b.disabled=false; b.style.opacity=''; b.style.cursor=''; b.title=msg||''; }
+    var st=$('fa_status'); if(st){ st.style.display='block';
+      st.innerHTML='<span style="color:var(--bad)">'+(msg||'No se pudieron cargar los datos de Farolas')+'</span> '+
+        '<button type="button" id="fa_retry" style="margin-left:8px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:8px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);cursor:pointer">Reintentar</button>';
+      var rb=$('fa_retry'); if(rb) rb.addEventListener('click',function(){ LOADED=false; LOADING=false; window.farolasInit(); }); } }
 
-  window.farolasInit=function(){ if(LOADED){ setTimeout(render,60); return; } if(LOADING)return; LOADING=true; markLoading();
+  /* ===== API para el COMPARADOR: mismas tarjetas/roscos para CUALQUIER conjunto =====
+     Un "selector" puede ser: {kind:'Tienda'|'Zona'|'Region'|'Modelo'|'Fase', val}
+     {kind:'vet'} veteranas · {kind:'all'} todas · {kind:'list', list:[codigos], name:'...'} (p.ej. liebre)
+     ref = null  -> no se compara con nada (solo objetivos). Se usa cuando la referencia es "Objetivo". */
+  function selTest(s){ if(!s)return null;
+    if(s.kind==='vet') return function(r){ return r.Fase==='Veterana'; };
+    if(s.kind==='all') return function(){ return true; };
+    if(s.kind==='list'){ var set={}; (s.list||[]).forEach(function(t){ set[String(t)]=1; });
+      return function(r){ return !!set[r.Tienda]; }; }
+    return function(r){ return r[s.kind]===s.val; }; }
+  function selName(s){ if(!s)return '';
+    if(s.name)return s.name;
+    if(s.kind==='vet')return 'Veteranas';
+    if(s.kind==='all')return 'Todas las tiendas';
+    if(s.kind==='Tienda'){ var nm=NAMES[s.val]; return nm?(s.val+' · '+nm):('Tienda '+s.val); }
+    if(s.kind==='Region')return 'Región '+s.val;
+    if(s.kind==='Zona')return 'Zona '+s.val;
+    return String(s.val||''); }
+  function selKey(s){ if(!s)return 'none';
+    return s.kind+'|'+(s.kind==='list'?((s.list||[]).slice().sort().join(',')):(s.val||'')); }
+  window.__faReady=function(){ return LOADED; };
+  window.__faSelName=selName;
+
+  /* pinta las farolas de un conjunto para un mes, frente a otro conjunto (o solo objetivos si ref=null) */
+  window.faSummary=function(host,o){
+    if(!host)return false;
+    if(!LOADED){ host.innerHTML=''; return false; }
+    o=o||{};
+    var grp=o.group||(o.tienda?{kind:'Tienda',val:String(o.tienda)}:null);
+    if(!grp){ host.innerHTML=''; return false; }
+    var mk=o.mesKey||lastClosed(), ref=o.ref||null;
+    var gt=selTest(grp), rt=ref?selTest(ref):null;
+    var same=ref?(selKey(grp)===selKey(ref)):true;
+    var rows=ROWS.filter(function(r){ return r.mk===mk && gt(r); });
+    var rrows=(rt&&!same)?ROWS.filter(function(r){ return r.mk===mk && rt(r); }):[];
+    if(!rows.length){ host.innerHTML='<div style="font-size:12.5px;color:var(--ink3)">No hay farolas de '+selName(grp)+' en '+mesLab(mk)+'.</div>'; return false; }
+    var hasRef=rrows.length>0;
+    var GR=GRUPOS.filter(function(g){ return g.t!=='Pedido eficiente'; });
+    var h='<div style="display:flex;flex-direction:column;gap:18px"><div class="fa-rings" id="cf_rings"></div>';
+    h+=GR.map(function(g){
+      var cards=g.ms.map(function(m){ var v=dayIgual(rows,m.k), rv=hasRef?dayIgual(rrows,m.k):null;
+        var obj=(m.obj==null)?'':('objetivo '+(m.low?'≤ ':'')+fmtVal(m,m.obj));
+        var cmp=(rv==null)?'':('<div class="o">'+selName(ref)+' '+fmtVal(m,rv)+'</div>');
+        return '<div class="fa-card '+objClass(m,v)+'" title="'+m.label+'"><div class="l">'+labHTML(m)+'</div><div class="v">'+valHTML(m,v)+'</div><div class="o">'+obj+'</div>'+cmp+'</div>'; }).join('');
+      return '<div class="fa-sec"><div class="fa-sech"><div class="t">'+g.t+'</div><div class="r"></div></div><div class="fa-cards">'+cards+'</div></div>'; }).join('');
+    h+='</div>';
+    host.innerHTML=h;
+    var rh=document.getElementById('cf_rings');
+    if(rh){ rh.innerHTML=GLOB.map(function(m){ return '<div class="fa-ring"><div class="rl">'+m.label+'</div><div class="rc" id="cf_r_'+m.k+'"></div><div class="rdel" id="cf_rd_'+m.k+'"></div><div class="rref" id="cf_rr_'+m.k+'"></div></div>'; }).join('');
+      var line=cvar('--line2'), inkC=cvar('--ink');
+      GLOB.forEach(function(m){ var v=dayIgual(rows,m.k), rv=hasRef?dayIgual(rrows,m.k):null;
+        var box=document.getElementById('cf_r_'+m.k), col=ringColor(m), pct=(v==null||isNaN(v))?0:Math.max(0,Math.min(100,v));
+        if(box&&window.Plotly){
+          var data=[{type:'pie',domain:{x:[0,1],y:[0,1]},values:[pct,100-pct],hole:.73,sort:false,direction:'clockwise',marker:{colors:[col,line]},textinfo:'none',hoverinfo:'skip'}];
+          if(rv!=null&&!isNaN(rv)){ var rp=Math.max(0,Math.min(100,rv)), w=0.9;
+            data.push({type:'pie',domain:{x:[0,1],y:[0,1]},hole:.6,sort:false,direction:'clockwise',textinfo:'none',hoverinfo:'skip',
+              values:[Math.max(0,rp-w/2), w, Math.max(0,100-rp-w/2)], marker:{colors:['rgba(0,0,0,0)',inkC,'rgba(0,0,0,0)']}}); }
+          var lay={margin:{l:6,r:6,t:6,b:6},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',showlegend:false,
+            transition:{duration:0},
+            annotations:[{text:(v==null?'—':fmtN(v,m.dec)+'%'),x:.5,y:.5,showarrow:false,font:{size:19,color:inkC,family:FONT}}]};
+          try{ Plotly.newPlot(box,data,lay,{displayModeBar:false,responsive:true}); }catch(e){} }
+        var d=document.getElementById('cf_rd_'+m.k), rr=document.getElementById('cf_rr_'+m.k);
+        if(d) d.innerHTML=(v==null||rv==null)?'':('<span style="color:'+clsColor(cmpClass(m,v,rv))+'">'+((v-rv)>0?'+':'')+fmtN(v-rv,m.dec)+' pp</span>');
+        if(rr) rr.textContent=(rv==null)?'':(selName(ref)+' '+fmtN(rv,m.dec)+'%');
+      }); }
+    return true; };
+
+  window.farolasInit=function(){ if(LOADED){ if(PENDING){ PENDING=false; requestAnimationFrame(function(){ render(); }); } else { setTimeout(render,60); setTimeout(faResize,320); } return; }
+    if(LOADING){ var s2=$('fa_status'); if(s2){ s2.style.display='block'; s2.innerHTML='<span style="display:inline-flex;align-items:center;gap:8px"><span class="sdot on"></span>Cargando los datos de Farolas…</span>'; } return; }
+    LOADING=true; markLoading();
     var st=$('fa_status'); if(st) st.innerHTML='<span style="display:inline-flex;align-items:center;gap:8px"><span class="sdot on"></span>Cargando Farolas…</span>';
     Papa.parse(FAR_URL+'?cb='+Date.now(),{download:true,header:true,skipEmptyLines:true,
       complete:function(res){ LOADING=false; try{
@@ -4650,10 +5055,26 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
         build(res.data);
         if(!(DIMV[ST.dim]||[]).length) ST.dim='Tienda';
         ST.val=defVal(ST.dim); ST.mes=lastClosed();
+        try{ var fc=loadFa();
+          if(fc){
+            if(fc.dim&&(DIMV[fc.dim]||[]).length){ ST.dim=fc.dim;
+              if(fc.val&&DIMV[fc.dim].indexOf(fc.val)>=0) ST.val=fc.val; else ST.val=defVal(ST.dim); }
+            if(fc.scope==='vet'||fc.scope==='all') ST.scope=fc.scope;
+            if(fc.per&&PERS[fc.per]) ST.per=fc.per;
+            if(fc.refKind) { ST.refKind=fc.refKind; ST.refVal=(fc.refVal===undefined?null:fc.refVal); }
+          }
+        }catch(e){ console.warn('farolas cfg',e); }
         LOADED=true; if(st)st.style.display='none';
-        renderDim(); wireScope(); syncScope(); wireCombo(); wireRef(); render(); markReady();
-      }catch(e){ if(st)st.innerHTML='<span style="color:var(--bad)">Error al preparar Farolas: '+e.message+'</span>'; markFail('Error al preparar Farolas'); console.warn('farolas',e); } },
-      error:function(){ LOADING=false; if(st)st.innerHTML='<span style="color:var(--bad)">No se pudo cargar el CSV de Farolas (¿ya está subido a GitHub?).</span>'; markFail('No se pudo cargar el CSV de Farolas'); }
+        renderDim(); wireScope(); syncScope(); wireCombo(); wireRef(); wirePer(); markReady();
+        var tabv=$('farolasTab');
+        if(tabv&&tabv.style.display!=='none') render(); else PENDING=true;   // pintar solo cuando se vea
+        try{ if(window.__bootStep) window.__bootStep('far'); }catch(e){}
+        /* el resumen del comparador se pinta ANTES de que lleguen las farolas -> repintarlo ahora */
+        try{ if(window.__cfFarolas) window.__cfFarolas(); }catch(e){}
+      }catch(e){ if(st)st.innerHTML='<span style="color:var(--bad)">Error al preparar Farolas: '+e.message+'</span>'; markFail('Error al preparar Farolas'); console.warn('farolas',e);
+        try{ if(window.__bootStep) window.__bootStep('far'); }catch(_){} } },
+      error:function(){ LOADING=false; if(st)st.innerHTML='<span style="color:var(--bad)">No se pudo cargar el CSV de Farolas (¿ya está subido a GitHub?).</span>'; markFail('No se pudo cargar el CSV de Farolas');
+        try{ if(window.__bootStep) window.__bootStep('far'); }catch(_){} }
     });
   };
   /* PRECARGA: los datos de Farolas se descargan al abrir el dashboard (no al entrar en la pestaña).
@@ -4664,5 +5085,27 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
 })();
 </script>
 
+<div id="bootOv" aria-live="polite" style="position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;align-items:center;justify-content:center">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px;height:150px;justify-content:center">
+    <div style="width:46px;height:46px;border-radius:50%;border:3px solid var(--line2);border-top-color:var(--brand);animation:bootSpin .9s linear infinite"></div>
+    <div style="font-size:16px;font-weight:800;color:var(--ink)">Cargando datos…</div>
+  </div>
+</div>
+<style>@keyframes bootSpin{to{transform:rotate(360deg)}}</style>
+<script>
+/* El HTML no se puede usar hasta que TODOS los datos esten cargados (desglose + farolas). */
+(function(){
+  var need={main:false,far:false};
+  /* nada de scroll mientras carga: si aparece/desaparece la barra, el centro se desplaza */
+  try{ document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; }catch(e){}
+  function hide(){ var o=document.getElementById('bootOv'); if(o){ o.style.opacity='0'; o.style.transition='opacity .25s'; setTimeout(function(){ o.style.display='none'; },260); }
+    try{ document.documentElement.style.overflow=''; document.body.style.overflow=''; }catch(e){}
+    try{ if(window.__faResize) window.__faResize(); }catch(e){} }
+  window.__bootStep=function(k,txt){ need[k]=true;
+    if(need.main&&need.far) hide(); };
+  /* red de seguridad: pase lo que pase, a los 40 s se libera */
+  setTimeout(function(){ var o=document.getElementById('bootOv'); if(o&&o.style.display!=='none'){ hide(); } },40000);
+})();
+</script>
 </body>
 </html>
