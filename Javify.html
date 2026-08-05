@@ -2007,50 +2007,79 @@ body.simple #mObj{display:none!important}
 </div><!-- /.wrap -->
 
 <!-- ASISTENTE FLOTANTE -->
-<!-- BANDEJA DE DESCARGAS (imprescindible en iPad: ahi se pueden guardar las imagenes) -->
-<button class="fab" id="dlFab" title="Descargas" aria-label="Descargas" style="display:none;right:16px;bottom:calc(132px + env(safe-area-inset-bottom))">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M4 21h16"/></svg>
-  <span id="dlCount" style="position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;border-radius:999px;background:var(--brand);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px">0</span>
-</button>
-<div id="dlPanel" role="dialog" aria-label="Descargas" style="display:none;position:fixed;right:16px;bottom:calc(184px + env(safe-area-inset-bottom));z-index:64;width:320px;max-width:calc(100vw - 32px);max-height:min(70vh,560px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 44px rgba(0,0,0,.3);padding:12px 13px">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-    <span style="font-size:10.5px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--ink2)">Descargas</span>
-    <button id="dlClose" aria-label="Cerrar" style="width:26px;height:26px;border-radius:7px;background:var(--panel2);border:1px solid var(--line2);color:var(--ink2);cursor:pointer;font-size:13px">&#10005;</button>
+<!-- VISOR DE DESCARGA (iPhone/iPad: aqui se guarda con el menu del sistema o manteniendo pulsada la imagen) -->
+<div id="dlView" role="dialog" aria-label="Descarga" style="display:none;position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.72);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.4);max-width:min(720px,100%);max-height:90vh;display:flex;flex-direction:column;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line2)">
+      <div id="dlvName" style="flex:1;font-size:12.5px;font-weight:750;color:var(--ink);word-break:break-word"></div>
+      <button id="dlvClose" aria-label="Cerrar" style="width:30px;height:30px;border-radius:8px;background:var(--panel2);border:1px solid var(--line2);color:var(--ink2);cursor:pointer;font-size:14px">&#10005;</button>
+    </div>
+    <div id="dlvBody" style="padding:12px 14px;overflow:auto;text-align:center"></div>
+    <div style="display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line2)">
+      <button id="dlvSave" style="flex:1;font-size:13px;font-weight:800;padding:11px;border-radius:10px;border:1px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer">Guardar</button>
+      <button id="dlvClose2" style="font-size:13px;font-weight:750;padding:11px 16px;border-radius:10px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);cursor:pointer">Cerrar</button>
+    </div>
   </div>
-  <div id="dlHint" style="font-size:11.5px;color:var(--ink3);line-height:1.5;margin-bottom:9px">En iPad o iPhone: manten pulsada la imagen y elige <b>Guardar en Fotos</b>.</div>
-  <div id="dlList" style="display:flex;flex-direction:column;gap:10px"></div>
 </div>
 <script>
-/* Bandeja de descargas: cada imagen/tabla generada queda aqui para poder guardarla
-   (en iOS la descarga directa no funciona; manteniendo pulsada la imagen si). */
+/* Entrega de descargas.
+   - Ordenador: se descarga y punto.
+   - iPhone/iPad: Safari ignora el atributo "download", asi que se abre un visor con la imagen
+     y un boton Guardar que usa el menu del sistema (Fotos, Archivos, AirDrop...). */
 (function(){
-  var items=[];
-  function $id(i){ return document.getElementById(i); }
-  function render(){
-    var l=$id('dlList'); if(!l) return;
-    l.innerHTML=items.map(function(it,ix){
-      return '<div style="border:1px solid var(--line2);border-radius:10px;padding:8px;background:var(--panel2)">'+
-        '<div style="font-size:11.5px;font-weight:750;color:var(--ink);margin-bottom:6px;word-break:break-word">'+it.name+'</div>'+
-        (it.url? '<a href="'+it.url+'" download="'+it.name+'" target="_blank" rel="noopener">'+
-            (it.img? '<img src="'+it.url+'" alt="'+it.name+'" style="width:100%;border-radius:7px;display:block;border:1px solid var(--line2)">' : '')+
-          '</a>' : '')+
-        '<div style="display:flex;gap:6px;margin-top:7px">'+
-          '<a href="'+it.url+'" download="'+it.name+'" style="flex:1;text-align:center;font-size:11.5px;font-weight:750;padding:6px 8px;border-radius:7px;border:1px solid var(--brand);background:var(--brand);color:#fff;text-decoration:none">Descargar</a>'+
-          (it.img?'<a href="'+it.url+'" target="_blank" rel="noopener" style="flex:1;text-align:center;font-size:11.5px;font-weight:750;padding:6px 8px;border-radius:7px;border:1px solid var(--line2);background:var(--panel);color:var(--ink2);text-decoration:none">Abrir</a>':'')+
-        '</div></div>';
-    }).join('');
-    var c=$id('dlCount'); if(c) c.textContent=items.length;
-    var f=$id('dlFab'); if(f) f.style.display=items.length?'flex':'none';
+  var cur=null;
+  function $i(x){ return document.getElementById(x); }
+  var isIOS=(function(){ var ua=navigator.userAgent||'';
+    return /iPad|iPhone|iPod/.test(ua) || (/Mac/.test(navigator.platform||'') && (navigator.maxTouchPoints||0)>1); })();
+  function toBlob(url){
+    if(url instanceof Blob) return Promise.resolve(url);
+    if(typeof url==='string' && url.indexOf('data:')===0){
+      var p=url.split(','), mime=(p[0].match(/:(.*?);/)||[])[1]||'image/png';
+      var bin=atob(p[1]), n=bin.length, arr=new Uint8Array(n);
+      while(n--) arr[n]=bin.charCodeAt(n);
+      return Promise.resolve(new Blob([arr],{type:mime}));
+    }
+    return fetch(url).then(function(r){ return r.blob(); });
   }
-  window.__addDownload=function(name,url,isImg){
-    items.unshift({name:name,url:url,img:!!isImg}); if(items.length>12) items.pop();
-    render(); var p=$id('dlPanel'); if(p) p.style.display='block';
-  };
-  document.addEventListener('DOMContentLoaded',function(){
-    var f=$id('dlFab'), p=$id('dlPanel'), x=$id('dlClose');
-    if(f) f.addEventListener('click',function(e){ e.stopPropagation(); p.style.display=(p.style.display==='none'?'block':'none'); });
-    if(x) x.addEventListener('click',function(){ p.style.display='none'; });
+  function close(){ var v=$i('dlView'); if(v) v.style.display='none';
+    if(cur&&cur.obj){ try{ URL.revokeObjectURL(cur.obj); }catch(e){} } cur=null; }
+  function open(name,blob,isImg){
+    var v=$i('dlView'); if(!v) return;
+    if(cur&&cur.obj){ try{ URL.revokeObjectURL(cur.obj); }catch(e){} }
+    var obj=URL.createObjectURL(blob);
+    cur={name:name,blob:blob,obj:obj};
+    $i('dlvName').textContent=name;
+    $i('dlvBody').innerHTML = isImg
+      ? '<img src="'+obj+'" alt="'+name+'" style="max-width:100%;border-radius:10px;border:1px solid var(--line2);display:block;margin:0 auto;-webkit-touch-callout:default">'+
+        (isIOS?'<div style="font-size:12px;color:var(--ink3);margin-top:10px;line-height:1.5">Pulsa <b>Guardar</b>, o manten pulsada la imagen y elige <b>Guardar en Fotos</b>.</div>':'')
+      : '<div style="font-size:13px;color:var(--ink2);padding:18px 6px">Archivo listo.</div>';
+    v.style.display='flex';
+  }
+  $i('dlvSave') && $i('dlvSave').addEventListener('click',function(){
+    if(!cur) return;
+    var f=null;
+    try{ f=new File([cur.blob],cur.name,{type:cur.blob.type}); }catch(e){}
+    if(f && navigator.canShare && navigator.canShare({files:[f]})){
+      navigator.share({files:[f],title:cur.name}).then(close).catch(function(){});
+      return;
+    }
+    var a=document.createElement('a'); a.href=cur.obj; a.download=cur.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    if(!isIOS) close();
   });
+  ['dlvClose','dlvClose2'].forEach(function(id){ var b=$i(id); if(b) b.addEventListener('click',close); });
+  $i('dlView') && $i('dlView').addEventListener('click',function(e){ if(e.target===this) close(); });
+
+  /* API unica que usan todos los botones de descarga del dashboard */
+  window.__deliver=function(name,urlOrBlob,isImg){
+    toBlob(urlOrBlob).then(function(blob){
+      if(isIOS){ open(name,blob,isImg); return; }
+      var u=URL.createObjectURL(blob), a=document.createElement('a');
+      a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ try{ URL.revokeObjectURL(u); }catch(e){} },4000);
+    }).catch(function(e){ console.warn('descarga',e); });
+  };
+  window.__addDownload=window.__deliver;   // compatibilidad
 })();
 </script>
 <button class="fab" id="cfgFab" title="Ajustes" aria-label="Ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
@@ -3491,26 +3520,22 @@ $('csv').addEventListener('click',()=>{
 // Descargas (delegado a nivel documento → cubre gráficas y tablas de todos los bloques, incluso las que se pintan después)
 function tableToCsv(id,name){const t=(typeof id==='string')?$(id):id;if(!t)return;
   const rows=[...t.querySelectorAll('tr')].map(tr=>[...tr.querySelectorAll('th,td')].map(c=>{const s=(c.innerText||c.textContent||'').replace(/\s+/g,' ').trim();return '"'+s.replace(/"/g,'""')+'"';}).join(';')).filter(r=>r.replace(/[";]/g,'').trim().length);
-  const blob=new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(blob),fn=(name||id||'tabla')+'.csv';
-  if(window.__addDownload) window.__addDownload(fn,u,false);   // queda en la bandeja
-  const a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();}
+  const blob=new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  window.__deliver((name||id||'tabla')+'.csv', blob, false);}
 document.addEventListener('click',function(e){
   const p=e.target.closest&&e.target.closest('[data-png]');
   if(p){const id=p.dataset.png; const el=$(id);
     if(el&&el.data){ const fn=(p.dataset.pngname||id)+'.png';
-      Plotly.toImage(el,{format:'png',width:1200,height:620,scale:2}).then(function(url){
-        if(window.__addDownload) window.__addDownload(fn,url,true);
-        try{ const a=document.createElement('a'); a.href=url; a.download=fn; document.body.appendChild(a); a.click(); a.remove(); }catch(e){}
-      }).catch(function(e){ console.warn('png',e); }); }
+      Plotly.toImage(el,{format:'png',width:1200,height:620,scale:2})
+        .then(function(url){ window.__deliver(fn,url,true); })
+        .catch(function(e){ console.warn('png',e); }); }
     return;}
   // PNG de una TABLA (html2canvas): data-pngtbl="idDeLaTabla"
   const pt=e.target.closest&&e.target.closest('[data-pngtbl]');
   if(pt){ const el=$(pt.dataset.pngtbl);
     if(typeof html2canvas==='undefined'){alert('No se pudo cargar la librería de captura (sin conexión).');return;}
     if(el){ const bg=cssv('--panel','#fff'); html2canvas(el,{backgroundColor:bg,scale:2,useCORS:true}).then(cv=>{
-      const fn=(pt.dataset.pngname||pt.dataset.pngtbl)+'.png', url=cv.toDataURL('image/png');
-      if(window.__addDownload) window.__addDownload(fn,url,true);
-      const a=document.createElement('a');a.download=fn;a.href=url;document.body.appendChild(a);a.click();a.remove();
+      window.__deliver((pt.dataset.pngname||pt.dataset.pngtbl)+'.png', cv.toDataURL('image/png'), true);
     }).catch(err=>console.error(err)); }
     return; }
   const c=e.target.closest&&e.target.closest('[data-csv]');
@@ -4946,8 +4971,7 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     Plotly.newPlot(tmp,data,lay,{displayModeBar:false,staticPlot:true})
       .then(function(){ return Plotly.toImage(tmp,{format:'png',width:W,height:H,scale:2}); })
       .then(function(url){
-        if(window.__addDownload) window.__addDownload(fname,url,true);   // queda en la bandeja (iPad)
-        try{ var a2=document.createElement('a'); a2.href=url; a2.download=fname; document.body.appendChild(a2); a2.click(); a2.remove(); }catch(_){}
+        window.__deliver(fname,url,true);
         try{Plotly.purge(tmp);}catch(_){} tmp.remove(); })
       .catch(function(err){ console.warn('fa png',err); try{Plotly.purge(tmp);}catch(_){} tmp.remove(); });
   },true);
