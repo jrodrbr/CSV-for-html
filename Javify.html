@@ -271,6 +271,75 @@ h1,h2,h3,h4{letter-spacing:-.02em}
 .errbox.show{display:block}
 .errbox code{font-family:ui-monospace,monospace;color:var(--up);font-weight:700}
 
+/* ============================================================================
+   SELECTOR DE ESCENARIOS — dentro de la tarjeta y a todo el ancho, como el resto de la
+   pagina. Lo que cambia frente al diseno anterior es el INTERIOR: sin cajas dentro de la
+   caja, campos con linea inferior en vez de recuadro gris, y una franja fina de color por
+   escenario.
+   ============================================================================ */
+
+/* ocupa TODO el ancho de la tarjeta: asi se alinea con el resto de la pagina */
+.pick{margin-top:18px}
+.pick-rows{display:grid;grid-template-columns:1fr 44px 1fr;align-items:start;gap:0 18px}
+/* los campos no se estiran sin sentido en pantallas anchas */
+.pk .combo,.pk-when,.pk-sc{max-width:460px}
+
+/* cada escenario: una franja fina de color a la izquierda y nada mas */
+.pk{position:relative;padding-left:15px;min-width:0}
+.pk::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:2px;border-radius:2px;background:var(--line2)}
+.pk-a::before{background:var(--brand)}
+.pk-b::before{background:var(--ref)}
+.pk-k{font-size:10px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--ink3);margin-bottom:9px}
+.pk-a .pk-k{color:var(--brand)}
+
+/* campos: sin relleno gris, solo una linea inferior. Se marca al enfocar. */
+.pick .combo-in,.pick select{width:100%;min-width:0;background:transparent;border:0;border-bottom:1px solid var(--line2);
+  border-radius:0;padding:7px 2px;color:var(--ink);font:inherit;transition:border-color .16s}
+.pick .combo-in{font-size:16px;font-weight:750;letter-spacing:-.2px}
+.pick .combo-in::placeholder{font-weight:500;color:var(--ink3)}
+.pick .combo-in:focus,.pick select:focus{outline:none;border-bottom-color:var(--brand)}
+.pick .combo-in:hover,.pick select:hover{border-bottom-color:var(--line3)}
+.pk-when{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.pick select{font-size:12.5px;font-weight:650;color:var(--ink2);cursor:pointer;
+  -webkit-appearance:none;appearance:none;padding-right:18px;
+  /* chevron hacia ABAJO con dos triangulos; ojo al orden de los angulos o sale del reves */
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink3) 50%),linear-gradient(135deg,var(--ink3) 50%,transparent 50%);
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+  background-position:calc(100% - 9px) calc(50% + 1px),calc(100% - 5px) calc(50% + 1px)}
+.pick select:hover{background-image:linear-gradient(45deg,transparent 50%,var(--ink2) 50%),linear-gradient(135deg,var(--ink2) 50%,transparent 50%)}
+
+/* intercambiar: circulo discreto, alineado con los campos */
+.pk-swap{grid-column:2;align-self:start;margin-top:26px;width:34px;height:34px;border-radius:50%;
+  border:1px solid var(--line2);background:var(--panel);color:var(--ink3);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0;transition:.16s}
+.pk-swap svg{width:16px;height:16px}
+.pk-swap:hover{color:var(--brand);border-color:var(--brand-bd);background:var(--panel2)}
+
+/* atajos de la referencia: pildoras muy ligeras */
+.pk-sc{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.pk-sc .qb{padding:5px 11px;font-size:11px;font-weight:650;background:transparent;border-color:var(--line2);color:var(--ink3)}
+.pk-sc .qb:hover{color:var(--ink);border-color:var(--line3);background:var(--panel2)}
+
+/* pie: resumen a la izquierda, accion a la derecha */
+.pick-go{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  margin-top:20px;padding-top:14px;border-top:1px solid var(--line)}
+.pick-pv{margin:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--ink3);min-width:0}
+.pick-pv b{color:var(--ink);font-weight:750}
+.pick-pv b:first-child{color:var(--brand)}
+
+/* movil: una columna, el intercambio entre los dos y la accion a todo el ancho */
+/* 820px, el MISMO corte que usa .btn-go{width:100%} unas reglas mas arriba. Con 700 habia
+   una franja (701-820) en la que el boton se iba a todo el ancho pero la fila seguia en
+   horizontal, y el boton tapaba el "Tienda X frente a Y". */
+@media(max-width:820px){
+  .pick-rows{grid-template-columns:1fr;gap:0}
+  .pk .combo,.pk-when,.pk-sc{max-width:none}
+  .pk-b{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+  /* el circulo se centra SOBRE la linea que separa los dos escenarios */
+  .pk-swap{grid-column:1;justify-self:end;margin:8px 6px -25px;position:relative;z-index:2;background:var(--panel)}
+  .pick-go{justify-content:center}
+  .pick-pv{justify-content:center;font-size:12px}
+}
 .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
 .scn{border:1px solid var(--line);border-radius:var(--r);background:var(--bg2);padding:18px;position:relative;overflow:hidden}
 .scn:before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
@@ -526,10 +595,62 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outlin
 .ptable tr.totrow td{border-top:2px solid var(--line2);border-bottom:0;font-weight:850;font-size:13px;padding-top:13px}
 .ptable tr:hover td{background:var(--panel2)}
 .ptable .micro{font-size:10px;color:var(--ink3);font-weight:600;font-family:var(--ui)}
-/* marca de "aquí el faro dice otra cosa": minutos totales de más pero por debajo de la referencia en la unidad activa */
-.ptable .par-ojo{display:inline-block;font-family:var(--ui);font-size:10px;font-weight:800;line-height:14px;color:var(--ink3);
-  border:1px solid var(--line2);border-radius:5px;width:16px;height:16px;text-align:center;margin-right:7px;
-  vertical-align:middle;cursor:help;flex-shrink:0}
+
+/* ============================================================================================
+   NOTA DE MÉTODO (el aviso de "el caudal oficial está en Farolas").
+   NO vive dentro de ninguna tarjeta (.sec no tiene fondo), asi que necesita caja propia o se
+   queda como texto suelto sobre el fondo de la pagina. Usa exactamente los mismos tokens que
+   las tarjetas .kpi de encima (--panel, --line, --r, --sh-sm) y el mismo filete de 3px a la
+   izquierda que ellas, en ambar en vez de verde: misma familia, otro significado.
+   La flecha de la derecha pasa a ✕ para que se vea como se cierra.
+   OJO: no borrar este bloque por posicion; antes estaba pegado a una regla que se elimino y
+   se fue con ella, dejando el aviso sin estilo.
+   ============================================================================================ */
+details.metodo{margin:14px 0 0;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--sh-sm);position:relative;overflow:hidden}
+/* filete ambar, igual que .kpi:before lleva el verde */
+details.metodo:before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:#d9932b;opacity:.8;z-index:1}
+details.metodo>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;
+  padding:13px 14px 13px 19px;font-size:12px;font-weight:650;color:var(--ink2);line-height:1.4;
+  transition:background .15s,color .15s}
+details.metodo>summary::-webkit-details-marker{display:none}
+details.metodo>summary:hover{background:var(--panel2);color:var(--ink)}
+details.metodo>summary b{color:var(--ink);font-weight:800}
+details.metodo[open]>summary{box-shadow:inset 0 -1px 0 var(--line)}
+/* el punto sobra ya que el filete de la izquierda hace de marca de color */
+details.metodo .m-p{display:none}
+details.metodo .m-x{flex:1;min-width:0}
+/* chevron -> ✕, dibujado en CSS: nada de iconos extra */
+details.metodo>summary::after{content:"";flex:0 0 auto;width:22px;height:22px;position:relative;
+  background-image:linear-gradient(45deg,transparent 46%,var(--ink3) 46%,var(--ink3) 54%,transparent 54%),
+                   linear-gradient(-45deg,transparent 46%,var(--ink3) 46%,var(--ink3) 54%,transparent 54%);
+  background-size:7px 7px,7px 7px;background-repeat:no-repeat;
+  background-position:calc(50% - 2px) calc(50% - 1px),calc(50% + 2px) calc(50% - 1px);
+  transition:background-position .16s,background-size .16s}
+details.metodo[open]>summary::after{background-position:50% 50%,50% 50%;background-size:9px 9px,9px 9px}
+details.metodo>summary:hover::after{filter:brightness(.8)}
+
+/* cuerpo dentro de la misma caja, alineado con el texto del summary */
+details.metodo .m-body{padding:15px 18px 16px 19px}
+details.metodo .m-body p{margin:13px 0 0;font-size:11.5px;line-height:1.6;color:var(--ink2)}
+details.metodo .m-body p b{color:var(--ink);font-weight:750}
+
+/* las dos formas de calcular, en dos columnas: solo un filete de color por lado, sin cajas
+   anidadas (ya estamos dentro de una) */
+.m-cmp{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin:0}
+.m-cmp>div{padding-left:12px;border-left:2px solid var(--line2)}
+.m-cmp>div:last-child{border-left-color:#d9932b}
+.m-cmp dt{font-size:9.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.m-cmp dt span{font-size:8.5px;letter-spacing:.6px;color:#c9821f;font-weight:800}
+.m-cmp dd{margin:0;font-size:11.5px;line-height:1.55;color:var(--ink2)}
+.m-cmp dd b{color:var(--ink);font-weight:800;font-family:ui-monospace,monospace;font-size:12px}
+@media(max-width:640px){
+  .m-cmp{grid-template-columns:1fr;gap:14px}
+  details.metodo>summary{padding:12px 12px 12px 17px;font-size:11.5px}
+  details.metodo .m-body{padding:13px 15px 14px 17px}
+}
 
 /* ===== ASISTENTE FLOTANTE ===== */
 .fab{position:fixed;bottom:22px;right:22px;z-index:60;height:52px;padding:0 20px 0 16px;border-radius:999px;background:linear-gradient(135deg,var(--brand2),var(--brand));color:#fff;border:0;cursor:pointer;box-shadow:0 12px 32px color-mix(in srgb,var(--brand) 45%,transparent);display:flex;align-items:center;gap:9px;font:inherit;font-size:13px;font-weight:800;transition:.18s}
@@ -855,12 +976,23 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,su
 /* ---------- 2 · Cabecera + navegación de modos ---------- */
 .hdr{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--line)}
 .hdr-r .tg{min-height:38px;display:inline-flex;align-items:center;justify-content:center}
-/* Barra de modos fija arriba en escritorio, con desenfoque suave */
-#modeBar{position:sticky;top:0;z-index:50;padding:10px 0;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:saturate(1.35) blur(10px);-webkit-backdrop-filter:saturate(1.35) blur(10px)}
+/* Barra de modos fija arriba en escritorio.
+   SIN backdrop-filter a proposito: con fondo semitransparente + blur el navegador
+   recalcula el desenfoque en cada frame de scroll y la barra temblaba (se
+   desincronizaba un frame). Fondo opaco + linea fina = nada que recalcular.
+   translateZ(0) la deja en su propia capa para que el scroll no la repinte. */
+#modeBar{position:sticky;top:0;z-index:50;padding:10px 0;background:var(--bg);
+  box-shadow:0 1px 0 var(--line);transform:translateZ(0);will-change:transform}
 #modeBar .modeswitch{box-shadow:var(--sh-sm)}
 .combo-pop{z-index:56}                               /* el buscador siempre por encima de la barra fija */
 .sec{scroll-margin-top:78px}                         /* al saltar por ancla, deja aire bajo la barra */
-.modeswitch button{transition:background .16s ease,color .16s ease,box-shadow .16s ease}
+/* La barra de pestanas NO anima NADA. Al entrar en Farolas se repintan 20 graficas y el
+   hilo se bloquea ~300 ms: cualquier transicion en curso se queda congelada a medias y el
+   boton que acabas de dejar se ve medio verde, que es la "sombra" que aparecia. Sin
+   transicion el cambio es instantaneo y no hay nada que congelar. */
+.modeswitch button{transition:background .16s ease,color .16s ease}
+#modeBar .modeswitch button{transition:none!important;box-shadow:none}
+#modeBar .modeswitch button.on{box-shadow:0 3px 10px var(--brand-soft)}
 .modeswitch button:not(.on):hover{color:var(--ink)}
 /* Delicia sutil en escritorio: las tarjetas de dato "respiran" al pasar el ratón */
 @media(hover:hover) and (min-width:641px){
@@ -1236,25 +1368,14 @@ body.simple #mObj{display:none!important}
 #caudalMonthTbl td:first-child{background:var(--panel)!important;z-index:2}
 #caudalMonthTbl th:first-child{background:var(--panel2)!important;z-index:4}
 @media(max-width:640px){
-  /* "Elige dos escenarios" mucho más compacto en iPhone */
-  #step2 .cpad{padding:12px}
-  #step2 .stp{margin-bottom:6px}
-  #step2 .h-c{font-size:14px}
-  #step2 .s-c{font-size:11.5px;margin-top:2px}
-  #step2 .sgrid{gap:10px;margin-top:10px}
-  #step2 .scn{padding:11px}
-  #step2 .scn-h{margin-bottom:8px}
-  #step2 .scn-ic{width:22px;height:22px}
-  #step2 .scn-name{font-size:12.5px}
-  #step2 .scn-name small{font-size:10px;margin-top:0}
-  #step2 .fld{margin-bottom:8px}
-  #step2 .fld label{font-size:9px;margin-bottom:3px}
-  #step2 select,#step2 .tin,#step2 .combo-in{min-height:38px;padding:8px 10px}
-  #step2 .f3{gap:6px}
-  #step2 .quick{margin-top:8px;gap:5px}
-  #step2 .qb{padding:6px 10px;font-size:11px}
-  #step2 .gorow{margin-top:12px}
-  #step2 .btn-go{padding:11px 22px;font-size:13px}
+  /* "Elige dos escenarios" en iPhone. El selector nuevo ya nace compacto, aqui solo se
+     afinan tamanos. Se han quitado las reglas de .cpad/.stp/.sgrid/.scn/.fld/.f3/.quick/
+     .gorow: esos elementos ya no existen en #step2, y su min-height:38px pisaba al nuevo
+     diseno dejando los campos por debajo del minimo de toque. */
+  .pick{max-width:none}
+  .pick .combo-in{font-size:16px}
+  .pick select{font-size:12.5px}
+  .pk-sc .qb{padding:6px 11px;font-size:11px}
 }
 
 /* ==================================================================
@@ -1296,9 +1417,9 @@ body.simple #mObj{display:none!important}
 /* Flujo: el nombre de fase se corta con … cuando la caja es estrecha (Desplazamiento) */
 .fcard .fname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:640px){
-  /* Comparar tienda: 16px computado (iOS no hace zoom al enfocar) pero se ve ~13,6px con transform; los <select> no hacen zoom, van a 13px */
-  #step2 select{font-size:13px}
-  #step2 .combo-in,#step2 .tin{font-size:16px;transform:scale(.85);transform-origin:left center;width:118%}
+  /* El selector nuevo ya nace a 16px en el campo de tienda, asi que iOS no hace zoom al
+     enfocar y no hace falta el transform:scale(.85) que habia aqui (encogia el campo y
+     dejaba el tap target en 36 px). Los <select> a 12,5px tampoco hacen zoom. */
   /* Ranking de tiendas: filtros mucho más pequeños en iPhone */
   .rk-ctrl{padding:10px;gap:8px}
   .rk-ctrl select,.rk-ctrl input,.rk-ctrl .tin{font-size:13px!important;min-height:36px!important;padding:6px 8px!important}
@@ -1335,32 +1456,40 @@ body.simple #mObj{display:none!important}
   </div>
 
   <div class="no-print" id="modeBar" style="display:none;margin-bottom:16px">
-    <div class="modeswitch" role="group" aria-label="Modo de análisis"><button class="on" id="mComp" aria-pressed="true">Comparar tienda</button><button id="mRank" aria-pressed="false">Ranking de tiendas</button><button id="mObj" aria-pressed="false">Definición de objetivos</button><button id="mCaud" aria-pressed="false">Caudal</button><button id="mFarolas" aria-pressed="false">Farolas</button></div>
+    <div class="modeswitch" role="group" aria-label="Modo de análisis"><button class="on" id="mComp" aria-pressed="true">Comparar tienda</button><button id="mFarolas" aria-pressed="false">Farolas</button><button id="mCaud" aria-pressed="false">Caudal</button><button id="mRank" aria-pressed="false">Ranking de tiendas</button><button id="mObj" aria-pressed="false">Definición de objetivos</button></div>
   </div>
 
-  <!-- PASO 2 (comparador) -->
+  <!-- PASO 2 (comparador) — selector de escenarios.
+       Sin tarjeta ni cajas anidadas: integrado con el fondo, como en Farolas. Mismos ids y
+       mismos data-q que antes, asi que el JS no cambia. -->
   <div class="card no-print" id="step2" style="margin-bottom:16px;display:none">
     <div class="cpad">
       <div class="stp"><span class="stp-k">Qué comparar</span></div>
       <div class="h-c">Elige dos escenarios</div>
-      <div class="s-c">Compara un escenario <b>analizado</b> con una <b>referencia</b>, por área.</div>
-      <div class="sgrid">
-        <div class="scn a">
-          <div class="scn-h"><div class="scn-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v9l5 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg></div><div class="scn-name">Escenario analizado<small>El que quieres estudiar</small></div></div>
-          <div class="fld"><label for="tA">Tienda</label><div class="combo"><input class="combo-in" id="tA" placeholder="Buscar tienda (código o nombre)…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="tApop"><div class="combo-pop" id="tApop" role="listbox"></div></div></div>
-          <div class="f3" style="margin-top:12px"><div class="fld"><label for="mA">Mes</label><select id="mA"></select></div><div class="fld"><label for="sA">Turno</label><select id="sA"></select></div></div>
-          <div class="quick" style="margin-top:12px"><button class="qb" data-q="swap">⇄ Intercambiar con la referencia</button></div>
+      <div class="s-c">Una tienda frente a una <b>referencia</b>, área por área.</div>
+      <div class="pick">
+      <div class="pick-rows">
+        <div class="pk pk-a">
+          <div class="pk-k">Analizado</div>
+          <div class="combo"><input class="combo-in" id="tA" placeholder="Tienda…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="tApop" aria-label="Tienda analizada"><div class="combo-pop" id="tApop" role="listbox"></div></div>
+          <div class="pk-when"><select id="mA" aria-label="Mes del analizado"></select><select id="sA" aria-label="Turno del analizado"></select></div>
         </div>
-        <div class="scn b">
-          <div class="scn-h"><div class="scn-ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 18V9m5 9V5m5 13v-7m5 7V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><div class="scn-name">Referencia<small>Con qué lo comparas</small></div></div>
-          <div class="fld"><label for="tB">Tienda</label><div class="combo"><input class="combo-in" id="tB" placeholder="Buscar tienda o referencia…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="tBpop"><div class="combo-pop" id="tBpop" role="listbox"></div></div></div>
-          <div class="f3" style="margin-top:12px"><div class="fld"><label for="mB">Mes</label><select id="mB"></select></div><div class="fld"><label for="sB">Turno</label><select id="sB"></select></div></div>
-          <div class="quick" style="margin-top:12px"><span class="quick-l">Atajos para la referencia</span><button class="qb" data-q="copy">Mismo mes y turno</button><button class="qb" data-q="prev">Mes anterior</button><button class="qb" data-q="shift">Turno opuesto</button></div>
+
+        <button class="pk-swap" data-q="swap" type="button" aria-label="Intercambiar analizado y referencia" title="Intercambiar">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7h11l-3-3m3 13H7l3 3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+
+        <div class="pk pk-b">
+          <div class="pk-k">Referencia</div>
+          <div class="combo"><input class="combo-in" id="tB" placeholder="Tienda o referencia…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="tBpop" aria-label="Referencia"><div class="combo-pop" id="tBpop" role="listbox"></div></div>
+          <div class="pk-when"><select id="mB" aria-label="Mes de la referencia"></select><select id="sB" aria-label="Turno de la referencia"></select></div>
+          <div class="pk-sc"><button class="qb" data-q="copy" type="button">Mismo mes y turno</button><button class="qb" data-q="prev" type="button">Mes anterior</button><button class="qb" data-q="shift" type="button">Turno opuesto</button></div>
         </div>
       </div>
-      <div class="gorow">
-        <div class="gopv"><span class="scn-tag"><span class="dotc brand"></span><b id="pvA">Analizado</b></span><span style="color:var(--ink3)">frente a</span><span class="scn-tag"><span class="dotc ref"></span><b id="pvB">Referencia</b></span></div>
-        <button class="btn btn-go" id="go">Analizar →</button>
+
+      <div class="pick-go">
+        <p class="pick-pv"><b id="pvA">Analizado</b><span>frente a</span><b id="pvB">Referencia</b></p>
+      </div>
       </div>
     </div>
   </div>
@@ -1436,14 +1565,29 @@ body.simple #mObj{display:none!important}
     <div class="sec" id="secSummary">
       <div class="sec-hd"><div>
         <div class="sec-n">Resumen</div>
-        <div class="sec-h">Lo más importante de un vistazo<button class="uinfo" id="uinfo" type="button" aria-label="Sobre las unidades: MO o Mercadona"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><line x1="12" y1="8" x2="12" y2="8"/></svg></button></div>
+        <div class="sec-h">Lo más importante de un vistazo</div>
         <div class="sec-s" id="summaryScope">—</div>
       </div></div>
       <div id="execSummary"></div>
       <div class="kpis" id="kpis" style="margin-top:16px"></div>
+      <!-- Nota de metodo: cerrada por defecto, justo ANTES del caudal del centro (que es
+           donde se ve la diferencia). La flecha se convierte en X al abrirla. -->
+      <details class="metodo no-print" id="metodoAviso">
+        <summary><span class="m-p"></span><span class="m-x">El caudal y la productividad oficiales están en <b>Farolas</b>. Aquí se calculan de otra forma.</span></summary>
+        <div class="m-body">
+          <dl class="m-cmp">
+            <div><dt>Aquí</dt><dd>Unidades de Mercadona Online · objetivo <b>0,315</b> min/ud</dd></div>
+            <div><dt>Farolas <span>oficial</span></dt><dd>Conteo de unidades de siempre · objetivo <b>0,34</b> min/ud</dd></div>
+          </dl>
+          <p>Diez manzanas a granel son <b>una</b> unidad en Farolas y <b>diez</b> aquí. Como las unidades
+          dividen los min/ud, el mismo trabajo da una productividad distinta.</p>
+        </div>
+      </details>
       <div id="kpiWarn"></div>
       <div id="cfFarolas" class="no-print" style="margin-top:20px"></div>
-      <details class="calc"><summary>Ver cómo se calcula cada dato</summary><div class="calc-cards" id="kpiCalc"></div></details>
+      <!-- el desplegable "Ver cómo se calcula cada dato" se ha quitado a peticion de Javier;
+           renderSummary() sigue escribiendo en #kpiCalc solo si existe, asi que no hace falta tocarlo mas -->
+
     </div>
 
     <!-- SELECTOR DE CORTE para el detalle de abajo -->
@@ -1476,9 +1620,9 @@ body.simple #mObj{display:none!important}
       <div class="sec-hd"><div>
         <div class="sec-n">Prioridad · área + fase</div>
         <div class="sec-h">Qué revisar primero</div>
-        <div class="sec-s">Cada fila es un <b>área + fase</b>, ordenada por los <b>minutos de más al mes en total</b> frente a la referencia (diferencia por lote × lotes del mes). Pulsa para ver su detalle.</div>
+        <div class="sec-s">Dónde se pierde de verdad la productividad: la desviación <b>por unidad</b> de cada área+fase, <b>ponderada por el volumen</b> que mueve esa área. Siempre en <b>min/ud</b>. Pulsa una fila para ver su detalle.</div>
       </div>
-      <div class="lo-seg lo-sm" id="paretoUnitSeg" style="flex:none"><button data-v="prod" class="lo-on">Productividad</button><button data-v="tiempo">Tiempo</button></div></div>
+      </div>
       <div class="grid" style="grid-template-columns:1.7fr 1fr;gap:16px;align-items:start">
         <div class="cbox"><div class="cbox-in" style="padding-top:38px"><button class="csv" data-csv="paretoTable" data-csvname="prioridad_area_fase">⤓ CSV</button><div class="ptable-wrap" style="max-height:340px;overflow:auto"><table class="ptable" id="paretoTable"></table></div></div></div>
         <div class="cbox"><div class="cbox-in"><button class="png" data-png="cParetoDonut">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle">Reparto por área</div><div class="csub">de más frente a la referencia</div></div></div><div class="chart" id="cParetoDonut" style="height:310px"></div></div></div>
@@ -1557,7 +1701,6 @@ body.simple #mObj{display:none!important}
       </div></div>
       <div class="trend-ctrl"><select id="trArea"></select><select id="trMetric"></select></div>
       <div class="cbox"><div class="cbox-in"><button class="png" data-png="cTrend">⤓ PNG</button><div class="cbox-hd"><div><div class="ctitle" id="trendTitle">—</div><div class="csub" id="trendSub">—</div></div></div><div class="chart" id="cTrend"></div></div></div>
-      <div class="granu"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v5l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>Datos mensuales. Para ver evolución dentro de un mes haría falta un CSV diario (Query C); aquí no se simula.</span></div>
           </div>
 
     <!-- RADIOGRAFÍA -->
@@ -1802,6 +1945,14 @@ body.simple #mObj{display:none!important}
     .cd-btn.cd-part{border-color:var(--brand-bd);box-shadow:inset 0 0 0 1px var(--brand-bd)}
     .cd-btn .cd-txt{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .cd-btn .cd-cnt{color:var(--ink3);font-size:10px;font-weight:700;white-space:nowrap}
+    /* Los contadores tipo "35/35" o "245/245" llevan white-space:nowrap: no pueden encogerse y
+       se salian del boton cuando la columna quedaba estrecha. Los botones se quedan COMPACTOS
+       (es lo importante), y lo que se sacrifica es el contador: se oculta en cuanto la columna
+       no da de si. El recuento sigue viendose al abrir el desplegable. */
+    .cd-btn{overflow:hidden}
+    .cd-btn .cd-txt{min-width:0}
+    .cd-btn .cd-cnt{flex:0 1 auto;min-width:0;overflow:hidden}
+    @media(max-width:1240px){ #cd_filts .cd-btn .cd-cnt{display:none} }
     .cd-pop{position:absolute;z-index:60;top:100%;left:0;margin-top:6px;min-width:220px;max-height:320px;overflow:auto;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:var(--sh);padding:8px;display:none}
     .cd-pop.open{display:block}
     .cd-srch{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);font:inherit;font-size:12px;margin-bottom:6px}
@@ -1966,7 +2117,10 @@ body.simple #mObj{display:none!important}
     .fa-g-red{border-left-color:var(--bad)} .fa-g-red .v{color:var(--bad)}
     .fa-g-neu{border-left-color:var(--line2)}
     .fa-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-    .fa-cbox{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 12px 8px;position:relative}
+    /* overflow:hidden = red de seguridad: si por lo que sea una grafica se dimensiona mas
+       ancha que su tarjeta, se queda DENTRO en vez de bleed al resto de la pagina. */
+    .fa-cbox{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 12px 8px;position:relative;overflow:hidden}
+    .fa-cbox .fch{max-width:100%}
     .fa-cbox .ct{font-size:12.5px;font-weight:800;margin:0 0 5px 2px}
     .fa-cbox .fch{height:340px;width:100%}
     .fa-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2);align-items:center}
@@ -2394,6 +2548,10 @@ function makeCombo(id){
   function close(){pop.classList.remove('open');inp.setAttribute('aria-expanded','false');hi=-1;if(inp.dataset.val)inp.value=shortStore(inp.dataset.val);}
   function pick(i){const o=shown[i];if(!o)return;inp.dataset.val=o.val;inp.value=o.label;close();syncShift(id.slice(-1));preview();}
   inp.addEventListener('focus',()=>{inp.value='';open();});
+  /* Tras elegir una tienda el input SIGUE con el foco (el mousedown de la lista hace
+     preventDefault), asi que un segundo clic no disparaba 'focus' y la lista no volvia a
+     abrirse: habia que pinchar fuera y volver. Con esto, clicar sobre el campo lo reabre. */
+  inp.addEventListener('click',()=>{ if(!pop.classList.contains('open')){ inp.value=''; open(); } });
   inp.addEventListener('input',()=>{hi=-1;open();render(inp.value);});
   inp.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){hi=Math.min(shown.length-1,hi+1);render(inp.value);}else if(e.key==='ArrowUp'){hi=Math.max(0,hi-1);render(inp.value);}else if(e.key==='Enter'){e.preventDefault();pick(hi<0?0:hi);}else if(e.key==='Escape'){close();inp.blur();}});
   inp.addEventListener('blur',()=>setTimeout(close,120));
@@ -2418,12 +2576,7 @@ function populate(){
   $('trArea').innerHTML=opt('__global','Global tienda',true)+viewAreas().map(a=>opt(a,a)).join('');
   $('trMetric').innerHTML=METRIC_ORDER.map(k=>opt(k,METRICS[k].label,k==='prod')).join('');
   // ranking selects
-  $('rkMetric').innerHTML=
-    '<optgroup label="Centro (global)">'+Object.keys(GEN_METRICS).map(k=>opt(k,GEN_METRICS[k].label,k==='gprodcp')).join('')+'</optgroup>'+
-    '<optgroup label="Por área">'+['prod','tiempo'].map(k=>opt(k,METRICS[k].label,false)).join('')+'</optgroup>'+
-    '<optgroup label="Tiempo por subproceso (min/lote)">'+['arranque','prep','picking','despl','pesaje','traslado','consol','entre'].map(k=>opt(k,METRICS[k].label,false)).join('')+'</optgroup>'+
-    '<optgroup label="Productividad por subproceso (min/ud)">'+['prodp_arranque','prodp_prep','prodp_picking','prodp_despl','prodp_pesaje','prodp_traslado','prodp_consol','prodp_entre'].map(k=>opt(k,METRICS[k].label.replace(' · productividad',''),false)).join('')+'</optgroup>'+
-    '<optgroup label="Por desplazamiento">'+['despltot','ratio'].map(k=>opt(k,METRICS[k].label,false)).join('')+'</optgroup>';
+  rkFillMetrics();
   $('rkArea').innerHTML=opt('__global','Todas (global)',true)+viewAreas().map(a=>opt(a,a)).join('');
   fillSel($('rkShift'),ST.shifts,shiftLabel,s0);
   fillSel($('rkMes'),ST.meses,k=>ST.mesLabel[k],last);
@@ -2455,7 +2608,15 @@ function smartName(s,other){
 }
 function syncAutoNames(){['A','B'].forEach(w=>{const inp=$('n'+w);if(inp&&inp.dataset.touched!=='1')inp.value=smartName(scn(w),scn(w==='A'?'B':'A'));});}
 function resolveNames(){const A=scn('A'),B=scn('B'),_nA=$('nA'),_nB=$('nB'),cA=_nA?_nA.value.trim():'',cB=_nB?_nB.value.trim():'';ST.nameA=cA||smartName(A,B);ST.nameB=cB||smartName(B,A);if(ST.nameA===ST.nameB){ST.nameA+=' (analizado)';ST.nameB+=' (ref.)';}}
-function preview(){syncAutoNames();resolveNames();$('pvA').textContent=ST.nameA;$('pvB').textContent=ST.nameB;}
+function preview(){syncAutoNames();resolveNames();
+  var a=$('pvA'),b=$('pvB'); if(a)a.textContent=ST.nameA; if(b)b.textContent=ST.nameB;
+  autoAnalyze();}
+/* Ya no hay boton "Analizar": si eliges otra tienda, otro mes o otro turno es porque lo
+   quieres ver. Se agrupa con un pequeno retardo para que cambiar varias cosas seguidas
+   (o los atajos, que tocan dos campos) no dispare varios repintados. */
+let _aaT=null;
+function autoAnalyze(){ if(!ST.tiendas.length)return; clearTimeout(_aaT);
+  _aaT=setTimeout(function(){ try{ analyze(false); }catch(e){ console.warn('auto-analyze',e); } },140); }
 
 document.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click',()=>{
   const q=b.dataset.q,prev=()=>Math.max(0,ST.meses.indexOf($('mA').value)-1);
@@ -2464,12 +2625,20 @@ document.querySelectorAll('[data-q]').forEach(b=>b.addEventListener('click',()=>
   else if(q==='all'&&ST.tiendas.includes('Todas las tiendas')){setCombo('tB','Todas las tiendas');$('mB').value=$('mA').value;$('sB').value=$('sA').value;}
   else if(q==='prev'){setCombo('tB',$('tA').dataset.val);$('mB').value=ST.meses[prev()];$('sB').value=$('sA').value;}
   else if(q==='shift'){setCombo('tB',$('tA').dataset.val);$('mB').value=$('mA').value;const o=ST.shifts.find(s=>s!==$('sA').value);if(o)$('sB').value=o;}
-  else if(q==='swap'){const va=$('tA').dataset.val,vb=$('tB').dataset.val;setCombo('tA',vb);setCombo('tB',va);['m','s','n'].forEach(f=>{const t=$(f+'A').value;$(f+'A').value=$(f+'B').value;$(f+'B').value=t;});}
+  else if(q==='swap'){const va=$('tA').dataset.val,vb=$('tB').dataset.val;setCombo('tA',vb);setCombo('tB',va);
+    /* solo 'm' (mes) y 's' (turno): el 'n' que habia aqui no existe como campo, $('nA') era null
+       y el TypeError abortaba el handler ANTES de syncShift() y preview(), asi que al
+       intercambiar se quedaba el turno sin re-sincronizar y el texto de abajo sin actualizar. */
+    ['m','s'].forEach(f=>{const t=$(f+'A').value;$(f+'A').value=$(f+'B').value;$(f+'B').value=t;});}
   syncShift('A');syncShift('B');
   preview();
 }));
-$('go').addEventListener('click',()=>analyze()); // sin pasar el evento: analyze(scroll) lo interpretaría como flag
-$('edit').addEventListener('click',()=>{$('dash').style.display='none';$('fab').style.display='none';$('empty').style.display='';$('step2').scrollIntoView({behavior:'smooth',block:'start'});});
+/* el boton "Analizar" se ha quitado: ahora se analiza solo al cambiar de escenario.
+   Se deja el enganche por si algun dia vuelve. */
+(function(){var g=$('go'); if(g) g.addEventListener('click',()=>analyze());})();
+/* antes ocultaba el dashboard y obligaba a re-analizar; ahora que se analiza solo, basta
+   con subir al selector y dejar el resultado a la vista */
+$('edit').addEventListener('click',()=>{$('step2').scrollIntoView({behavior:'smooth',block:'start'});});
 $('mComp').addEventListener('click',()=>setMode('comp'));
 $('mRank').addEventListener('click',()=>setMode('rank'));
 $('mObj').addEventListener('click',()=>setMode('obj'));
@@ -2516,7 +2685,10 @@ function setMode(m){ST.mode=m; try{ if(typeof saveCfg==='function') saveCfg(); }
   if(m==='comp'&&ST.analyzed){requestAnimationFrame(resizeCharts);setTimeout(resizeCharts,220);}
   var vl=$('viewLiebre');if(vl)vl.style.display=(m==='obj')?'block':'none';if(m==='obj'&&window.loInit)window.loInit();
   var cv=$('caudalTab');if(cv)cv.style.display=(m==='caudal')?'block':'none';if(m==='caudal'&&window.caudalInit)window.caudalInit();
-  var fv=$('farolasTab');if(fv)fv.style.display=(m==='farolas')?'block':'none';if(m==='farolas'&&window.farolasInit)window.farolasInit();
+  var fv=$('farolasTab');if(fv)fv.style.display=(m==='farolas')?'block':'none';
+  /* Farolas repinta 20 graficas y bloquea el hilo. Se le deja un frame al navegador para que
+     pinte antes el cambio de pestana; si no, el clic se siente pegajoso. */
+  if(m==='farolas'&&window.farolasInit) requestAnimationFrame(function(){ requestAnimationFrame(function(){ window.farolasInit(); }); });
   if(m==='rank'){initRank();renderRank();}
   /* la pestana que se acaba de mostrar puede traer graficas dimensionadas cuando estaba
      oculta (o de antes de girar): un barrido de tamanos sobre TODO lo visible. */
@@ -2626,8 +2798,10 @@ function sparkTrend(a,lower){const sl=slope(a),b=avg(a);if(sl==null||b==null||Ma
 
 /* ===== ORQUESTADOR ===== */
 function renderAll(){
-  renderSummary();
+  /* renderMatrix PRIMERO: publica window.__faroCell, la fuente unica que usan el
+     resumen ejecutivo y "Qué revisar primero" para no contradecir al mapa de calor. */
   renderMatrix();
+  renderSummary();
   renderRealControls();renderReal();
   renderDiffControls();renderDiff();
   renderPareto();
@@ -2674,14 +2848,26 @@ const PCFG={displayModeBar:false,responsive:true};
 function plot(id,traces,layout){Plotly.react(id,traces,baseLayout(layout),PCFG);}
 
 /* ===== RESUMEN (globales correctos) ===== */
+/* Para cada área+fase devuelve:
+     imp     = minutos de más al MES = (min/lote A − min/lote ref) × nº lotes de A
+     dvUd    = desviación POR UNIDAD = min/ud A − min/ud ref  (exactamente lo que enseña
+               el faro con la unidad "Prod (min/ud)"; ya lleva el ×1,08 si la unidad global
+               es Mercadona)
+     pesoUds = unidades del ÁREA al mes = uds/lote A × nº lotes de A
+   Con eso "Qué revisar primero" calcula la contribución al desvío GLOBAL:
+     contrib = dvUd × pesoUds ÷ Σ pesoUds
+   Es lo que de verdad se puede recuperar, no la desviación a secas: una fase puede ir muy
+   mal por unidad y pesar poco (CONGELADO) o poco mal y pesar mucho (SECOS). */
 function paretoData(){
   const out=[];
   MODEL.filter(m=>m.disponible).forEach(m=>{
+    const peso=(m.udsA!=null&&m.lotesA!=null)?m.udsA*m.lotesA:null;
+    const ud=(a,b)=>(m.udsA>0&&m.udsB>0&&a!=null&&b!=null)?(a/m.udsA-b/m.udsB)*MF():null;
     if(window.__GROUP){ // agrupado: por bloque (Preparación, Pesaje, Consolidación, Entre lotes)
-      FGRUPOS.forEach(g=>{ let a=0,b=0,any=false; g.keys.forEach(k=>{const va=m.ra[MINKEY[k]],vb=m.rb[MINKEY[k]];if(va!=null&&vb!=null){a+=va;b+=vb;any=true;}}); if(!any||m.lotesA==null)return; const imp=(a-b)*m.lotesA; out.push({area:m.area,faseK:g.k,faseName:g.name,col:g.col,imp}); });
+      FGRUPOS.forEach(g=>{ let a=0,b=0,any=false; g.keys.forEach(k=>{const va=m.ra[MINKEY[k]],vb=m.rb[MINKEY[k]];if(va!=null&&vb!=null){a+=va;b+=vb;any=true;}}); if(!any||m.lotesA==null)return; const imp=(a-b)*m.lotesA; out.push({area:m.area,faseK:g.k,faseName:g.name,col:g.col,imp,dvUd:ud(a,b),pesoUds:peso}); });
     } else {
       const fl=m.compat?FASES:[FASES[0],PREP_SIN,FASES[3],FASES[4],FASES[5],FASES[6]];
-      fl.forEach(f=>{const a=m.ra[MINKEY[f.k]],b=m.rb[MINKEY[f.k]];if(a==null||b==null||m.lotesA==null)return;const imp=(a-b)*m.lotesA;out.push({area:m.area,faseK:f.k,faseName:f.name,col:f.col,imp});});
+      fl.forEach(f=>{const a=m.ra[MINKEY[f.k]],b=m.rb[MINKEY[f.k]];if(a==null||b==null||m.lotesA==null)return;const imp=(a-b)*m.lotesA;out.push({area:m.area,faseK:f.k,faseName:f.name,col:f.col,imp,dvUd:ud(a,b),pesoUds:peso});});
     }
   });
   return out;
@@ -2695,7 +2881,9 @@ function renderSummary(){
   const nrev=av.filter(m=>m.estado==='crit'||m.estado==='revisar').length;
   const areaImp=av.map(m=>({area:m.area,imp:m.impacto||0})).filter(o=>o.imp>0).sort((a,b)=>b.imp-a.imp);
   const totalPos=areaImp.reduce((s,o)=>s+o.imp,0);
-  const par=paretoData().filter(o=>o.imp>0).sort((a,b)=>b.imp-a.imp);
+  /* MISMA fuente que "Qué revisar primero" (celdas rojas del faro, mismo orden): antes
+     ordenaba por impacto absoluto y podía nombrar una fase que el faro pinta verde. */
+  const par=paretoRows();
   const sgA=serie(curA.tienda,curA.shift,'__global','prod'),sgB=serie(curB.tienda,curB.shift,'__global','prod');
   const gap=sgA.map((v,i)=>(v!=null&&sgB[i]!=null)?v-sgB[i]:null);
   let mesesAlej=0;for(let i=gap.length-1;i>0;i--){if(gap[i]==null||gap[i-1]==null)break;if(Math.abs(gap[i])>Math.abs(gap[i-1])+1e-6)mesesAlej++;else break;}
@@ -2716,12 +2904,12 @@ function renderSummary(){
   } else if(impTot<-30){
     badge='var(--good)';
     let s='<b>'+ST.nameA+'</b> ahorra <span class="cool">≈ '+fmtH(impTot)+'/mes</span> frente a <b>'+ST.nameB+'</b>: en conjunto rinde mejor. ';
-    if(par.length){const p=par[0];s+='Aun así, donde más margen queda es <b>'+p.area+' · '+p.faseName+'</b> ('+fmtImpact(p.imp)+'/mes).';}else s+='No hay fases con tiempo de más relevante frente a la referencia.';
+    if(par.length){const p=par[0];s+='Aun así, donde más margen queda es <b>'+p.area+' · '+p.faseName+'</b> ('+parMag(p)+').';}else s+='No hay fases con tiempo de más relevante frente a la referencia.';
     tx=s;
   } else {
     badge='var(--ink3)';
     let s='<b>'+ST.nameA+'</b> rinde muy parecido a <b>'+ST.nameB+'</b> (impacto neto ≈ 0). ';
-    if(par.length){const p=par[0];s+='Si hay que mirar algo, sería <b>'+p.area+' · '+p.faseName+'</b> ('+fmtImpact(p.imp)+'/mes).';}
+    if(par.length){const p=par[0];s+='Si hay que mirar algo, sería <b>'+p.area+' · '+p.faseName+'</b> ('+parMag(p)+').';}
     tx=s;
   }
   if(ST.single){badge='var(--brand)';tx='<b>Ficha de '+ST.nameA+'</b>. Vista individual de la tienda, sin comparación: sus tiempos, productividad y tendencia propios. Cambia la referencia por otra tienda para pasar a modo comparación.';}
@@ -2764,7 +2952,7 @@ function renderSummary(){
       '<div id="caudalTable" style="margin-top:14px"></div>';
     $('caudalView').querySelectorAll('[data-cv]').forEach(b=>b.addEventListener('click',()=>{ST.caudalView=b.dataset.cv;$('caudalView').querySelectorAll('[data-cv]').forEach(x=>x.classList.toggle('on',x.dataset.cv===ST.caudalView));renderCaudal();}));
     renderCaudal();
-    $('kpiCalc').innerHTML=
+    if($('kpiCalc'))$('kpiCalc').innerHTML=
       '<div class="calc-c"><div class="ct"><i style="background:var(--brand)"></i>Productividades</div><div class="cf">min/ud frente al objetivo <b>'+fmt(OBJ_PROD,3)+'</b>. <b>Efectiva</b> quita huecos &gt; 6 min; <b>real</b> quita solo paradas largas (&gt; 20 min).</div></div>'+
       '<div class="calc-c"><div class="ct"><i style="background:var(--f-traslado)"></i>Caudal (horas)</div><div class="cf"><b>Óptimo</b> = uds × '+fmt(OBJ_PROD,3)+' ÷ 60. <b>Real</b> = efectivo + tiempo de paradas. <b>Diferencia</b> = real − óptimo.</div></div>'+
       '<div class="calc-c"><div class="ct"><i style="background:var(--ink3)"></i>Diario vs mensual</div><div class="cf">Diario = media de los días (cada día pesa igual). Mensual = suma de todos los días del mes.</div></div>';
@@ -2776,7 +2964,7 @@ function renderSummary(){
       k.push('<div class="kpi '+(nrev>2?'up':nrev>0?'':'down')+'"><div class="kpi-l">Áreas a revisar</div><div class="kpi-v">'+nrev+' <small>de '+av.length+'</small></div><div class="kpi-r">'+(nrev?'marcadas en rojo abajo':'todas en línea o mejor')+'</div></div>');
     }
     $('kpis').innerHTML=k.join('');
-    $('kpiCalc').innerHTML=
+    if($('kpiCalc'))$('kpiCalc').innerHTML=
       '<div class="calc-c"><div class="ct"><i style="background:var(--ink3)"></i>Tiempo medio por lote</div><div class="cf">Media ponderada por el <b>nº de lotes</b> de cada área (las áreas con más lotes pesan más).</div></div>'+
       '<div class="calc-c"><div class="ct"><i style="background:var(--brand)"></i>Productividad global</div><div class="cf">No es la media de áreas. Es <code>Σ(tiempo·lotes) ÷ Σ(uds·lotes)</code>: tiempo total entre unidades totales.</div></div>'+
       '<div class="calc-c"><div class="ct"><i style="background:var(--bad)"></i>Impacto / mes</div><div class="cf"><code>(prod analizado − ref) × uds/lote × nº lotes</code>, sumado por áreas y pasado a horas. <span style="color:var(--bad);font-weight:700">+rojo</span> = de más, <span style="color:var(--good);font-weight:700">−verde</span> = ahorro.</div></div>';
@@ -2849,7 +3037,7 @@ function renderCaudal(){
       '<td style="'+td+'"><span style="display:inline-block;min-width:54px;text-align:center;padding:2px 8px;border-radius:999px;background:'+db+';color:'+dc+';font-weight:800;font-size:11.5px">'+(d==null?'—':(d>0?'+':'')+fmt(d,dec))+'</span></td></tr>';
   });
   $('caudalTable').innerHTML='<div class="cbox" style="margin:0"><div class="cbox-in" style="padding:0;overflow:hidden;border-radius:var(--r)"><div style="display:flex;justify-content:flex-end;padding:8px 10px 0"><button class="csv" style="position:static" data-csv="caudalMonthTbl" data-csvname="caudal_por_mes">⤓ CSV</button></div>'+
-    '<div style="max-height:340px;overflow:auto"><table class="gen-tbl" id="caudalMonthTbl" style="width:100%;border-collapse:collapse">'+
+    '<div class="tbl-scroll" style="max-height:340px;overflow:auto"><table class="gen-tbl" id="caudalMonthTbl" style="width:100%;border-collapse:collapse">'+
     '<thead><tr><th id="caudalSortMes" style="'+th+';text-align:left;cursor:pointer;user-select:none">Mes '+(desc?'▼':'▲')+'</th>'+
     '<th style="'+th+'">Óptimo</th><th style="'+th+'">Real</th><th style="'+th+'">Efectivas</th><th style="'+th+'">Paradas</th><th style="'+th+'">Dif (real−óptimo)</th>'+
     '</tr></thead><tbody>'+rows+'</tbody></table></div></div></div>';
@@ -3001,14 +3189,15 @@ function renderMatrix(){
     if(m0.tiempoA!=null&&m0.lotesA!=null)_PCTTA+=m0.tiempoA*m0.lotesA;
     if(m0.tiempoB!=null&&m0.lotesB!=null)_PCTTB+=m0.tiempoB*m0.lotesB; }); }
   _FMB=0;_FMP=0;
-  /* Se publica lo que ve el faro en CADA celda para que "Qué revisar primero" pueda
-     avisar cuando las dos vistas no cuentan lo mismo (el Pareto ordena por minutos
-     TOTALES al mes; el faro muestra la unidad activa, p.ej. min/ud). Solo se expone,
-     no se cambia ningún cálculo. */
-  window.__faroCell={unit:ST.faroUnit};
+  /* Se publica EXACTAMENTE lo que pinta cada celda del faro para que "Qué revisar
+     primero" use el mismo criterio y no puedan contradecirse. cellHTML colorea por
+     `dv` (rojo si dv>eps, verde si dv<-eps, gris si |dv|<=eps), con
+     eps = dec>=2 ? 0.005 : 0.05. Aquí se guarda dv y su dec para reproducir el mismo
+     umbral en el Pareto. No se cambia ningún cálculo, solo se expone. */
+  window.__faroCell={unit:ST.faroUnit,lbl:faroUnitLbl(),cells:{}};
   dispAreas.forEach(a=>{ const m0=MODEL.find(x=>x.area===a);
     areaCells(m0).forEach(o=>{ var cv=(isMinV||isPctV)?o.c.dv:o.c.cD; if(cv!=null){ var v=Math.abs(cv); if(v>_FMB)_FMB=v; }
-      window.__faroCell[a+'|'+o.k]={dv:o.c.dv,color:cv,val:o.c.val,ref:o.c.ref}; });
+      window.__faroCell.cells[a+'|'+o.k]={dv:o.c.dv,val:o.c.val,ref:o.c.ref,dec:o.c.dec,name:o.name}; });
     var tv=isMinV?m0.dTiempo:(isPctV?((m0.tiempoA!=null&&m0.lotesA!=null&&m0.tiempoB!=null&&m0.lotesB!=null&&_PCTTA>0&&_PCTTB>0)?(m0.tiempoA*m0.lotesA/_PCTTA-m0.tiempoB*m0.lotesB/_PCTTB)*100:null):((m0.prodA!=null&&m0.prodB!=null)?(m0.prodA-m0.prodB)*MF():null));
     if(tv!=null&&Math.abs(tv)>_FMP)_FMP=Math.abs(tv);
   });
@@ -3095,56 +3284,98 @@ function renderFaroDetail(area,faseK){
 }
 const AREA_COL={SECOS:'#4f8fe0',REFRIGERADO:'#38a9a0',CONGELADO:'#6cc2e0',FRESCOS:'#e0a13a',FYV:'#dd7f4a',HORNO:'#b98a5e',PENDIENTES:'#8896ab'};
 function areaColor(a){return AREA_COL[a]||'#8896ab';}
+/* FUENTE ÚNICA de "qué hay que revisar". La usan "Qué revisar primero" Y el resumen
+   ejecutivo, para que no puedan decir cosas distintas.
+
+   CRITERIO (siempre en PRODUCTIVIDAD, nunca en minutos sueltos):
+     contrib = dvUd × pesoUds ÷ Σ pesoUds      [min/ud]
+   · dvUd    = cuánto se desvía esa fase POR UNIDAD frente a la referencia. Es la misma
+               cifra que enseña el faro con la unidad "Prod (min/ud)".
+   · pesoUds = unidades que mueve ese área al mes → su importancia real.
+   · contrib = lo que esa fase aporta al desvío GLOBAL de productividad, en min/ud.
+     Las filas SUMAN (aprox.) el desvío global, así que el % de cada una es el trozo del
+     problema que resuelves si la arreglas.
+
+   Por qué no vale la desviación a secas (caso Denia 2465, julio, entre lotes):
+     CONGELADO   +0,1395 min/ud · 9.339 uds/mes  → contrib 0,0073  (21,6 h/mes)
+     SECOS       +0,0269 min/ud · 95.928 uds/mes → contrib 0,0145  (43,5 h/mes)
+   Por unidad CONGELADO va cinco veces peor, pero SECOS mueve diez veces más volumen y
+   cuesta el doble de horas: SECOS va primero.
+
+   El signo de contrib es el de dvUd, así que una celda que el faro pinta VERDE en min/ud
+   no puede aparecer aquí nunca. */
+function paretoRows(){
+  const av=viewAreas();
+  const rows=paretoData().filter(o=>av.includes(o.area));
+  /* Σ pesoUds cuenta cada ÁREA una vez, no una vez por fase */
+  const pesoArea={}; rows.forEach(o=>{ if(o.pesoUds!=null) pesoArea[o.area]=o.pesoUds; });
+  const tot=Object.keys(pesoArea).reduce((s,a)=>s+pesoArea[a],0);
+  const EPS=0.005;                       // mismo umbral que el faro para min/ud (2 decimales)
+  return rows.map(o=>{
+    const contrib=(o.dvUd!=null&&o.pesoUds!=null&&tot>0)?(o.dvUd*o.pesoUds/tot):null;
+    return Object.assign({},o,{contrib,pesoTot:tot});
+  }).filter(o=>o.dvUd!=null && o.dvUd>EPS && o.contrib!=null && o.contrib>0)
+    .sort((a,b)=>b.contrib-a.contrib);
+}
+
+/* magnitud legible de una fila para el resumen ejecutivo */
+function parMag(p){ return (p&&p.imp!=null)?(fmtImpact(p.imp)+'/mes')
+  :('+'+fmt(p.contrib,3)+' '+udName()); }
+
+/* ===== QUÉ REVISAR PRIMERO =====
+   Siempre en PRODUCTIVIDAD (min/ud), nunca en minutos sueltos, y siempre ponderado por el
+   volumen del área: ver el comentario de paretoRows(). El número de cada fila es lo que esa
+   fase aporta al desvío GLOBAL de productividad, así que el % es el trozo del problema que
+   te llevas si la arreglas. Las horas/mes van en el tooltip y en el pie. */
 function renderPareto(){
-  if(!ST._paretoInit){ST._paretoInit=true;var _pu=$('paretoUnitSeg');if(_pu)_pu.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click',()=>{ST.paretoUnit=b.dataset.v;_pu.querySelectorAll('[data-v]').forEach(x=>x.classList.toggle('lo-on',x.dataset.v===ST.paretoUnit));renderPareto();}));}
-  const data=paretoData().filter(o=>o.imp>0&&viewAreas().includes(o.area)).sort((a,b)=>b.imp-a.imp);
+  const data=paretoRows();
+  const uLbl=udName();          // min/ud MO o min/ud Merca segun la unidad global
   const tEl=$('paretoTable');
   if(!data.length){
-    if(tEl)tEl.innerHTML='<tbody><tr><td style="padding:16px;color:var(--ink3);font-family:var(--ui);font-weight:600">'+ST.nameA+' no acumula tiempo de más frente a '+ST.nameB+' en ninguna combinación área+fase. Nada que priorizar por aquí.</td></tr></tbody>';
-    Plotly.purge('cParetoDonut');
-    $('paretoNote').textContent='Cuando el analizado va mejor o igual que la referencia, esta vista queda vacía.';
+    if(tEl)tEl.innerHTML='<tbody><tr><td style="padding:16px;color:var(--ink3);font-family:var(--ui);font-weight:600">'+ST.nameA+' no está por encima de '+ST.nameB+' en productividad en ninguna combinación área+fase. Nada que priorizar por aquí.</td></tr></tbody>';
+    try{Plotly.purge('cParetoDonut');}catch(e){}
+    $('paretoNote').textContent='Aquí solo salen las fases donde el analizado va peor por unidad que la referencia. Si no hay ninguna, queda vacía.';
     return;
   }
-  const total=data.reduce((s,o)=>s+o.imp,0);
-  const totalUds=MODEL.reduce((s,m)=>s+((m&&m.ra&&m.udsA!=null&&m.lotesA!=null)?m.udsA*m.lotesA:0),0);
-  const uP=ST.paretoUnit==='tiempo';
-  const pv=v=>uP?fmtImpact(v):(totalUds>0?fmt((v/totalUds)*MF(),3):'—');   // productividad = min/ud que aporta al global
-  const primLbl=uP?'Tiempo/mes':udName();
-  // tabla de combinaciones área × fase
-  /* Esta tabla ordena SIEMPRE por minutos totales al mes; el faro enseña la unidad activa.
-     Una tienda con lotes más grandes puede ir mejor por unidad y aun así gastar más minutos
-     totales, así que una fase puede salir aquí estando por debajo de la referencia en el faro.
-     No se cambia el criterio: se marca la fila y se explica. */
-  const HM=window.__faroCell||{};
-  let cum=0, nOjo=0;
-  let th='<thead><tr><th>Área · fase</th><th>'+primLbl+'</th><th>%</th><th>Acum.</th></tr></thead><tbody>';
-  const rows=data.map(o=>{cum+=o.imp;const prio=o.imp>=60;
-    const hm=HM[o.area+'|'+o.faseK];
-    const mejorEnFaro=!!(hm&&hm.dv!=null&&hm.dv<0);   // el faro lo enseña POR DEBAJO de la referencia
-    if(mejorEnFaro)nOjo++;
-    /* la marca va DELANTE del nombre: la celda recorta con … por la derecha y si fuese
-       detras se quedaba en "≠ …". */
-    const marca=mejorEnFaro?'<span class="par-ojo" title="Gasta más minutos al mes en total, pero en el faro está por debajo de la referencia en la unidad que tienes activa (normalmente porque los lotes son más grandes). Las dos cosas son ciertas.">≠</span>':'';
-    return '<tr class="'+(prio?'prio':'')+'" data-a="'+o.area+'" data-f="'+o.faseK+'" style="cursor:pointer" title="'+(prio?'Prioridad (≥1 h/mes de más)':'')+'"><td><span class="fdot" style="background:'+areaColor(o.area)+'"></span>'+marca+o.area+' · '+o.faseName+'</td><td class="an">'+pv(o.imp)+'</td><td>'+fmt(o.imp/total*100,0)+'%</td><td>'+fmt(cum/total*100,0)+'%</td></tr>';
+  const total=data.reduce((s,o)=>s+o.contrib,0);
+  let cum=0;
+  let th='<thead><tr><th>Área · fase</th><th>Aporta ('+uLbl+')</th><th>%</th><th>Acum.</th></tr></thead><tbody>';
+  const rows=data.map(o=>{cum+=o.contrib;
+    const prio=(o.imp!=null&&o.imp>=60);
+    const tip=o.faseName+' · '+o.area+': se desvía '+sg(o.dvUd)+fmt(o.dvUd,3)+' '+uLbl+' por unidad'
+      +(o.pesoUds!=null?(' y el área mueve '+fmt(o.pesoUds,0)+' uds/mes'):'')
+      +' → aporta '+fmt(o.contrib,3)+' '+uLbl+' al desvío global'
+      +(o.imp!=null?(' · '+fmtImpact(o.imp)+'/mes'):'')
+      +(prio?' · prioridad: ≥1 h/mes de más':'');
+    return '<tr class="'+(prio?'prio':'')+'" data-a="'+o.area+'" data-f="'+o.faseK+'" style="cursor:pointer" title="'+tip.replace(/"/g,'&quot;')+'"><td><span class="fdot" style="background:'+areaColor(o.area)+'"></span>'+o.area+' · '+o.faseName+'</td><td class="an">+'+fmt(o.contrib,3)+'</td><td>'+fmt(o.contrib/total*100,0)+'%</td><td>'+fmt(cum/total*100,0)+'%</td></tr>';
   }).join('');
-  tEl.innerHTML=th+rows+'<tr class="totrow"><td>Total de más</td><td class="an">'+pv(total)+'</td><td>100%</td><td></td></tr></tbody>';
+  tEl.innerHTML=th+rows+'<tr class="totrow"><td>Total de más</td><td class="an">+'+fmt(total,3)+'</td><td>100%</td><td></td></tr></tbody>';
   tEl.querySelectorAll('[data-a]').forEach(r=>r.addEventListener('click',()=>{renderFaroDetail(r.dataset.a,r.dataset.f);$('secMatrix').scrollIntoView({behavior:'smooth',block:'start'});}));
   // rosco por área
-  const byArea={};data.forEach(o=>{byArea[o.area]=(byArea[o.area]||0)+o.imp;});
+  const byArea={};data.forEach(o=>{byArea[o.area]=(byArea[o.area]||0)+o.contrib;});
   const areasP=Object.keys(byArea).sort((a,b)=>byArea[b]-byArea[a]);
-  const valArr=areasP.map(a=>uP?byArea[a]:(totalUds>0?(byArea[a]/totalUds)*MF():0));
-  const totC=uP?(total>=60?fmt(total/60,1)+' h':fmt(total,0)+' min'):(totalUds>0?fmt((total/totalUds)*MF(),3):'—');
-  const totSub=uP?'/mes de más':udName()+' de más';
-  const hFmt=uP?'%{value:.0f}':'%{value:.3f}', hUnit=uP?'min/mes de más':udName()+' de más';
+  const valArr=areasP.map(a=>byArea[a]);
+  const totC=fmt(total,3);
+  const totSub=uLbl+' de más';
+  const hFmt='%{value:.3f}', hUnit=uLbl+' de más';
   Plotly.react('cParetoDonut',[{type:'pie',hole:.62,sort:false,labels:areasP,values:valArr,
     marker:{colors:areasP.map(a=>areaColor(a)),line:{color:cssv('--panel'),width:2}},
     textinfo:'percent',textfont:{size:11,color:'#fff'},
     hovertemplate:'%{label}: '+hFmt+' '+hUnit+' (%{percent})<extra></extra>'}],
     baseLayout({height:310,margin:{l:6,r:6,t:8,b:64},showlegend:true,xaxis:{visible:false},yaxis:{visible:false},legend:{orientation:'h',y:-0.2,x:.5,xanchor:'center',font:{size:10,color:cssv('--ink2')}},
     annotations:[{text:'<b>'+totC+'</b><br><span style="font-size:9px">'+totSub+'</span>',x:.5,y:.5,xref:'paper',yref:'paper',xanchor:'center',yanchor:'middle',font:{size:15,color:cssv('--ink')},showarrow:false}]}),PCFG);
-  let c=0,n80=data.length;for(let i=0;i<data.length;i++){c+=data[i].imp;if(c/total>=0.8){n80=i+1;break;}}
-  $('paretoNote').innerHTML='Las <b>'+n80+'</b> primeras combinaciones explican ~el <b>80%</b> de '+(uP?'el tiempo de más':'lo que se aporta a la productividad')+'; el rosco lo reparte por área. Pulsa una fila para ver su detalle en el faro.'+
-    (nOjo?('<br><span style="color:var(--ink3)">Las <b>'+nOjo+'</b> filas marcadas con <b>≠ faro</b> gastan más minutos al mes en total, pero en el mapa de calor están <b>por debajo de la referencia</b> en la unidad activa: suele pasar cuando el lote es más grande (mejor por unidad, más minutos por lote).</span>'):'');
+  let c=0,n80=data.length;for(let i=0;i<data.length;i++){c+=data[i].contrib;if(c/total>=0.8){n80=i+1;break;}}
+  const impTotP=data.reduce((s,o)=>s+((o.imp!=null&&o.imp>0)?o.imp:0),0);
+  const p1=data[0];
+  /* Nota corta a proposito: una linea. El como se calcula ya lo dice el subtitulo de la
+     seccion ("ponderada por el volumen…") y la cabecera de la columna: no se repite aqui. */
+  $('paretoNote').innerHTML='<b>'+n80+'</b> filas explican ~el <b>80%</b> del desvío'+
+    (p1?(' · la mayor es <b>'+p1.area+' · '+p1.faseName+'</b> ('+fmt(p1.contrib/total*100,0)+'%)'):'')+
+    (impTotP>0?(' · total <b>'+fmtImpact(impTotP)+'</b>/mes'):'')+
+    /* el faro puede estar mirando otra unidad: avisar en una linea para que no parezca contradiccion */
+    (ST.faroUnit!=='prod'?('<br><span style="color:var(--ink3)">Faro en <b>'+
+      (ST.faroUnit==='objof'?'Objetivo oficial':ST.faroUnit==='min'?'Tiempo (min/lote)':'%')+
+      '</b>: ponlo en <b>Prod (min/ud)</b> para que coincidan.</span>'):'');
 }
 
 /* ===== barras semánticas (analizado verde mejor / rojo peor; referencia gris) ===== */
@@ -3415,19 +3646,54 @@ function estadoVet(t,mes,shift,area){if(area==='__global'){const c={};AREAS.forE
 function lotesT(t,mes,shift,area){const list=area==='__global'?AREAS:[area];let s=0,any=false;list.forEach(a=>{const r=rowTMSA(t,mes,shift,a);if(r&&r.n_lotes!=null){s+=r.n_lotes;any=true;}});return any?s:null;}
 function unidadesEst(t,mes,shift,area){const list=area==='__global'?AREAS:[area];let s=0,any=false;list.forEach(a=>{const r=rowTMSA(t,mes,shift,a);if(r&&r.uds_media_lote!=null&&r.n_lotes!=null){s+=r.uds_media_lote*r.n_lotes;any=true;}});return any?s:null;}
 function rkSerie(t,area,shift,mk){return ST.meses.map(k=>valorTienda(t,mk,area,shift,k));}
+/* Catalogo de metricas del ranking. Los indicadores de FAROLAS se anaden con el prefijo
+   "fa_" cuando el CSV de farolas (20 MB) ya ha aterrizado; hasta entonces el select va sin
+   ellos y se vuelve a construir solo (window.__rkRefreshMetrics desde el modulo de farolas).
+   Se conserva la seleccion actual al reconstruirlo. */
+window.__FA_RK={};        // fa_<clave> -> {label,unit,dec,obj,low}
+function rkFillMetrics(){
+  const sel=$('rkMetric'); if(!sel)return;
+  const prev=sel.value;
+  const opt=(v,l,s)=>'<option value="'+v+'"'+(s?' selected':'')+'>'+l+'</option>';
+  let h='<optgroup label="Centro (global)">'+Object.keys(GEN_METRICS).map(k=>opt(k,GEN_METRICS[k].label,k==='gprodcp')).join('')+'</optgroup>'+
+    '<optgroup label="Por área">'+['prod','tiempo'].map(k=>opt(k,METRICS[k].label,false)).join('')+'</optgroup>'+
+    '<optgroup label="Tiempo por subproceso (min/lote)">'+['arranque','prep','picking','despl','pesaje','traslado','consol','entre'].map(k=>opt(k,METRICS[k].label,false)).join('')+'</optgroup>'+
+    '<optgroup label="Productividad por subproceso (min/ud)">'+['prodp_arranque','prodp_prep','prodp_picking','prodp_despl','prodp_pesaje','prodp_traslado','prodp_consol','prodp_entre'].map(k=>opt(k,METRICS[k].label.replace(' · productividad',''),false)).join('')+'</optgroup>'+
+    '<optgroup label="Por desplazamiento">'+['despltot','ratio'].map(k=>opt(k,METRICS[k].label,false)).join('')+'</optgroup>';
+  window.__FA_RK={};
+  try{
+    const fm=window.__faMetrics&&window.__faMetrics();
+    if(fm){ fm.forEach(sec=>{
+      h+='<optgroup label="'+sec.grp+'">';
+      sec.ms.forEach(m=>{ const key='fa_'+m.k; window.__FA_RK[key]=m; h+=opt(key,m.label,false); });
+      h+='</optgroup>'; }); }
+  }catch(e){ console.warn('rk farolas',e); }
+  sel.innerHTML=h;
+  if(prev&&[...sel.options].some(o=>o.value===prev)) sel.value=prev;
+}
+/* lo llama el modulo de farolas en cuanto tiene los datos */
+window.__rkRefreshMetrics=function(){ try{ rkFillMetrics(); if(ST.mode==='rank')renderRank(); }catch(e){} };
+
 function renderRank(){
   const mk=$('rkMetric').value,area=$('rkArea').value,shift=$('rkShift').value,mes=$('rkMes').value,ref=$('rkRef').value;
   const fVet=$('rkVet').value;
   const fReg=(($('rkRegion')||{}).value||'').trim(),fZon=(($('rkZona')||{}).value||'').trim(),fMod=($('rkModel')||{}).value||'__all';
   if(mk!==ST._lastRkMetric){if(mk==='__improve')ST.rkOrder='best';else if(mk==='__worsen')ST.rkOrder='worst';$('rkOrder').querySelectorAll('[data-o]').forEach(x=>x.classList.toggle('on',x.dataset.o===ST.rkOrder));ST._lastRkMetric=mk;}
   const special=mk==='__imp'||mk==='__worsen'||mk==='__improve';
-  const isGen=GEN_METRICS.hasOwnProperty(mk),G=GEN_METRICS[mk],M=METRICS[mk];
-  const isProdMetric=(isGen&&G.isProd)||mk==='prod'||(M&&M.perud);
+  /* indicadores de FAROLAS (prefijo fa_): vienen del CSV de farolas, no del desglose.
+     OJO: en varios de ellos MAS es MEJOR (Pedido 10, completo...), al contrario que en el
+     resto del ranking; FA.low dice si lo bueno es bajar. */
+  const isFa=mk.indexOf('fa_')===0, FA=isFa?(window.__FA_RK||{})[mk]:null;
+  if(isFa&&!FA){ $('rkList').innerHTML='<div class="combo-none">Los datos de Farolas aún se están cargando. Espera unos segundos y vuelve a elegir la métrica.</div>'; $('rkNote').textContent=''; return; }
+  const faSigno=isFa?(FA.low?1:-1):1;      // +1 = "peor" es mas alto; -1 = "peor" es mas bajo
+  const isGen=(!isFa)&&GEN_METRICS.hasOwnProperty(mk),G=GEN_METRICS[mk],M=isFa?null:METRICS[mk];
+  const isProdMetric=(!isFa)&&((isGen&&G.isProd)||mk==='prod'||(M&&M.perud));
   const rf=isProdMetric?MF():1;  // productividad → unidad global (MO/Mercadona)
   let items=ST.realStores.map(t=>{
     const gr=genRow(t,mes);
     let val;
-    if(isGen){val=gr?(G.calc?G.calc(gr):gr[G.prop]):null;}
+    if(isFa){val=window.__faStoreVal?window.__faStoreVal(t,mes,FA.k):null;}
+    else if(isGen){val=gr?(G.calc?G.calc(gr):gr[G.prop]):null;}
     else if(mk==='__imp'){const v=impTienda(t,ref,area,shift,mes);val=v==null?null:v/60;}
     else if(mk==='__worsen'||mk==='__improve'){val=slopeBrecha(t,ref,area,shift);}
     else{val=valorTienda(t,mk,area,shift,mes);}
@@ -3445,10 +3711,12 @@ function renderRank(){
   else if(fVet==='nov')items=items.filter(o=>o.est==='No veterana');
   if(!items.length){$('rkList').innerHTML='<div class="combo-none">Ninguna tienda cumple los filtros en esta combinación.</div>';$('rkNote').textContent='Relaja los filtros (veteranía, zona/región/modelo).';return;}
   const worst=ST.rkOrder==='worst';
-  items.sort((a,b)=>worst?b.val-a.val:a.val-b.val);
+  /* faSigno invierte el orden en los indicadores donde MAS es MEJOR */
+  items.sort((a,b)=>(worst?(b.val-a.val):(a.val-b.val))*faSigno);
   const lim=parseInt(($('rkLimit')||{}).value||'20',10);
   const top=lim>0?items.slice(0,lim):items;
-  const dec=isGen?G.dec:(mk==='__imp'?1:special?3:M.dec),eps=isProdMetric?0.003:0.05;
+  const dec=isFa?FA.dec:(isGen?G.dec:(mk==='__imp'?1:special?3:M.dec));
+  const eps=isFa?(FA.dec>=2?0.005:0.05):(isProdMetric?0.003:0.05);
   // (general) la referencia es el OBJETIVO general: 0,315 en productividad, 0 en horas/caudal
   // referencia del ranking: Objetivo=0,306 (fijo); Veteranas/Todas = su productividad OFICIAL del CSV general
   // (exactamente el valor del resumen: prod_conparadas real ≤20 / prod_efectiva ≤6); horas/caudal = 0
@@ -3461,21 +3729,33 @@ function renderRank(){
       vRef=pool.length?pool.reduce(function(s,v){return s+v;},0)/pool.length:null;
     }
   }
+  else if(isFa){
+    /* referencia de un indicador de farolas: el objetivo oficial, o la media dia-igual del
+       conjunto de referencia elegido (veteranas / todas / liebre / una tienda concreta) */
+    if(ref===OBJ_NAME) vRef=(FA.obj==null?null:FA.obj);
+    else if(ref==='Tiendas Veteranas') vRef=window.__faGroupVal?window.__faGroupVal(r=>r.Fase==='Veterana',mes,FA.k):null;
+    else if(ref==='Todas las tiendas') vRef=window.__faGroupVal?window.__faGroupVal(()=>true,mes,FA.k):null;
+    else if(ref===LIEBRE_HIST) vRef=window.__faGroupVal?window.__faGroupVal(r=>window.__faIsLiebre(r.Tienda),mes,FA.k):null;
+    else vRef=window.__faStoreVal?window.__faStoreVal(ref,mes,FA.k):null;
+  }
   else { vRef = special?null:valorTienda(ref,mk,area,shift,mes); }
   if(vRef!=null&&rf!==1)vRef*=rf;  // referencia/objetivo en la unidad global
   const refLbl=(ref===OBJ_NAME)?(isGen&&!G.isProd?'objetivo (0)':'objetivo'):shortStore(ref);
-  const metricLabel=isProdMetric?udName():(isGen?G.unit:(special?(mk==='__imp'?'h / mes':mk==='__worsen'||mk==='__improve'?'tendencia':M&&M.unit||''):(M.unit||M.label)));
+  const metricLabel=isFa?(FA.unit||'valor'):(isProdMetric?udName():(isGen?G.unit:(special?(mk==='__imp'?'h / mes':mk==='__worsen'||mk==='__improve'?'tendencia':M&&M.unit||''):(M.unit||M.label))));
   const rkHead='<div class="difhead"><span>Tienda</span><span>Tendencia 12 meses</span><span>Tienda / Referencia</span><span>Diferencia</span><span>'+metricLabel+'</span></div>';
   $('rkList').innerHTML=rkHead+top.map((o,i)=>{
     const isCur=curA&&String(o.t)===String(curA.tienda);
     let cls='flat',difTxt='';
     if(special){cls=o.val>0?'up':o.val<0?'down':'flat';}
-    else if(vRef!=null){const d=o.val-vRef;cls=Math.abs(d)<eps?'flat':d>0?'up':'down';difTxt=deltaChip(d,true,dec,'',eps);}
+    else if(vRef!=null){const d=o.val-vRef;cls=Math.abs(d)<eps?'flat':(d*faSigno>0?'up':'down');difTxt=deltaChip(d,faSigno>0,dec,'',eps);}
     const lineColor=cls==='up'?cssv('--bad'):cls==='down'?cssv('--good'):null;
-    const sA=isGen?genSerie(o.t,G.calc||G.prop):rkSerie(o.t,area,shift,special?'prod':mk),sB=isGen?(ref===OBJ_NAME?ST.meses.map(()=>vRef):genSerie(ref,G.calc||G.prop)):rkSerie(ref,area,shift,special?'prod':mk);
+    const sA=isFa?(window.__faStoreSerie?window.__faStoreSerie(o.t,ST.meses,FA.k):ST.meses.map(()=>null))
+      :(isGen?genSerie(o.t,G.calc||G.prop):rkSerie(o.t,area,shift,special?'prod':mk));
+    const sB=isFa?ST.meses.map(()=>vRef)
+      :(isGen?(ref===OBJ_NAME?ST.meses.map(()=>vRef):genSerie(ref,G.calc||G.prop)):rkSerie(ref,area,shift,special?'prod':mk));
     const tr=sparkTrend(sA,true);
     const valTxt=special?(sg(o.val)+fmt(o.val,dec)):fmt(o.val,dec);
-    const subTxt=isGen?G.unit:(mk==='__imp'?'h/mes':(mk==='__worsen'||mk==='__improve')?'/mes':(M&&M.unit||'ratio'));
+    const subTxt=isFa?(FA.unit||''):(isGen?G.unit:(mk==='__imp'?'h/mes':(mk==='__worsen'||mk==='__improve')?'/mes':(M&&M.unit||'ratio')));
     const valCls=cls==='up'?'up':cls==='down'?'down':'flat';
     const vetTxt=o.est==='Veterana'?'Veterana':o.est==='Sintética: todas'?'':'No veterana';
     const attrs=[o.gr&&o.gr.region,o.gr&&o.gr.zona,o.gr&&o.gr.model,vetTxt?'<span style="white-space:nowrap">'+vetTxt+'</span>':''].filter(Boolean).join(' · ');
@@ -3491,10 +3771,11 @@ function renderRank(){
       '</div>';
   }).join('');
   $('rkList').querySelectorAll('[data-t]').forEach(r=>r.addEventListener('click',()=>{setCombo('tA',r.dataset.t);$('mA').value=mes;$('sA').value=(isGen?'global':shift);preview();setMode('comp');analyze();}));
-  const lbl=isGen?G.label+' (centro)':mk==='__imp'?'horas de oportunidad frente a '+shortStore(ref):mk==='__worsen'?'tiendas que más empeoran frente a '+shortStore(ref)+' (12 meses)':mk==='__improve'?'tiendas que más mejoran frente a '+shortStore(ref)+' (12 meses)':M.label;
+  const lbl=isFa?(FA.label+' · farolas oficiales'):isGen?G.label+' (centro)':mk==='__imp'?'horas de oportunidad frente a '+shortStore(ref):mk==='__worsen'?'tiendas que más empeoran frente a '+shortStore(ref)+' (12 meses)':mk==='__improve'?'tiendas que más mejoran frente a '+shortStore(ref)+' (12 meses)':M.label;
   const fIn=[fReg||null,fZon||null,fMod!=='__all'?fMod:null].filter(Boolean).join(' · ');
   const vetLbl=fVet==='vet'?' · solo veteranas':fVet==='nov'?' · solo no veteranas':'';
-  $('rkNote').innerHTML='Ranking por <b>'+lbl+'</b> · '+(isGen?'valores globales del centro (CSV general)':(area==='__global'?'global (todas las áreas, ponderado del desglose)':'área '+area+' · '+shiftLabel(shift)))+' · '+ST.mesLabel[mes]+vetLbl+(fIn?' · '+fIn:'')+'. '+(worst?'Peores primero.':'Mejores primero.')+(vRef!=null?(isGen?' Rojo peor que el objetivo ('+fmt(vRef,G&&G.isProd?3:1)+'), verde mejor.':' Rojo peor que '+shortStore(ref)+', verde mejor.'):'')+' Pulsa una tienda para abrirla en el comparador.';
+  const ambito=isFa?('media día-igual del CSV de Farolas · '+(FA.low?'menos es mejor':'más es mejor')):(isGen?'valores globales del centro (CSV general)':(area==='__global'?'global (todas las áreas, ponderado del desglose)':'área '+area+' · '+shiftLabel(shift)));
+  $('rkNote').innerHTML='Ranking por <b>'+lbl+'</b> · '+ambito+' · '+ST.mesLabel[mes]+vetLbl+(fIn?' · '+fIn:'')+'. '+(worst?'Peores primero.':'Mejores primero.')+(vRef!=null?(isFa?(' Rojo peor que '+(ref===OBJ_NAME?('el objetivo ('+fmt(vRef,dec)+(FA.unit||'')+')'):shortStore(ref))+', verde mejor.'):(isGen?' Rojo peor que el objetivo ('+fmt(vRef,G&&G.isProd?3:1)+'), verde mejor.':' Rojo peor que '+shortStore(ref)+', verde mejor.')):'')+' Pulsa una tienda para abrirla en el comparador.';
 }
 
 /* ===== ASISTENTE FLOTANTE ===== */
@@ -3586,7 +3867,7 @@ document.addEventListener('click',function(e){
 function applyUnit(){
   const merc=!!window.__MERC;
   $('unitBtn').textContent = merc?'Unidad: Mercadona':'Unidad: MO';
-  if(ST.analyzed){renderSummary();renderMatrix();renderReal();renderDiff();renderPickDespl();renderDesplTot();renderCont();renderTrend();renderFicha();}
+  if(ST.analyzed){renderMatrix();renderSummary();renderReal();renderDiff();renderPickDespl();renderDesplTot();renderCont();renderTrend();renderFicha();}
   if(ST.mode==='rank')renderRank();
   if(window.loRerender){try{window.loRerender();}catch(e){}}
 }
@@ -3596,7 +3877,7 @@ $('unitBtn').addEventListener('click',()=>{window.__MERC=!window.__MERC;applyUni
 function applyGroup(){
   $('groupBtn').textContent = window.__GROUP?'Vista: Agrupado':'Vista: Desglosado';
   var fd=$('flowDes'),fa=$('flowAgr'); if(fd)fd.style.display=window.__GROUP?'none':''; if(fa)fa.style.display=window.__GROUP?'':'none';
-  if(ST.analyzed){renderSummary();renderMatrix();renderReal();renderDiff();renderPareto();try{refreshTrMetricOptions();}catch(e){}renderTrend();try{renderFicha();}catch(e){}}
+  if(ST.analyzed){renderMatrix();renderSummary();renderReal();renderDiff();renderPareto();try{refreshTrMetricOptions();}catch(e){}renderTrend();try{renderFicha();}catch(e){}}
   if(ST.mode==='rank')renderRank();
   if(window.loRerender){try{window.loRerender();}catch(e){}}
 }
@@ -3613,8 +3894,15 @@ $('themeBtn').addEventListener('click',()=>{
   h.classList.toggle('dark',!toLight);h.classList.toggle('light',toLight);
   $('themeBtn').textContent=toLight?'Tema: Claro':'Tema: Oscuro';
   _cssvCache={}; // el tema cambia las variables: invalidar caché antes de repintar
-  if(ST.analyzed){renderSummary();renderMatrix();renderRealControls();renderReal();renderDiffControls();renderDiff();renderPickDespl();renderDesplTot();renderCont();renderTrend();renderFicha();}
+  if(ST.analyzed){renderMatrix();renderSummary();renderRealControls();renderReal();renderDiffControls();renderDiff();renderPickDespl();renderDesplTot();renderCont();renderTrend();renderFicha();}
   if(ST.mode==='rank')renderRank();
+  /* Farolas, Caudal y Objetivos tambien tienen colores HORNEADOS en los layouts de Plotly y en
+     estilos en linea (leen las variables CSS con getComputedStyle al pintar). Si no se les avisa,
+     al volver de oscuro a claro se quedan con los colores del tema anterior y no se leen. */
+  try{ if(window.__faTheme) window.__faTheme(); }catch(e){}
+  try{ if(window.__cdTheme) window.__cdTheme(); }catch(e){}
+  try{ if(window.loRerender) window.loRerender(); }catch(e){}
+  try{ if(window.__cfFarolas) window.__cfFarolas(); }catch(e){}
 });
 
 /* ===== VALORES GENERALES (Fase general) — índice por tienda+mes ===== */
@@ -4541,6 +4829,8 @@ function downloadRank(){ if(!LOADED)return; const arr=rankData(), by=RK.by;
 let _cdRT=null;
 function cdResize(){ if(!LOADED)return; const box=$('cd_chart'); if(!box||!box.data)return; if($('caudalTab')&&$('caudalTab').style.display==='none')return; if(box.clientWidth<10)return; try{Plotly.Plots.resize(box);}catch(e){} }
 function cdResizeSoon(){ clearTimeout(_cdRT); _cdRT=setTimeout(cdResize,140); }
+/* el tema cambia las variables CSS y aqui se leen al pintar (cssv) -> repintar la pestana */
+window.__cdTheme=function(){ if(!LOADED)return; try{ render(); }catch(e){} };
 window.addEventListener('resize',cdResizeSoon);
 try{ if(window.ResizeObserver){ const _b=$('cd_chart'); if(_b)new ResizeObserver(cdResizeSoon).observe(_b); } }catch(e){}
 })();
@@ -4640,6 +4930,29 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     ]}
   ];
   var M=GLOB.slice(); GRUPOS.forEach(function(g){ M=M.concat(g.ms); });
+  /* ===== API para el RANKING DE TIENDAS =====
+     Devuelve los indicadores de farolas disponibles y el valor DIA-IGUAL de uno de ellos
+     para una tienda y un mes (cada dia de la tienda pesa lo mismo, igual que en Farolas). */
+  window.__faMetrics=function(){ if(!LOADED)return null;
+    var out=[{grp:'Farolas · indicadores globales',ms:GLOB}];
+    GRUPOS.forEach(function(g){ out.push({grp:'Farolas · '+g.t,ms:g.ms}); });
+    return out.map(function(sec){ return {grp:sec.grp, ms:sec.ms.map(function(m){
+      return {k:m.k,label:m.label,unit:m.unit,dec:m.dec,obj:m.obj,low:!!m.low,isMin:!!m.isMin}; })}; }); };
+  window.__faStoreVal=function(tienda,mk,key){ if(!LOADED)return null;
+    var t=String(tienda), acc=[];
+    for(var i=0;i<ROWS.length;i++){ var r=ROWS[i]; if(r.Tienda===t && r.mk===mk) acc.push(r); }
+    return acc.length?dayIgual(acc,key):null; };
+  /* serie mensual para la mini-grafica de tendencia del ranking */
+  window.__faStoreSerie=function(tienda,mks,key){ if(!LOADED)return null;
+    var t=String(tienda), byM={};
+    for(var i=0;i<ROWS.length;i++){ var r=ROWS[i]; if(r.Tienda!==t||!r.mk)continue; (byM[r.mk]=byM[r.mk]||[]).push(r); }
+    return mks.map(function(mk){ return byM[mk]?dayIgual(byM[mk],key):null; }); };
+  window.__faGroupVal=function(filtro,mk,key){ if(!LOADED)return null;
+    var acc=[];
+    for(var i=0;i<ROWS.length;i++){ var r=ROWS[i]; if(r.mk===mk && filtro(r)) acc.push(r); }
+    return acc.length?dayIgual(acc,key):null; };
+  window.__faIsLiebre=function(t){ try{ return isLiebre({Tienda:String(t)}); }catch(e){ return false; } };
+  window.__faFase=function(t){ try{ for(var i=0;i<ROWS.length;i++) if(ROWS[i].Tienda===String(t)) return ROWS[i].Fase; }catch(e){} return null; };
   var ST={dim:'Fase', val:'Veterana', scope:'vet', mes:null, per:'a2', refKind:'vet', refVal:null};
   /* recordar la ultima vista de Farolas entre sesiones */
   function saveFa(){ try{ localStorage.setItem('javify_farolas_cfg', JSON.stringify({dim:ST.dim,val:ST.val,scope:ST.scope,per:ST.per,refKind:ST.refKind,refVal:ST.refVal})); }catch(e){} }
@@ -4694,6 +5007,13 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
      son los que de verdad llegan al girar). Este es el enganche que usa: re-pinta las
      graficas porque labelMask() decide cuantas etiquetas caben segun el ancho. */
   var _lastRings=null;   // ultimos datos pintados en los roscos, para poder re-pintarlos al vuelo
+  /* el tema cambia las variables CSS y aqui se leen al pintar -> hay que repintar TODO
+     (roscos, tarjetas y las 16 graficas), no solo redimensionar */
+  window.__faTheme=function(){ if(!LOADED)return;
+    var tab=$('farolasTab');
+    if(tab&&tab.style.display!=='none'){ try{ render(); }catch(e){} }
+    else PENDING=true;                      // se repinta al volver a entrar
+  };
   window.__faOnWidth=function(){ if(!LOADED)return;
     var tab=$('farolasTab');
     if(tab&&tab.style.display!=='none'){
@@ -5179,6 +5499,8 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
         try{ if(window.__bootStep) window.__bootStep('far'); }catch(e){}
         /* el resumen del comparador se pinta ANTES de que lleguen las farolas -> repintarlo ahora */
         try{ if(window.__cfFarolas) window.__cfFarolas(); }catch(e){}
+        /* el ranking puede ordenar por indicadores de farolas: ahora ya se pueden ofrecer */
+        try{ if(window.__rkRefreshMetrics) window.__rkRefreshMetrics(); }catch(e){}
       }catch(e){ if(st)st.innerHTML='<span style="color:var(--bad)">Error al preparar Farolas: '+e.message+'</span>'; markFail('Error al preparar Farolas'); console.warn('farolas',e);
         try{ if(window.__bootStep) window.__bootStep('far'); }catch(_){} } },
       error:function(){ LOADING=false; if(st)st.innerHTML='<span style="color:var(--bad)">No se pudo cargar el CSV de Farolas (¿ya está subido a GitHub?).</span>'; markFail('No se pudo cargar el CSV de Farolas');
@@ -5232,7 +5554,10 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
       var fl=gd._fullLayout;
       if(fl && Math.abs((fl.width|0)-cw)<2 && Math.abs((fl.height|0)-ch)<2){ gd.__rsKey=null; continue; }
       var key=cw+'x'+ch;
-      if(gd.__rsKey===key && (t-(gd.__rsAt||0))<400) continue;
+      /* que se salga por la derecha es lo peor que puede pasar (corta los ultimos meses):
+         en ese caso se reintenta ya, sin esperar la guarda de 400 ms. */
+      var desborda=(fl && (fl.width|0) > cw+2);
+      if(!desborda && gd.__rsKey===key && (t-(gd.__rsAt||0))<400) continue;
       gd.__rsKey=key; gd.__rsAt=t;
       try{ var p=window.Plotly.Plots.resize(gd); if(p&&p.catch) p.catch(function(){}); }catch(e){}
     }
@@ -5256,6 +5581,41 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
   function onRotate(){ clearTimeout(deb);
     setTimeout(function(){ schedule(true); timers.push(setTimeout(function(){ pass(false); },1800)); },0); }
 
+  /* ---- ResizeObserver por GRAFICA: la red de seguridad de verdad ----
+     Los eventos de ventana se pueden perder o llegar con medidas viejas; el
+     contenedor, no: si su caja cambia, esto salta siempre. Es lo que evitaba que
+     al arrastrar la ventana en Mac la grafica se quedara mas ancha que la tarjeta
+     y se cortaran los ultimos meses. Caudal ya lo hacia solo con cd_chart. */
+  var ro=null, seen=(typeof WeakSet!=='undefined')?new WeakSet():null, roDeb=null;
+  if(window.ResizeObserver){
+    ro=new ResizeObserver(function(){
+      clearTimeout(roDeb);
+      roDeb=setTimeout(function(){ pass(false); },70);
+    });
+  }
+  function observeAll(){
+    if(!ro||!seen) return 0;
+    var nuevos=0;
+    try{
+      var list=document.querySelectorAll('.js-plotly-plot');
+      for(var i=0;i<list.length;i++){ if(!seen.has(list[i])){ seen.add(list[i]); ro.observe(list[i]); nuevos++; } }
+    }catch(e){}
+    return nuevos;
+  }
+  /* las graficas se crean y se destruyen al repintar: hay que reengancharse.
+     OJO: solo se lanza una pasada si aparecen graficas NUEVAS. Si no, el propio
+     repintado de Plotly generaria mutaciones -> pasada -> repintado -> bucle. */
+  if(window.MutationObserver){
+    try{
+      var moDeb=null;
+      var mo=new MutationObserver(function(){
+        clearTimeout(moDeb);
+        moDeb=setTimeout(function(){ if(observeAll()>0) pass(false); },140);
+      });
+      mo.observe(document.body,{childList:true,subtree:true});
+    }catch(e){}
+  }
+
   window.addEventListener('resize', onViewport, {passive:true});
   window.addEventListener('orientationchange', onRotate, {passive:true});
   try{ if(window.visualViewport) window.visualViewport.addEventListener('resize', onViewport, {passive:true}); }catch(e){}
@@ -5267,15 +5627,158 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
 
   /* al mostrar una pestana sus graficas estaban ocultas y pueden traer el tamano de
      antes; cubre tambien los roscos del comparador, que no estan en la lista CHARTS. */
-  window.__resizeVisiblePlots=function(){ schedule(false); };
+  window.__resizeVisiblePlots=function(){ observeAll(); schedule(false); };
+  observeAll();
 })();
 </script>
+
+<style>
+/* ============================================================================================
+   ESTILO COMÚN (v8) — un solo lenguaje para las cinco pestañas.
+   Va al final a proposito: solo REDEFINE el aspecto de los controles que ya existen, sin
+   tocar marcado ni JavaScript, asi que no puede romper ninguna funcionalidad.
+
+   Reglas del lenguaje, las mismas que en "Elige dos escenarios":
+     1. Nada de cajas dentro de cajas. Un bloque de filtros no lleva fondo ni borde propios:
+        se separa con una linea fina.
+     2. Los campos no son rectangulos grises: son texto sobre una linea inferior, que se
+        pone verde al enfocar.
+     3. Las etiquetas, todas iguales: 10px, mayusculas, gris, mismo interletrado.
+     4. Un unico estilo de pastilla para los segmentados (habia cuatro distintos).
+   ============================================================================================ */
+
+/* ---- 1. contenedores de filtros: sin fondo, sin borde, sin sombra ---- */
+#caudalTab .cd-grp,
+.lo-ctrls{
+  background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;
+}
+/* Ranking y Farolas: los filtros van en la MISMA tarjeta blanca que el resto de bloques
+   (comparador, Caudal), no sueltos sobre el fondo. Dentro, los campos ya son los del
+   lenguaje comun: etiqueta pequena + linea inferior. */
+.rk-ctrl,#farolasTab .fa-bar{
+  background:var(--panel)!important;border:1px solid var(--line)!important;border-radius:var(--r)!important;
+  box-shadow:var(--sh-sm)!important;padding:18px 20px!important;
+}
+.rk-ctrl{gap:18px 22px;margin-bottom:18px}
+#farolasTab .fa-bar{gap:18px 24px;margin-bottom:20px}
+#caudalTab .cd-groups{gap:18px 26px}
+#caudalTab .cd-grp{gap:10px!important}
+/* el titulo de GRUPO en verde y mas pequeno; la etiqueta de CAMPO en gris. Si los dos van
+   iguales se pierde la jerarquia y "PROCESO" aparecia dos veces identico. */
+#caudalTab .cd-grp-h{color:var(--brand)!important;font-size:9px!important;letter-spacing:1.3px!important;opacity:.9}
+
+/* ---- 2. etiquetas de campo, todas iguales ---- */
+.rk-f label,.lo-fld label,.lo-fld>label,#caudalTab .cd-f>label,.trend-ctrl label,.faro-ctrl-l,
+#farolasTab .fa-lbl{
+  font-size:10px!important;font-weight:800!important;letter-spacing:1.1px!important;
+  text-transform:uppercase!important;color:var(--ink3)!important;margin-bottom:7px!important;
+}
+
+/* ---- 3. campos: linea inferior en vez de recuadro ---- */
+.rk-ctrl select,.rk-ctrl input,.rk-ctrl .tin,
+.lo-ctrls select,.lo-ctrls .lo-tin,.lo-ctrls input,
+.trend-ctrl select,
+#caudalTab .cd-btn{
+  background:transparent!important;border:0!important;border-bottom:1px solid var(--line2)!important;
+  border-radius:0!important;box-shadow:none!important;padding:7px 2px!important;color:var(--ink)!important;
+  font-weight:650;transition:border-color .16s;
+}
+.rk-ctrl select:hover,.lo-ctrls select:hover,.trend-ctrl select:hover,#caudalTab .cd-btn:hover{
+  border-bottom-color:var(--line3)!important;
+}
+.rk-ctrl select:focus,.rk-ctrl input:focus,.lo-ctrls select:focus,.lo-ctrls .lo-tin:focus,
+.trend-ctrl select:focus,#caudalTab .cd-btn:focus-visible{
+  outline:none;border-bottom-color:var(--brand)!important;
+}
+/* el desplegable de Caudal marca "parcial" con color de texto, no con recuadro */
+#caudalTab .cd-btn.cd-part{border-bottom-color:var(--brand)!important}
+#caudalTab .cd-btn.cd-part .cd-txt{color:var(--brand)}
+/* chevron propio y coherente en todos los select */
+.rk-ctrl select,.lo-ctrls select,.lo-ctrls .lo-tin,.trend-ctrl select{
+  -webkit-appearance:none;appearance:none;padding-right:18px!important;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink3) 50%),linear-gradient(135deg,var(--ink3) 50%,transparent 50%)!important;
+  background-size:5px 5px,5px 5px!important;background-repeat:no-repeat!important;
+  background-position:calc(100% - 9px) calc(50% + 1px),calc(100% - 5px) calc(50% + 1px)!important;
+}
+
+/* ---- 4. un solo estilo de pastilla para los segmentados ---- */
+.lo-seg,.fa-seg,#faroUnitSeg,#corteSw,.rk-seg,.matctrl .modeswitch,.faro-ctrl .modeswitch,#caudalView{
+  background:var(--panel2);border:1px solid var(--line2);border-radius:999px;padding:3px;box-shadow:none;gap:2px;
+}
+.lo-seg>button,.fa-seg>button,#faroUnitSeg>button,#corteSw>button,.rk-seg>button,
+.matctrl .modeswitch>button,.faro-ctrl .modeswitch>button,#caudalView>button{
+  border:0;border-radius:999px;background:transparent;color:var(--ink2);
+  font:inherit;font-size:11.5px;font-weight:700;padding:7px 14px;cursor:pointer;transition:background .14s,color .14s;
+}
+.lo-seg>button:hover,.fa-seg>button:hover,#faroUnitSeg>button:hover,#corteSw>button:hover,
+.rk-seg>button:hover,.matctrl .modeswitch>button:hover,#caudalView>button:hover{color:var(--ink)}
+.lo-seg>button.lo-on,.lo-seg>button.on,.fa-seg>button.on,#faroUnitSeg>button.on,#corteSw>button.on,
+.rk-seg>button.on,.matctrl .modeswitch>button.on,.faro-ctrl .modeswitch>button.on,#caudalView>button.on{
+  background:var(--brand);color:#fff;box-shadow:none;
+}
+
+/* ---- 5. "Cómo se prepara un lote": tarjetas sin relleno, solo el color como acento ---- */
+.fcard{background:transparent!important;border-color:var(--line2)!important;padding-left:17px!important}
+.fcard:hover{transform:none!important;box-shadow:none!important;border-color:var(--c)!important}
+.fcard:before{left:0!important;right:auto!important;top:14px!important;bottom:14px!important;
+  width:2px!important;height:auto!important;border-radius:2px!important}
+/* el icono va pegado a la izquierda y sin recuadro de color (antes quedaba centrado arriba) */
+.ficon{background:transparent!important;width:20px!important;height:20px!important;
+  margin-bottom:9px!important;justify-content:flex-start!important}
+.ficon svg{width:19px;height:19px}
+.fname{font-size:13px;font-weight:800;letter-spacing:-.1px}
+.fcode{color:var(--ink3);opacity:.75}
+.fgroup{background:transparent!important;border-color:var(--line2)!important;box-shadow:none!important}
+.fg-head{color:var(--ink2)!important}
+/* la banda "y vuelve a empezar" pierde el degradado y el icono con sombra */
+.flow-cycle{background:transparent!important;border:1px solid var(--line2)!important;
+  border-left:2px solid var(--p-cont)!important;border-radius:var(--r-sm)!important}
+.cyc-ic{background:transparent!important;color:var(--p-cont)!important;box-shadow:none!important;
+  width:26px!important;height:26px!important;border-radius:0!important}
+.cyc-ic svg{width:22px;height:22px}
+.floop{background:transparent!important;border:1px solid var(--line2)!important;border-style:solid!important}
+
+/* ---- 5b. Farolas: los dos buscadores tambien con linea, no con recuadro ---- */
+#farolasTab .fa-combo input,#farolasTab .fa-sel{
+  background:transparent!important;border:0!important;border-bottom:1px solid var(--line2)!important;
+  border-radius:0!important;padding:7px 2px!important;font-weight:700;transition:border-color .16s}
+#farolasTab .fa-combo input:hover,#farolasTab .fa-sel:hover{border-bottom-color:var(--line3)!important}
+#farolasTab .fa-combo input:focus,#farolasTab .fa-sel:focus{outline:none;border-bottom-color:var(--brand)!important}
+/* un segmento deshabilitado se lee como deshabilitado, no como medio activo */
+.fa-seg>button:disabled,.fa-seg>button[disabled]{opacity:.4!important;background:transparent!important;color:var(--ink3)!important}
+.fa-seg>button.on:disabled,.fa-seg>button.on[disabled]{background:var(--brand)!important;color:#fff!important;opacity:.35!important}
+
+/* ---- 6. botones sueltos de accion: mismo aspecto en todas las pestañas ---- */
+.lo-tg,.tool,.cd-dlbtn{background:var(--panel2);border:1px solid var(--line2);border-radius:999px;
+  color:var(--ink2);font-weight:700;box-shadow:none;transition:.15s}
+.lo-tg:hover,.tool:hover,.cd-dlbtn:hover{color:var(--ink);border-color:var(--line3)}
+.lo-tg[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* ---- 7. cabeceras de seccion: el mismo par titulo + linea fina de Farolas ---- */
+#caudalTab .h-c,.fa-sech .t{letter-spacing:-.2px}
+.rk-hd .sec-h,.lo-hd .sec-h{letter-spacing:-.3px}
+
+/* ---- 8. tactil: los campos con linea siguen siendo comodos de tocar ---- */
+@media (pointer:coarse){
+  .rk-ctrl select,.rk-ctrl input,.lo-ctrls select,.lo-ctrls .lo-tin,
+  .trend-ctrl select,#caudalTab .cd-btn{min-height:40px!important}
+}
+</style>
 
 <style>
 /* ===== Zonas de toque en pantallas tactiles (iPad / iPhone) =====
    Medido con el navegador: los ⤓ PNG y ⤓ CSV salian a 55x30 y los segmentos de
    Caudal a 71x29. En raton no se toca nada: solo aplica con (pointer:coarse). */
 @media (pointer:coarse){
+  /* ===== SCROLL: ninguna tabla con scroll VERTICAL propio en tactil =====
+     Las tablas iban dentro de cajas con max-height, asi que al arrastrar el dedo sobre
+     ellas se movia la tabla y no la pagina. Ahora se muestran enteras y scrollea la
+     pagina; la cabecera ya es sticky, asi que no se pierde la referencia.
+     El scroll HORIZONTAL se mantiene (hace falta) y se le corta el encadenado. */
+  .ptable-wrap,.lo-tbl-wrap,.tbl-scroll,#cd_tblWrap,#cd_devWrap{max-height:none!important}
+  .ptable-wrap,.lo-tbl-wrap,.tbl-scroll,.matrix,.mxgrid,.flow-track{overscroll-behavior:contain}
+  .clog{height:auto;max-height:52vh}
+
   /* ⤓ PNG y ⤓ CSV van en absoluto sobre la tarjeta: se agranda SOLO la zona
      sensible con un pseudo-elemento, para no mover ni un pixel el diseno. */
   .png::after,.csv::after{content:"";position:absolute;top:-8px;right:-9px;bottom:-8px;left:-9px}
@@ -5284,6 +5787,9 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
   .uinfo::after{content:"";position:absolute;top:-11px;right:-11px;bottom:-11px;left:-11px;border-radius:50%}
   .lo-seg button,
   .fa-seg button,
+  .rk-seg button,
+  #faroUnitSeg button,
+  #caudalView button,
   .mode,
   .qb,
   .tool,
@@ -5293,12 +5799,20 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
   .cd-btn,
   .cd-dlbtn,
   .modeswitch button{min-height:40px}
-  .lo-seg button,.fa-seg button{display:inline-flex;align-items:center;justify-content:center}
+  /* medido: los de "Orden" del ranking salian a 32 px porque una regla con !important
+     les recorta el relleno; el min-height no lo pisa nadie y los deja en 40. */
+  .lo-seg button,.fa-seg button,.rk-seg button,#faroUnitSeg button,
+  #caudalView button{display:inline-flex;align-items:center;justify-content:center}
   /* el ranking se compacto a proposito en iPhone: se sube solo el alto, sin tocar
      ni el tamano de letra ni el relleno que puso el diseno. */
   .rk-ctrl select,.rk-ctrl input,.rk-ctrl .tin{min-height:40px!important}
-  #step2 select,
   .fa-combo input,.fa-sel{min-height:40px}
+  /* selector de escenarios: campos comodos de tocar sin engordar el diseno */
+  .pick .combo-in{min-height:44px}
+  .pick select{min-height:40px}
+  /* el circulo de intercambio se queda en 34 px por diseno: se amplia solo la zona sensible */
+  .pk-swap{position:relative}
+  .pk-swap::after{content:"";position:absolute;top:-6px;right:-6px;bottom:-6px;left:-6px;border-radius:50%}
 }
 </style>
 
