@@ -466,6 +466,18 @@ optgroup{font-weight:800;font-style:normal;color:var(--ink2)}
 .png,.csv{position:absolute;top:15px;right:17px;z-index:4;padding:6px 11px;border-radius:8px;background:var(--panel2);border:1px solid var(--line2);color:var(--ink2);font:inherit;font-size:10px;font-weight:750;cursor:pointer;transition:.15s}
 .png:hover,.csv:hover{color:var(--ink);border-color:var(--brand)}
 .png+.csv,.csv+.png{right:auto;left:17px}
+/* ============================================================================================
+   DESCARGA EN LINEA (.dl-in): el boton va en el flujo, no flotando sobre la tarjeta.
+   OJO, esto NO es cosmetico: antes llevaban style="position:static" y en tactil el
+   pseudo-elemento que amplia la zona de toque (.png::after / .csv::after, mas abajo) se
+   anclaba al ancestro posicionado mas cercano en vez de al boton. Medido: en Definicion de
+   objetivos eso creaba una capa invisible de 1268x380 px sobre la tarjeta entera, asi que
+   cualquier clic —selector, tabla, scroll— caia en el boton de CSV.
+   Con position:relative el ::after se ancla al boton; top/right a auto para que el desplazamiento
+   de la regla base (.png,.csv) no lo mueva de sitio.
+   NO volver a poner position:static en un .png/.csv: se repite el bloqueo.
+   ============================================================================================ */
+.png.dl-in,.csv.dl-in{position:relative;top:auto;right:auto;left:auto}
 #paretoTable{min-width:0;table-layout:fixed;width:100%}
 #paretoTable th,#paretoTable td{padding:7px 7px;font-size:11.5px;vertical-align:middle}
 #paretoTable th:first-child,#paretoTable td:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1794,7 +1806,7 @@ body.simple #mObj{display:none!important}
             <div class="lo-seg lo-sm" id="lo_contribViewSeg"><button data-v="pct" class="lo-on">% del total</button><button data-v="prod">Productividad (min/ud)</button></div></div>
         </div>
         <div class="lo-calcsum" id="lo_contribSum" style="margin:6px 0 8px"></div>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px"><button class="csv" style="position:static" data-pngtbl="lo_contribTbl" data-pngname="contribucion_objetivo">⤓ PNG</button><button class="csv" style="position:static" data-csv="lo_contribTbl" data-csvname="contribucion_objetivo">⤓ CSV</button></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px"><button class="csv dl-in" data-pngtbl="lo_contribTbl" data-pngname="contribucion_objetivo">⤓ PNG</button><button class="csv dl-in" data-csv="lo_contribTbl" data-csvname="contribucion_objetivo">⤓ CSV</button></div>
         <div class="lo-tbl-wrap"><table class="lo-mx" id="lo_contribTbl"></table></div>
       </div>
     </section>
@@ -1827,7 +1839,7 @@ body.simple #mObj{display:none!important}
           <div class="lo-fld" id="lo_mesFld" style="display:none"><label for="lo_mesSel">Mes</label>
             <select class="lo-tin" id="lo_mesSel" style="min-width:130px"></select></div>
         </div>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px"><button class="csv" style="position:static" data-pngtbl="lo_mxTbl" data-pngname="objetivos_matriz">⤓ PNG</button><button class="csv" style="position:static" data-csv="lo_mxTbl" data-csvname="objetivos_matriz">⤓ CSV</button></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px"><button class="csv dl-in" data-pngtbl="lo_mxTbl" data-pngname="objetivos_matriz">⤓ PNG</button><button class="csv dl-in" data-csv="lo_mxTbl" data-csvname="objetivos_matriz">⤓ CSV</button></div>
         <div class="lo-tbl-wrap"><table class="lo-mx" id="lo_mxTbl"></table></div>
       </div>
     </section>
@@ -1849,7 +1861,7 @@ body.simple #mObj{display:none!important}
         </div>
         <div class="lo-calcsum" id="lo_calcSum"></div>
         <p class="lo-sec-s" style="margin-top:8px;font-size:11.5px">Al guardar se descarga <b>Objetivos_Tiendas_Liebre.csv</b>. Súbelo al repo de GitHub (igual que los CSV). El dashboard lo cargará como tienda de referencia «<b>Objetivos Tiendas Liebre</b>» disponible en Comparar y en el Ranking, para medir cualquier tienda contra estos objetivos.</p>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px;margin-top:14px"><button class="csv" style="position:static" data-pngtbl="lo_calcTbl" data-pngname="objetivos_calculadora">⤓ PNG</button><button class="csv" style="position:static" data-csv="lo_calcTbl" data-csvname="objetivos_calculadora">⤓ CSV</button></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px;margin-top:14px"><button class="csv dl-in" data-pngtbl="lo_calcTbl" data-pngname="objetivos_calculadora">⤓ PNG</button><button class="csv dl-in" data-csv="lo_calcTbl" data-csvname="objetivos_calculadora">⤓ CSV</button></div>
         <div class="lo-tbl-wrap"><table class="lo-mx" id="lo_calcTbl"></table></div>
       </div>
     </section>
@@ -1922,7 +1934,7 @@ body.simple #mObj{display:none!important}
             </div></div>
         </div>
         <div class="lo-det" id="lo_stDet"><div class="lo-det-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>Pulsa una tienda para ver su desglose por subproceso y comparar meses.</div></div>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px;margin-top:16px"><button class="csv" style="position:static" data-pngtbl="lo_stTbl" data-pngname="objetivos_tiendas">⤓ PNG</button><button class="csv" style="position:static" data-csv="lo_stTbl" data-csvname="objetivos_tiendas">⤓ CSV</button></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:6px;margin-top:16px"><button class="csv dl-in" data-pngtbl="lo_stTbl" data-pngname="objetivos_tiendas">⤓ PNG</button><button class="csv dl-in" data-csv="lo_stTbl" data-csvname="objetivos_tiendas">⤓ CSV</button></div>
         <div class="lo-tbl-wrap"><table class="lo-mx" id="lo_stTbl"></table></div>
         <div id="lo_stNote" style="font-size:11px;color:var(--ink3);margin-top:8px"></div>
       </div>
@@ -2103,7 +2115,13 @@ body.simple #mObj{display:none!important}
     .fa-sech .r{flex:1;height:1px;background:var(--line2)}
     .fa-rings{display:grid;grid-template-columns:repeat(auto-fit,minmax(184px,1fr));gap:12px}
     .fa-ring{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:11px 8px 13px;text-align:center}
-    .fa-ring .rl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--ink2)}
+    /* La etiqueta del rosco lleva las tres variantes (larga/media/corta) igual que las
+       tarjetas. Ademas reserva SIEMPRE el alto de dos lineas: asi los cuatro roscos
+       arrancan a la misma altura aunque una etiqueta ocupe una sola linea, que era lo que
+       rompia la simetria en iPhone con "Pedido en perfecto estado". */
+    .fa-ring .rl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--ink2);
+      line-height:1.25;min-height:2.5em;display:flex;align-items:center;justify-content:center;text-align:center}
+    .fa-ring .rl .s2,.fa-ring .rl .s3{display:none}
     .fa-ring .rc{height:138px;margin:2px 0 2px}
     .fa-ring .rref{font-size:10px;color:var(--ink3);line-height:1.45}
     .fa-ring .rdel{font-size:12px;font-weight:800}
@@ -2139,12 +2157,31 @@ body.simple #mObj{display:none!important}
     @media(min-width:1900px){ .fa-cbox .fch{height:360px} }
     @media(max-width:1240px){ .fa-card .l .s1{display:none} .fa-card .l .s2{display:inline} }
     @media(max-width:820px){ .fa-card .l .s2{display:none} .fa-card .l .s3{display:inline} }
+    /* Roscos: la columna baja de 184 px y "Pedido en perfecto estado" ya no cabe en una
+       linea; se pasa a la etiqueta corta (medido, no a ojo). */
+    @media(max-width:520px){ .fa-ring .rl .s1{display:none} .fa-ring .rl .s3{display:inline} }
     @media(max-width:640px){
       .fa-cards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
       .fa-rings{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
       .fa-combo{max-width:none}
       .fa-title{font-size:20px}
       .fa-cbox .fch{height:240px}
+      /* MOVIL · barra de filtros en rejilla.
+         Medido a 390 px: "Ver" son 6 botones que envolvian 4+2, con anchos distintos y
+         "Otros" solo en la segunda fila; y "Tiendas" quedaba como una isla de 169 px al
+         lado de campos de 311 px. En rejilla cada segmento ocupa todo el ancho y las
+         celdas son iguales: 3x2 en Ver, 2x2 en Periodo y 2x1 en Tiendas. */
+      /* Van con #farolasTab delante a proposito: el bloque comun de pastillas (v8) esta
+         mas abajo en el documento y con la misma especificidad ganaria el, dejando la
+         capsula de 999 px y el relleno de 3 px. */
+      #farolasTab .fa-bar>div{width:100%}
+      /* en dos filas la capsula de 999px queda como un lingote: se pasa a rectangulo
+         redondeado, el mismo radio que usan el resto de segmentados en tactil. */
+      #farolasTab .fa-seg{display:grid;width:100%;gap:4px;border-radius:12px!important;padding:4px!important}
+      #farolasTab #fa_dim{grid-template-columns:repeat(3,1fr)}
+      #farolasTab #fa_per{grid-template-columns:repeat(2,1fr)}
+      #farolasTab #fa_scope{grid-template-columns:repeat(2,1fr)}
+      #farolasTab .fa-seg>button{width:100%;padding:7px 6px;text-align:center;border-radius:9px!important}
     }
     </style>
     <div class="fa-wrap">
@@ -2549,7 +2586,12 @@ function makeCombo(id){
   }
   function open(){pop.classList.add('open');inp.setAttribute('aria-expanded','true');render(inp.value===shortStore(inp.dataset.val)?'':inp.value);}
   function close(){pop.classList.remove('open');inp.setAttribute('aria-expanded','false');hi=-1;if(inp.dataset.val)inp.value=shortStore(inp.dataset.val);}
-  function pick(i){const o=shown[i];if(!o)return;inp.dataset.val=o.val;inp.value=o.label;close();syncShift(id.slice(-1));preview();}
+  /* Al elegir se SUELTA el foco a proposito: en movil cierra el teclado y, sobre todo, evita
+     que el navegador devuelva el scroll al campo enfocado cada vez que el teclado se oculta
+     (era lo que "reenviaba" al selector de tienda al tocar una celda del mapa de calor). */
+  function pick(i){const o=shown[i];if(!o)return;inp.dataset.val=o.val;inp.value=o.label;close();
+    try{ inp.blur(); }catch(e){}
+    syncShift(id.slice(-1));preview();}
   inp.addEventListener('focus',()=>{inp.value='';open();});
   /* Tras elegir una tienda el input SIGUE con el foco (el mousedown de la lista hace
      preventDefault), asi que un segundo clic no disparaba 'focus' y la lista no volvia a
@@ -2941,6 +2983,7 @@ function renderSummary(){
     k.push('<div class="kpi"><div class="kpi-l">Productividad óptima</div><div class="kpi-v">'+fmt(OBJ_PROD*MF(),3)+' <small>'+udName()+'</small></div><div class="kpi-r">objetivo de referencia</div></div>');
     k.push(kpiCard("Productividad real (≤20')", mfv(gA.prod_conparadas_min_ud), OBJ_PROD*MF(),udName(),true,3,0.003));
     k.push(kpiCard("Productividad efectiva (≤6')", mfv(gA.prod_efectiva_min_ud), OBJ_PROD*MF(),udName(),true,3,0.003));
+    k.push('<div class="kpi '+kpiOfCls()+'" id="kpiOf">'+kpiOfIn()+'</div>');
     $('kpis').innerHTML=k.join('');
     // ---- CAUDAL: donut de composición + evolución 12 meses + tabla, con desplegable diario/mensual ----
     $('kpiWarn').innerHTML=
@@ -3039,13 +3082,46 @@ function renderCaudal(){
       '<td style="'+td+';color:'+pac+';font-weight:700">'+fmt(sPar[i],dec)+'</td>'+
       '<td style="'+td+'"><span style="display:inline-block;min-width:54px;text-align:center;padding:2px 8px;border-radius:999px;background:'+db+';color:'+dc+';font-weight:800;font-size:11.5px">'+(d==null?'—':(d>0?'+':'')+fmt(d,dec))+'</span></td></tr>';
   });
-  $('caudalTable').innerHTML='<div class="cbox" style="margin:0"><div class="cbox-in" style="padding:0;overflow:hidden;border-radius:var(--r)"><div style="display:flex;justify-content:flex-end;padding:8px 10px 0"><button class="csv" style="position:static" data-csv="caudalMonthTbl" data-csvname="caudal_por_mes">⤓ CSV</button></div>'+
+  $('caudalTable').innerHTML='<div class="cbox" style="margin:0"><div class="cbox-in" style="padding:0;overflow:hidden;border-radius:var(--r)"><div style="display:flex;justify-content:flex-end;padding:8px 10px 0"><button class="csv dl-in" data-csv="caudalMonthTbl" data-csvname="caudal_por_mes">⤓ CSV</button></div>'+
     '<div class="tbl-scroll" style="max-height:340px;overflow:auto"><table class="gen-tbl" id="caudalMonthTbl" style="width:100%;border-collapse:collapse">'+
     '<thead><tr><th id="caudalSortMes" style="'+th+';text-align:left;cursor:pointer;user-select:none">Mes '+(desc?'▼':'▲')+'</th>'+
     '<th style="'+th+'">Óptimo</th><th style="'+th+'">Real</th><th style="'+th+'">Efectivas</th><th style="'+th+'">Paradas</th><th style="'+th+'">Dif (real−óptimo)</th>'+
     '</tr></thead><tbody>'+rows+'</tbody></table></div></div></div>';
   const sm=$('caudalSortMes'); if(sm)sm.addEventListener('click',()=>{ST.caudalTblDesc=!desc;renderCaudal();});
 }
+/* ===== TARJETA "Oficial (Control NTC)" =====
+   La productividad tal cual la mide Farolas: unidades de siempre y objetivo 0,34, NO las
+   unidades de Mercadona Online ni el 0,315 del resto de tarjetas. Por eso lleva etiqueta
+   propia y dice "min/ud" a secas. El numero sale de window.__faOficial(), que reutiliza el
+   mismo dia-igual y el mismo selector de conjunto que la pestana de Farolas.
+   El CSV de Farolas son 20 MB y llega despues del resumen: la tarjeta nace en "cargando" y
+   window.__kpiOficial() la rellena cuando aterriza (se llama desde el modulo de Farolas). */
+function faOfDatos(){
+  if(!window.__faReady||!window.__faReady()||!window.__faOficial) return null;
+  var sel=null; try{ sel=faSelFromScenario(curA?curA.tienda:null); }catch(e){}
+  if(!sel) return null;
+  try{ return window.__faOficial(sel,curA.mesKey); }catch(e){ return null; }
+}
+function kpiOfCls(){
+  var o=faOfDatos(); if(!o||o.val==null||o.obj==null) return '';
+  var d=o.val-o.obj; return Math.abs(d)<=0.003?'':(d<0?'down':'up');
+}
+function kpiOfIn(){
+  var L='<div class="kpi-l">Oficial (Control NTC)</div>';
+  if(!window.__faReady||!window.__faReady())
+    return L+'<div class="kpi-v" style="color:var(--ink3)">—</div><div class="kpi-r">cargando Farolas…</div>';
+  var o=faOfDatos();
+  if(!o||o.val==null)
+    return L+'<div class="kpi-v" style="color:var(--ink3)">n/d</div><div class="kpi-r">sin datos en Farolas</div>';
+  var d=(o.obj==null)?null:o.val-o.obj;
+  return L+'<div class="kpi-v">'+fmt(o.val,o.dec)+' <small>'+(o.unit||'min/ud')+'</small></div>'+
+    '<div class="kpi-r">'+(o.obj==null?'':('<span class="ref-v">obj '+fmt(o.obj,o.dec)+'</span> '+deltaChip(d,true,o.dec,'',0.003)))+'</div>';
+}
+window.__kpiOficial=function(){ try{
+  var el=document.getElementById('kpiOf'); if(!el)return;
+  el.className='kpi '+kpiOfCls(); el.innerHTML=kpiOfIn();
+}catch(e){} };
+
 function kpiCard(label,a,b,unit,lower,dec,eps){
   const d=(a!=null&&b!=null)?a-b:null;
   const cls=d==null?'':(Math.abs(d)<=(eps||0)?'':((lower?d<0:d>0)?'down':'up'));
@@ -3225,7 +3301,8 @@ function renderMatrix(){
     h+='</div>';
   });
   $('matBody').innerHTML=h;
-  $('matBody').querySelectorAll('.mxc[data-fase]').forEach(c=>c.addEventListener('click',()=>{renderFaroDetail(c.dataset.area,c.dataset.fase);requestAnimationFrame(()=>{var fd=$('faroDetail');if(fd)fd.scrollIntoView({behavior:'smooth',block:'center'});});}));
+  /* se guarda QUE celda abrio el detalle para poder volver justo a ella al cerrarlo */
+  $('matBody').querySelectorAll('.mxc[data-fase]').forEach(c=>c.addEventListener('click',()=>{ST._faroFrom={area:c.dataset.area,fase:c.dataset.fase};renderFaroDetail(c.dataset.area,c.dataset.fase);requestAnimationFrame(()=>{var fd=$('faroDetail');if(fd)fd.scrollIntoView({behavior:'smooth',block:'center'});});}));
   $('matBody').querySelectorAll('.mxa[data-area]').forEach(c=>c.addEventListener('click',()=>{ST.fichaArea=c.dataset.area;renderFichaTabs();renderFicha();$('secFicha').scrollIntoView({behavior:'smooth',block:'start'});}));
   $('matFoot').innerHTML=ST.single
     ? '<div class="mx-imp-legend">Ficha de la tienda · valores propios, sin comparación · pulsa una celda para su tendencia de 12 meses</div>'
@@ -3277,7 +3354,15 @@ function renderFaroDetail(area,faseK){
     '<div class="fd-m"><div class="l">Nº de lotes</div><div class="v">'+fmt(m.lotesA,0)+'</div></div>'+
     '</div>'+
     '<div class="fd-chart"><div style="position:relative"><button class="png" data-png="cFaroDetail" data-pngname="faro_detalle">⤓ PNG</button><div class="csub" style="margin-bottom:7px">Tendencia 12 meses · '+area+' · '+name+' ('+unitLbl+')</div><div class="chart" id="cFaroDetail" style="height:200px"></div></div><div class="fd-read">'+lectura+'</div></div></div>';
-  const c=$('fdClose');if(c)c.addEventListener('click',()=>{$('faroDetail').innerHTML='';});
+  /* Al cerrar la tendencia se vuelve a la celda que la abrio (o al mapa de calor si ya no
+     esta): antes el detalle desaparecia y te quedabas abajo, sin referencia de donde ibas. */
+  const c=$('fdClose');if(c)c.addEventListener('click',()=>{
+    $('faroDetail').innerHTML='';
+    var f=ST._faroFrom, dst=null;
+    if(f){ try{ dst=$('matBody').querySelector('.mxc[data-area="'+f.area+'"][data-fase="'+f.fase+'"]'); }catch(e){} }
+    if(!dst) dst=$('secMatrix');
+    if(dst) requestAnimationFrame(()=>{ dst.scrollIntoView({behavior:'smooth',block:'center'}); });
+  });
   const xf=ST.meses.map(k=>ST.mesLabel[k]),realC='#4f8fe0',refc=cssv('--ref');
   const _a=[...sA,...sB].filter(v=>v!=null),_mn=_a.length?Math.min(..._a):0,_mx=_a.length?Math.max(..._a):1,_pad=((_mx-_mn)||_mx||1)*0.2;
   const fdTraces=[];
@@ -3590,7 +3675,7 @@ function renderFicha(){
   // (card "De dónde viene el tiempo de más" eliminado a petición: las barras eran poco estéticas y aportaban poco)
   const opts=[{v:'prod',l:'Productividad'},{v:'tiempo',l:'Tiempo por lote'}].concat(fcomp.map(f=>({v:f.mk||FASE2MK[f.k],l:f.name}))).concat((m.compat&&!GRP)?[{v:'despltot',l:'Desplazamiento total'},{v:'ratio',l:'Ratio despl/picking'}]:[]);
   if(!opts.some(o=>o.v===ST.fichaFase)){const ft=m.faseTop?FASE2MK[m.faseTop]:null; ST.fichaFase=(ft&&opts.some(o=>o.v===ft))?ft:'prod';}
-  h+='<div class="cbox"><div class="cbox-in"><div class="cbox-hd"><div><div class="ctitle">Evolución del área</div><div class="csub">cómo cambia la fase o métrica elegida en esta área · analizado vs referencia (12 meses)</div></div><button class="png" data-png="cFevo" data-pngname="evolucion_area" style="position:static;margin-right:8px;align-self:center">⤓ PNG</button><select id="fichaFaseSel" style="width:auto;min-width:150px">'+opts.map(o=>opt(o.v,o.l,o.v===ST.fichaFase)).join('')+'</select></div><div class="chart" id="cFevo"></div></div></div>';
+  h+='<div class="cbox"><div class="cbox-in"><div class="cbox-hd"><div><div class="ctitle">Evolución del área</div><div class="csub">cómo cambia la fase o métrica elegida en esta área · analizado vs referencia (12 meses)</div></div><button class="png dl-in" data-png="cFevo" data-pngname="evolucion_area" style="margin-right:8px;align-self:center">⤓ PNG</button><select id="fichaFaseSel" style="width:auto;min-width:150px">'+opts.map(o=>opt(o.v,o.l,o.v===ST.fichaFase)).join('')+'</select></div><div class="chart" id="cFevo"></div></div></div>';
   h+='<div class="card" style="margin-top:15px"><div class="cpad"><div class="sec-n" style="margin-bottom:11px">Lectura automática</div><div class="fread">'+lecturaArea(m)+'</div>';
   if(!m.compat)h+='<div class="notice warn" style="margin-top:13px"><span class="ic">!</span><span>En <b>'+m.area+'</b> la preparación no separa picking y desplazamiento, así que se lee como un solo bloque y no hay ratio ni desplazamiento total comparables.</span></div>';
   h+='</div></div>';
@@ -4470,7 +4555,7 @@ const GROUPS=[
   {g:'Tiempo',    dims:[{k:'anio',lab:'Año'},{k:'mes',lab:'Mes'},{k:'semana',lab:'Semana'},{k:'dia',lab:'Día'},{k:'dow',lab:'Día sem.'}]}
 ];
 const FDIMS=GROUPS.reduce((a,x)=>a.concat(x.dims),[]);
-let ROWS=null, OPTS={}, SEL={}, TIME='dia', GEO='total', SPLIT=false, ONLY_RR=false, MEDIA='dia', LOADED=false, LOADING=false, WIRED=false, MESDEF=null;
+let ROWS=null, OPTS={}, SEL={}, TIME='dia', GEO='total', SPLIT=false, ONLY_RR=false, MEDIA='dia', LOADED=false, LOADING=false, WIRED=false, MESDEF=null, SEMDEF=null;
 let VISM=new Set(), VISD=new Set(), SORT={k:null,dir:-1}, RK={by:'centro',metric:'real',dir:'desc',top:20};
 const DOW=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const DOWORD=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
@@ -4527,13 +4612,16 @@ function build(data){
     else if(d.k==='dow') arr.sort((a,b)=>DOWORD.indexOf(a)-DOWORD.indexOf(b));
     else arr.sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));
     OPTS[d.k]=arr; SEL[d.k]=new Set(arr); });
-  // Caudal por defecto: en el filtro de MES dejar seleccionados solo los últimos 3 meses HASTA el último con Real real (no meses futuros vacíos). Se pueden marcar más.
+  /* CAUDAL POR DEFECTO: las ULTIMAS 4 SEMANAS QUE TIENEN CAUDAL REAL.
+     Antes eran los ultimos 3 meses hasta el ultimo con Real real, y el ultimo mes suele
+     tener un solo dia (aqui, 2026-08 = 1 de agosto), asi que la vista salia con meses
+     casi vacios. Ahora el recorte lo hace la SEMANA (formato AAAASS, ordenable) y el mes
+     se deja en "Todos": los filtros se cruzan con AND, y si tambien limitase el mes
+     recortaria semanas que caen a caballo entre dos meses. */
   try{
-    let lastYM=null; ROWS.forEach(r=>{ if(r.tiene&&r.rr!=null&&r.dia){ const ym=r.dia.slice(0,7); if(!lastYM||ym>lastYM)lastYM=ym; } });
-    if(lastYM){ const y=+lastYM.slice(0,4),mo=+lastYM.slice(5,7),want=new Set();
-      for(let k=0;k<3;k++){ const d=new Date(y,mo-1-k,1); want.add(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')); }
-      const mesVals=new Set(); ROWS.forEach(r=>{ if(r.dia&&want.has(r.dia.slice(0,7))&&r.mes!=='')mesVals.add(r.mes); });
-      if(mesVals.size){ MESDEF=mesVals; SEL['mes']=new Set(mesVals); } }
+    var semRR={}; ROWS.forEach(function(r){ if(r.tiene&&r.rr!=null&&r.semana!=='') semRR[r.semana]=1; });
+    var sems=Object.keys(semRR).sort(function(a,b){ return (+a)-(+b); });
+    if(sems.length){ SEMDEF=new Set(sems.slice(-4)); SEL['semana']=new Set(SEMDEF); }
   }catch(e){}
   VISM=new Set(MCOLS.map(c=>c[1]));
   VISD=new Set(DEVCOLS.map(c=>c[1]));
@@ -4599,7 +4687,7 @@ function wireControls(){
   const rr=$('cd_onlyRR'); rr.addEventListener('click',()=>{ ONLY_RR=!ONLY_RR; rr.classList.toggle('lo-on',ONLY_RR); rr.setAttribute('aria-pressed',ONLY_RR);
     rr.style.background=ONLY_RR?'var(--brand)':''; rr.style.color=ONLY_RR?'#fff':''; rr.style.borderColor=ONLY_RR?'var(--brand)':''; render(); });
   // Reset FILTROS (arriba): solo ámbito + Solo con Real (no toca los seleccionables de la tabla)
-  $('cd_reset').addEventListener('click',()=>{ FDIMS.forEach(d=>SEL[d.k]=new Set(OPTS[d.k])); if(MESDEF)SEL['mes']=new Set(MESDEF); ONLY_RR=false;
+  $('cd_reset').addEventListener('click',()=>{ FDIMS.forEach(d=>SEL[d.k]=new Set(OPTS[d.k])); if(MESDEF)SEL['mes']=new Set(MESDEF); if(SEMDEF)SEL['semana']=new Set(SEMDEF); ONLY_RR=false;
     rr.classList.remove('lo-on'); rr.setAttribute('aria-pressed','false'); rr.style.background='';rr.style.color='';rr.style.borderColor='';
     buildFilterUI(); render(); });
   // Reset VISTA (tabla): agrupación temporal / geografía / proceso / media (no toca los filtros de ámbito)
@@ -5160,7 +5248,7 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     /* purgar antes de reemplazar el HTML: si no, Plotly deja colgado su listener de
        'resize' apuntando a divs ya desconectados y se van acumulando en cada repintado. */
     GLOB.forEach(function(m){ var old=$('fa_r_'+m.k); if(old&&old.data){ try{ Plotly.purge(old); }catch(e){} } });
-    host.innerHTML=GLOB.map(function(m){ return '<div class="fa-ring"><div class="rl">'+m.label+'</div><div class="rc" id="fa_r_'+m.k+'"></div><div class="rdel" id="fa_rd_'+m.k+'"></div><div class="rref" id="fa_rr_'+m.k+'"></div></div>'; }).join('');
+    host.innerHTML=GLOB.map(function(m){ return '<div class="fa-ring"><div class="rl">'+labHTML(m)+'</div><div class="rc" id="fa_r_'+m.k+'"></div><div class="rdel" id="fa_rd_'+m.k+'"></div><div class="rref" id="fa_rr_'+m.k+'"></div></div>'; }).join('');
     var line=cvar('--line2'), ink=cvar('--ink');
     GLOB.forEach(function(m){ var v=dayIgual(rows,m.k), ref=same?null:dayIgual(rrows,m.k);
       var box=$('fa_r_'+m.k), col=ringColor(m), pct=(v==null||isNaN(v))?0:Math.max(0,Math.min(100,v));
@@ -5429,6 +5517,22 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
   window.__faReady=function(){ return LOADED; };
   window.__faSelName=selName;
 
+  /* ===== Productividad OFICIAL (Control NTC) de un conjunto y un mes =====
+     Devuelve el mismo numero que pinta Farolas: media DIA-IGUAL de Productividad_min_ud,
+     con el objetivo (0,34) leido de la propia tabla de metricas para no duplicar la cifra.
+     Vale para tienda, zona, region, veteranas, todas y lista de liebre (mismo selTest que
+     faSummary), asi que el resumen del comparador no reimplementa nada. */
+  window.__faOficial=function(sel,mk){
+    if(!LOADED||!sel) return null;
+    var m=null; GRUPOS.forEach(function(g){ g.ms.forEach(function(x){ if(x.k==='Productividad_min_ud') m=x; }); });
+    if(!m) return null;
+    var t=selTest(sel); if(!t) return null;
+    var acc=[]; for(var i=0;i<ROWS.length;i++){ var r=ROWS[i]; if(r.mk===mk&&t(r)) acc.push(r); }
+    if(!acc.length) return null;
+    return {val:dayIgual(acc,m.k), obj:m.obj, dec:m.dec, unit:m.unit, low:!!m.low,
+            n:acc.length, name:selName(sel)};
+  };
+
   /* pinta las farolas de un conjunto para un mes, frente a otro conjunto (o solo objetivos si ref=null) */
   window.faSummary=function(host,o){
     if(!host)return false;
@@ -5457,7 +5561,7 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     GLOB.forEach(function(m){ var old=document.getElementById('cf_r_'+m.k); if(old&&old.data){ try{ Plotly.purge(old); }catch(e){} } });
     host.innerHTML=h;
     var rh=document.getElementById('cf_rings');
-    if(rh){ rh.innerHTML=GLOB.map(function(m){ return '<div class="fa-ring"><div class="rl">'+m.label+'</div><div class="rc" id="cf_r_'+m.k+'"></div><div class="rdel" id="cf_rd_'+m.k+'"></div><div class="rref" id="cf_rr_'+m.k+'"></div></div>'; }).join('');
+    if(rh){ rh.innerHTML=GLOB.map(function(m){ return '<div class="fa-ring"><div class="rl">'+labHTML(m)+'</div><div class="rc" id="cf_r_'+m.k+'"></div><div class="rdel" id="cf_rd_'+m.k+'"></div><div class="rref" id="cf_rr_'+m.k+'"></div></div>'; }).join('');
       var line=cvar('--line2'), inkC=cvar('--ink');
       GLOB.forEach(function(m){ var v=dayIgual(rows,m.k), rv=hasRef?dayIgual(rrows,m.k):null;
         var box=document.getElementById('cf_r_'+m.k), col=ringColor(m), pct=(v==null||isNaN(v))?0:Math.max(0,Math.min(100,v));
@@ -5502,6 +5606,8 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
         try{ if(window.__bootStep) window.__bootStep('far'); }catch(e){}
         /* el resumen del comparador se pinta ANTES de que lleguen las farolas -> repintarlo ahora */
         try{ if(window.__cfFarolas) window.__cfFarolas(); }catch(e){}
+        /* la tarjeta "Oficial (Control NTC)" del vistazo nace vacia: ahora ya tiene datos */
+        try{ if(window.__kpiOficial) window.__kpiOficial(); }catch(e){}
         /* el ranking puede ordenar por indicadores de farolas: ahora ya se pueden ofrecer */
         try{ if(window.__rkRefreshMetrics) window.__rkRefreshMetrics(); }catch(e){}
       }catch(e){ if(st)st.innerHTML='<span style="color:var(--bad)">Error al preparar Farolas: '+e.message+'</span>'; markFail('Error al preparar Farolas'); console.warn('farolas',e);
@@ -5785,6 +5891,9 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
   /* ⤓ PNG y ⤓ CSV van en absoluto sobre la tarjeta: se agranda SOLO la zona
      sensible con un pseudo-elemento, para no mover ni un pixel el diseno. */
   .png::after,.csv::after{content:"";position:absolute;top:-8px;right:-9px;bottom:-8px;left:-9px}
+  /* los de fila (.dl-in) van de dos en dos con 8 px de hueco: se amplia solo 4 px por lado
+     para no pisarse entre ellos (PNG robaba el borde del CSV de al lado). */
+  .png.dl-in::after,.csv.dl-in::after{left:-4px;right:-4px}
   /* el ⓘ de unidades es un circulo de 21 px por diseno: se deja igual y solo se
      amplia la zona sensible (ya es position:relative). */
   .uinfo::after{content:"";position:absolute;top:-11px;right:-11px;bottom:-11px;left:-11px;border-radius:50%}
