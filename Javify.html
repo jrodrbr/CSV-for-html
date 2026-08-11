@@ -154,6 +154,14 @@ table.lo-mx.lo-rktbl th:nth-child(4),table.lo-mx.lo-rktbl td:nth-child(4){width:
 table.lo-mx.lo-rktbl th:nth-child(5),table.lo-mx.lo-rktbl td:nth-child(5){width:108px;text-align:right}          /* distancia */
 
 .lo-det{margin-top:16px;border:1px solid var(--line2);border-radius:var(--r);background:var(--bg2);padding:16px 18px}
+/* ---- desglose DENTRO de la tabla de tiendas, partiendola bajo la fila pulsada ----
+   La celda va sticky a la izquierda: si la tabla scrollea en horizontal (movil), el desglose
+   se queda en pantalla en vez de irse con las columnas. Sin relleno ni bordes de celda, para
+   que la tarjeta se vea entera y no como una casilla mas de la tabla. */
+table.lo-mx tr.lo-detrow>td{padding:0!important;border:0!important;background:var(--panel)!important;
+  position:sticky;left:0;z-index:2}
+table.lo-mx tr.lo-detrow:hover>td{background:var(--panel)!important}
+table.lo-mx tr.lo-detrow .lo-det{margin:10px 0 14px;box-shadow:var(--sh-sm)}
 .lo-det-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .lo-det-h .lo-nm{font-size:15px;font-weight:820}
 .lo-det-h .lo-nm small{color:var(--ink3);font-weight:600;font-size:12px;margin-left:8px}
@@ -437,10 +445,16 @@ optgroup{font-weight:800;font-style:normal;color:var(--ink2)}
 .hl-tx h3 .em-up{color:var(--up)}.hl-tx h3 .em-down{color:var(--down)}
 .hl-tx p{font-size:13px;color:var(--ink2);margin-top:6px;line-height:1.55;max-width:720px}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+/* con unidad Mercadona en modo Simple no se muestra la tarjeta Oficial: 3 columnas, no 4
+   (si no, quedaba un hueco vacio a la derecha) */
+.kpis.k3{grid-template-columns:repeat(3,1fr)}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px;box-shadow:var(--sh-sm);position:relative;overflow:hidden}
 .kpi:before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ref)}
 .kpi.up:before{background:var(--up)}.kpi.down:before{background:var(--down)}.kpi.brand:before{background:var(--brand)}
-.kpi-l{font-size:10.5px;font-weight:750;text-transform:uppercase;letter-spacing:.5px;color:var(--ink2)}
+/* una sola linea: si el titulo se parte, las cuatro tarjetas dejan de estar alineadas */
+.kpi-l{font-size:10.5px;font-weight:750;text-transform:uppercase;letter-spacing:.5px;color:var(--ink2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-r{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:21px}   /* min-height: la tarjeta de Óptima no lleva pastilla de delta y quedaba 7 px mas baja */
 .kpi-v{font-size:26px;font-weight:850;margin:8px 0 4px;letter-spacing:-.5px;font-family:ui-monospace,monospace;display:flex;align-items:baseline;gap:6px}
 .kpi-v small{font-size:12px;font-weight:600;color:var(--ink3);letter-spacing:0}
 .kpi-r{font-size:11.5px;color:var(--ink2);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
@@ -553,9 +567,9 @@ optgroup{font-weight:800;font-style:normal;color:var(--ink2)}
 .tool{padding:9px 14px;border-radius:var(--r-sm);background:var(--panel);border:1px solid var(--line2);color:var(--ink2);font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;transition:.15s}
 .tool:hover{color:var(--ink);border-color:var(--brand)}
 
-@media(max-width:1080px){.kpis{grid-template-columns:1fr 1fr}.fkpi{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1080px){.kpis,.kpis.k3{grid-template-columns:1fr 1fr}.fkpi{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:820px){.sgrid,.g2{grid-template-columns:1fr}.f3{grid-template-columns:1fr 1fr 1fr}.fkpi{grid-template-columns:1fr 1fr}.gorow{flex-direction:column;align-items:stretch}.btn-go{width:100%}.caudal-grid{grid-template-columns:1fr!important}}
-@media(max-width:520px){.kpis,.fkpi{grid-template-columns:1fr}}
+@media(max-width:520px){.kpis,.kpis.k3,.fkpi{grid-template-columns:1fr}}
 /* ===== accesibilidad: foco visible al navegar con teclado ===== */
 button:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 /* tabla de caudal del resumen (hover por CSS, sin JS inline) */
@@ -581,6 +595,8 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outlin
 .mxrow.head{margin-bottom:8px}
 .mxh{font-size:9.5px;font-weight:750;text-transform:uppercase;letter-spacing:.3px;color:var(--ink2);text-align:center;padding:4px 3px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;line-height:1.2}
 .mxh i{width:18px;height:5px;border-radius:3px}
+.mxh .mxh-c{display:none}     /* el codigo P1..P7 solo se usa en movil (ver media query) */
+.mxa .mxa-s{display:none}     /* nombre de area abreviado: idem */
 .mxh.tot{color:var(--ink)}
 .mxa{font-size:12.5px;font-weight:750;display:flex;align-items:center;padding-left:6px;gap:6px}
 .mxa small{font-size:9px;color:var(--ink3);font-weight:600}
@@ -598,11 +614,21 @@ button:focus-visible,summary:focus-visible{outline:2px solid var(--brand);outlin
 .ptable-wrap{overflow-x:auto}
 .ptable{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
 #fichaFaseTbl{min-width:660px}   /* 6 columnas: en iPhone hace scroll horizontal en vez de solaparse */
+/* la columna de FASE se queda fija al arrastrar, igual que en el resto de tablas (Objetivos,
+   Caudal): si no, al mirar "Impacto / mes" ya no sabes de que fase estabas leyendo */
+#fichaFaseTbl th:first-child,#fichaFaseTbl td:first-child{position:sticky;left:0;z-index:2;
+  background:var(--panel)}
+#fichaFaseTbl thead th:first-child{z-index:3;background:var(--panel)}
+#fichaFaseTbl tr:hover td:first-child{background:var(--panel2)}
 .ptable th{text-align:right;padding:9px 13px;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink3);font-weight:750;border-bottom:1px solid var(--line2);white-space:nowrap}
 .ptable th:first-child{text-align:left}
 .ptable td{padding:11px 13px;border-bottom:1px solid var(--line);text-align:right;font-family:ui-monospace,monospace;font-weight:600;white-space:nowrap}
 .ptable td:first-child{text-align:left;font-family:var(--ui);font-weight:700}
 .ptable td.an{color:var(--brand);font-weight:750}
+/* "Qué revisar primero": la columna Aporta son minutos de MAS (peor productividad), asi que va en
+   ROJO. En verde parecia un ahorro y es justo lo contrario. En "Cuánto tarda cada fase" la columna
+   .an sigue siendo el valor del analizado (neutro), por eso el cambio va acotado a #paretoTable. */
+#paretoTable td.an{color:var(--bad)}
 .ptable .fdot{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:9px;vertical-align:middle}
 .ptable tr.totrow td{border-top:2px solid var(--line2);border-bottom:0;font-weight:850;font-size:13px;padding-top:13px}
 .ptable tr:hover td{background:var(--panel2)}
@@ -711,8 +737,23 @@ html.light{
 .mxrow{grid-template-columns:140px repeat(7,1fr) 116px}
 .mxc{min-height:54px;gap:1px;padding:5px 3px}
 .mxc .mv{font-family:ui-monospace,monospace;font-weight:800;font-size:13px;line-height:1.05;color:var(--ink)}
-.mxc .md{font-family:ui-monospace,monospace;font-size:9px;font-weight:700;line-height:1}
-.mxc .md.bad{color:var(--bad)}.mxc .md.good{color:var(--good)}.mxc .md.neu{color:var(--ink3)}
+/* JERARQUIA DE LA CELDA: manda el NUMERO; la desviacion va debajo, pequena y atenuada.
+   Antes el delta iba del mismo color que el fondo (rojo sobre rojo, no se leia) y probe a ponerle
+   una pastilla blanca detras: se leia, pero le robaba el protagonismo al dato, que es lo que hay
+   que ver en una presentacion. Ahora el delta NO lleva color propio: la direccion ya la dan el
+   signo y el color de la celda. Solo cambia la tinta (oscura o clara) segun la luminancia real de
+   la celda, calculada en cellInk(). */
+.mxc .md{font-family:ui-monospace,monospace;font-size:9.5px;font-weight:650;line-height:1;
+  padding:0;background:none;box-shadow:none;letter-spacing:-.2px}
+.mxc .md.bad,.mxc .md.good{color:inherit;opacity:.7}
+.mxc .md.neu{color:inherit;opacity:.45;font-weight:600}
+/* tinta oscura (celda clara o media) */
+.mxc.ink-dark{color:#0f1a2e}
+.mxc.ink-dark .mv{color:#0f1a2e}
+/* tinta clara (celda oscura: pasa en tema oscuro con celdas palidas) */
+.mxc.ink-light{color:#fff}
+.mxc.ink-light .mv{color:#fff}
+.mxc.ink-light .md.bad,.mxc.ink-light .md.good{opacity:.88}
 .mxc .mi{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;border:1.5px solid var(--panel)}
 .mxc.na{background:var(--panel2)!important;color:var(--ink3)}
 .mxc.na .mv{color:var(--ink3);font-size:11px;font-weight:600}
@@ -769,7 +810,7 @@ html.light{
 .modeswitch button{padding:9px 18px;border:0;background:transparent;color:var(--ink2);font:inherit;font-size:12.5px;font-weight:750;cursor:pointer;border-radius:999px;transition:.15s}
 .modeswitch button.on{background:var(--brand);color:#fff;box-shadow:0 3px 10px var(--brand-soft)}
 /* grupos de controles del faro (etiqueta + segmented) */
-.faro-ctrls{display:flex;flex-direction:column;gap:9px;align-items:flex-end}
+.faro-ctrls{display:flex;flex-direction:column;gap:9px;align-items:flex-end;scroll-margin-top:86px}   /* al cerrar la tendencia se sube aqui: hueco para la barra fija */
 .faro-ctrl{display:flex;align-items:center;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 .faro-ctrl-l{font-size:9.5px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--ink3);white-space:nowrap}
 .faro-ctrl .modeswitch{padding:3px}
@@ -965,6 +1006,18 @@ details.calc .calc-cards{padding-bottom:14px;margin-top:0}
 /* Faro agrupado: las cabeceras de bloque envuelven (muestran la palabra entera) en vez de recortarse por el medio en móvil */
 .mxgrid.grouped .mxh{white-space:normal;overflow:visible;line-height:1.12;overflow-wrap:anywhere;padding-left:2px;padding-right:2px}
 .mxgrid.grouped .mxrow{grid-template-columns:140px repeat(4,1fr) 116px}
+/* iPad y ventanas medianas: el faro desglosado son 9 columnas con min-width 860 y en 787 px
+   utiles obligaba a arrastrar. Aqui entra entero conservando los nombres largos (se parten en
+   dos lineas, que van alineadas abajo). */
+@media(max-width:1080px) and (min-width:641px){
+  .mxgrid:not(.grouped){min-width:0}
+  .mxgrid:not(.grouped) .mxrow{grid-template-columns:104px repeat(7,1fr) 88px;gap:3px}
+  .mxgrid:not(.grouped) .mxh{font-size:8px;letter-spacing:-.2px;overflow-wrap:anywhere;line-height:1.1;padding:2px 0;white-space:nowrap}
+  .mxgrid:not(.grouped) .mxc{padding:4px 2px}
+  .mxgrid:not(.grouped) .mxc .mv{font-size:12px}
+  .mxgrid:not(.grouped) .mxc .md{font-size:9px}
+  .mxgrid:not(.grouped) .mxa{font-size:11px;padding-left:3px}
+}
 @media(max-width:620px){ .mxgrid.grouped .mxrow{grid-template-columns:92px repeat(4,1fr) 84px;gap:4px} }
 
 /* ==================================================================
@@ -1094,6 +1147,24 @@ a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,su
   .hl-tx h3{font-size:17px}
   /* Faro agrupado (vista por defecto): 4 bloques legibles sin scroll */
   .mxgrid.grouped .mxrow{grid-template-columns:76px repeat(4,1fr) 66px;gap:3px}
+  /* Faro DESGLOSADO (7 fases): antes mantenia min-width:860px y en iPhone habia que arrastrar
+     media pantalla. Ahora entra entero: columnas al 1fr, letra mas pequena y el codigo de fase
+     (P1..P7) como cabecera en vez del nombre largo. Se sigue leyendo el valor y el delta. */
+  .mxgrid:not(.grouped){min-width:0}
+  .mxgrid:not(.grouped) .mxrow{grid-template-columns:58px repeat(7,1fr) 46px;gap:2px}
+  .mxgrid:not(.grouped) .mxh{font-size:7.5px;letter-spacing:0;padding:2px 0;gap:3px}
+  .mxgrid:not(.grouped) .mxh i{width:11px;height:4px}
+  .mxgrid:not(.grouped) .mxh .mxh-l{display:none}          /* nombre largo fuera */
+  .mxgrid:not(.grouped) .mxh .mxh-c{display:block}         /* codigo P1..P7 dentro */
+  .mxgrid:not(.grouped) .mxc{min-height:42px;padding:3px 1px;gap:0}
+  .mxgrid:not(.grouped) .mxc .mv{font-size:10px}
+  .mxgrid:not(.grouped) .mxc .md{font-size:7.5px}
+  .mxgrid:not(.grouped) .mxc.tot{font-size:11px}
+  .mxgrid:not(.grouped) .mxc .mi{width:5px;height:5px;top:2px;right:2px;border-width:1px}
+  .mxgrid:not(.grouped) .mxa{font-size:9.5px;padding-left:2px;gap:3px;overflow:hidden;white-space:nowrap}
+  .mxgrid:not(.grouped) .mxa small{display:none}
+  .mxgrid:not(.grouped) .mxa .mxa-l{display:none}
+  .mxgrid:not(.grouped) .mxa .mxa-s{display:inline}
   .mxc{min-height:46px}
   .mxc .mv{font-size:11.5px}
   .mxa{font-size:11px;padding-left:3px}
@@ -2311,9 +2382,9 @@ body.simple #mObj{display:none!important}
 
 <script>
 "use strict";
-const CSV_URL='https://raw.githubusercontent.com/jrodrbr/CSV-for-html/refs/heads/main/super_fase_6.csv';
+const CSV_URL='https://raw.githubusercontent.com/jrodrbr/Javify/refs/heads/main/super_fase_6.csv';
 // CSV de VALORES GENERALES por tienda/mes (Fase general). Cruza con el desglose por tienda+mes.
-const GENERAL_URL='https://raw.githubusercontent.com/jrodrbr/CSV-for-html/refs/heads/main/super_fase_6_general.csv';
+const GENERAL_URL='https://raw.githubusercontent.com/jrodrbr/Javify/refs/heads/main/super_fase_6_general.csv';
 const AREAS=['SECOS','REFRIGERADO','CONGELADO','FRESCOS','FYV','HORNO','PENDIENTES'];
 const AREAS_DESGLOSE=['SECOS','REFRIGERADO','CONGELADO','HORNO','PENDIENTES'];
 const tieneDesglose=a=>AREAS_DESGLOSE.includes(a);
@@ -2449,7 +2520,7 @@ let _cssvCache={}; // caché de variables CSS: getComputedStyle es costoso y css
 function cssv(n){let v=_cssvCache[n];if(v===undefined){v=getComputedStyle(document.documentElement).getPropertyValue(n).trim();_cssvCache[n]=v;}return v;}
 /* ===== OBJETIVOS TIENDAS LIEBRE (CSV de la calculadora) como tienda de referencia ===== */
 const OBJ_NAME='Objetivos Tiendas Liebre';
-const OBJ_URL='https://raw.githubusercontent.com/jrodrbr/CSV-for-html/refs/heads/main/Objetivos_Tiendas_Liebre.csv';
+const OBJ_URL='https://raw.githubusercontent.com/jrodrbr/Javify/refs/heads/main/Objetivos_Tiendas_Liebre.csv';
 let OBJ_ROWS=null;
 function loadObjetivos(){ try{ Papa.parse(OBJ_URL+'?cb='+Date.now(),{download:true,header:true,skipEmptyLines:true,
   complete:res=>{ try{ const by={}; (res.data||[]).forEach(r=>{ const a=normArea(r.area_batch); if(!AREAS.includes(a))return;
@@ -2575,8 +2646,17 @@ window.__buildAgg=function(){ try{ buildAggregates(); refreshScenarioOptions(); 
 function setCombo(id,val){const inp=$(id);inp.dataset.val=val;inp.value=val?shortStore(val):'';}
 function makeCombo(id){
   const inp=$(id),pop=$(id+'pop');let hi=-1,shown=[];
-  // delegación: un único listener para todas las opciones (la lista se reconstruye en cada pulsación)
-  pop.addEventListener('mousedown',ev=>{const el=ev.target.closest('[data-i]');if(!el)return;ev.preventDefault();pick(+el.dataset.i);});
+  /* Delegacion: un unico listener para todas las opciones (la lista se reconstruye en cada
+     pulsacion). Se escucha pointerdown Y mousedown: en tactil Safari no siempre sintetiza
+     eventos de raton sobre un <div> normal, y si no llega el mousedown la opcion no se elige
+     y te quedas con la lista abierta. El cerrojo evita elegir dos veces con el mismo toque. */
+  let eligiendo=false;
+  const onPop=ev=>{ const el=ev.target.closest&&ev.target.closest('[data-i]'); if(!el)return;
+    ev.preventDefault();                       // no mover el foco: pick() ya lo suelta
+    if(eligiendo)return; eligiendo=true; setTimeout(()=>{eligiendo=false;},500);
+    pick(+el.dataset.i); };
+  pop.addEventListener('pointerdown',onPop);
+  pop.addEventListener('mousedown',onPop);
   function render(q){
     const items=comboItems(id.slice(-1));const nq=sNorm(q);
     shown=nq?items.filter(o=>sNorm(o.val).includes(nq)||sNorm(o.label).includes(nq)||(o.search&&o.search.includes(nq))):items;
@@ -2592,13 +2672,26 @@ function makeCombo(id){
   function pick(i){const o=shown[i];if(!o)return;inp.dataset.val=o.val;inp.value=o.label;close();
     try{ inp.blur(); }catch(e){}
     syncShift(id.slice(-1));preview();}
-  inp.addEventListener('focus',()=>{inp.value='';open();});
-  /* Tras elegir una tienda el input SIGUE con el foco (el mousedown de la lista hace
-     preventDefault), asi que un segundo clic no disparaba 'focus' y la lista no volvia a
-     abrirse: habia que pinchar fuera y volver. Con esto, clicar sobre el campo lo reabre. */
-  inp.addEventListener('click',()=>{ if(!pop.classList.contains('open')){ inp.value=''; open(); } });
+  /* ---- APERTURA: SOLO con una accion deliberada, NUNCA con el evento 'focus' ----
+     Antes se abria (y se BORRABA el valor) en 'focus'. Cualquier foco que no viniera de un
+     toque —Safari devolviendo el foco al ocultar el teclado, la barra de Autorrelleno de iOS,
+     el navegador restaurando activeElement tras un repintado— vaciaba el campo y desplegaba
+     la lista, y parecia que el dashboard "volvia a pedir la tienda" al tocar otra cosa.
+     Ahora el foco por si solo no hace nada: abre el puntero (pointerdown/click) o el teclado
+     al escribir. */
+  inp.addEventListener('pointerdown',()=>{ abrirLimpio(); });
+  inp.addEventListener('click',()=>{ abrirLimpio(); });
+  function abrirLimpio(){ if(pop.classList.contains('open'))return; inp.value=''; open(); }
+  /* con teclado (Tab + escribir): la primera tecla util limpia el nombre ya elegido, que si no
+     se quedaria delante y no encontraria nada */
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){hi=Math.min(shown.length-1,hi+1);render(inp.value);return;}
+    if(e.key==='ArrowUp'){hi=Math.max(0,hi-1);render(inp.value);return;}
+    if(e.key==='Enter'){e.preventDefault();pick(hi<0?0:hi);return;}
+    if(e.key==='Escape'){close();inp.blur();return;}
+    if(e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&inp.dataset.val&&inp.value===shortStore(inp.dataset.val)){ inp.value=''; }
+  });
   inp.addEventListener('input',()=>{hi=-1;open();render(inp.value);});
-  inp.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){hi=Math.min(shown.length-1,hi+1);render(inp.value);}else if(e.key==='ArrowUp'){hi=Math.max(0,hi-1);render(inp.value);}else if(e.key==='Enter'){e.preventDefault();pick(hi<0?0:hi);}else if(e.key==='Escape'){close();inp.blur();}});
   inp.addEventListener('blur',()=>setTimeout(close,120));
 }
 
@@ -2979,11 +3072,22 @@ function renderSummary(){
       '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'+chip(gA.region&&('Región '+gA.region))+chip(gA.zona&&('Zona '+gA.zona))+chip(gA.model)+chip(vetTxt,gA.estado==='Veterana'?'var(--brand-soft)':'var(--panel3)')+liebreChip+'</div></div>'+
       '<div style="text-align:right"><div style="font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px">'+(ST.mesLabel[curA.mesKey]||'')+'</div><div style="font-size:12px;color:var(--ink2);margin-top:2px">'+(gA.n_dias!=null?fmt(gA.n_dias,0)+' días con datos':'')+'</div></div>'+
       '</div>';
-    // ---- PRODUCTIVIDADES (real y efectiva vs objetivo 0,315 + uds/día) ----
-    k.push('<div class="kpi"><div class="kpi-l">Productividad óptima</div><div class="kpi-v">'+fmt(OBJ_PROD*MF(),3)+' <small>'+udName()+'</small></div><div class="kpi-r">objetivo de referencia</div></div>');
-    k.push(kpiCard("Productividad real (≤20')", mfv(gA.prod_conparadas_min_ud), OBJ_PROD*MF(),udName(),true,3,0.003));
-    k.push(kpiCard("Productividad efectiva (≤6')", mfv(gA.prod_efectiva_min_ud), OBJ_PROD*MF(),udName(),true,3,0.003));
-    k.push('<div class="kpi '+kpiOfCls()+'" id="kpiOf">'+kpiOfIn()+'</div>');
+    /* ---- PRODUCTIVIDADES · orden: real · efectiva · oficial · óptima ----
+       Primero lo que mide la tienda y al final la referencia, que es la que no se mueve.
+       La OFICIAL (Control NTC) sale de Farolas, que cuenta las unidades DE SIEMPRE. Al lado de
+       la unidad Mercadona son dos numeros parecidos medidos de forma distinta y se confunden,
+       asi que con unidad Mercadona solo se muestra en Experto; en MO, en los dos modos. */
+    const verOf = !window.__MERC || !document.body.classList.contains('simple');
+    /* Titulos ABREVIADOS: "Productividad efectiva (≤6')" se partia en dos lineas y las cuatro
+       tarjetas dejaban de estar alineadas entre si. Con "Prod." cabe todo en una linea. */
+    k.push(kpiCard("Prod. real (≤20')", mfv(gA.prod_conparadas_min_ud), OBJ_PROD*MF(),udName(),true,3,0.003));
+    k.push(kpiCard("Prod. efectiva (≤6')", mfv(gA.prod_efectiva_min_ud), OBJ_PROD*MF(),udName(),true,3,0.003));
+    if(verOf) k.push('<div class="kpi '+kpiOfCls()+'" id="kpiOf">'+kpiOfIn()+'</div>');
+    /* el mismo objetivo en la otra unidad, al lado: 0,306 MO es 0,33 contando como Mercadona */
+    const equiv = window.__MERC ? (fmt(OBJ_PROD,3)+' min/ud MO') : (fmt(OBJ_PROD*1.08,2)+' min/ud Merca');
+    k.push('<div class="kpi"><div class="kpi-l">Prod. óptima</div><div class="kpi-v">'+fmt(OBJ_PROD*MF(),3)+' <small>'+udName()+'</small></div>'+
+      '<div class="kpi-r"><span class="ref-v">Obj. de ref. = '+equiv+'</span></div></div>');
+    $('kpis').className='kpis'+(k.length===3?' k3':'');
     $('kpis').innerHTML=k.join('');
     // ---- CAUDAL: donut de composición + evolución 12 meses + tabla, con desplegable diario/mensual ----
     $('kpiWarn').innerHTML=
@@ -3107,7 +3211,7 @@ function kpiOfCls(){
   var d=o.val-o.obj; return Math.abs(d)<=0.003?'':(d<0?'down':'up');
 }
 function kpiOfIn(){
-  var L='<div class="kpi-l">Oficial (Control NTC)</div>';
+  var L='<div class="kpi-l">Prod. Control NTC</div>';
   if(!window.__faReady||!window.__faReady())
     return L+'<div class="kpi-v" style="color:var(--ink3)">—</div><div class="kpi-r">cargando Farolas…</div>';
   var o=faOfDatos();
@@ -3181,10 +3285,72 @@ function renderReal(){
 
 /* ===== FARO (valor + desviación, click para detalle) ===== */
 // color por % de desviación frente a la referencia (unidad-agnóstico): satura a ~30% → mismo criterio para min/ud y min/lote
-function divColor(dv,ref){if(dv==null)return 'var(--panel2)';var base=(ref!=null&&isFinite(ref)&&ref!==0)?Math.abs(dv/ref):1;var t=Math.pow(Math.min(1,base/0.18),0.5);var rgb=dv>0?RGB.bad:RGB.good;return 'rgba('+rgb+','+(0.12+0.85*t).toFixed(3)+')';}
+/* ===== ESCALA DE COLOR DEL FARO =====
+   Antes era un solo rojo (y un solo verde) con transparencia, saturado a partir del 18 % de
+   desviacion: todo lo que estuviera peor del 18 % salia EXACTAMENTE igual, asi que no se veia
+   cual contribuia de verdad. Ahora hay SEIS pasos por lado, con colores distintos de verdad
+   (rosa palido -> granate), y la intensidad se normaliza con el PEOR caso de la vista, de forma
+   que siempre se usa toda la escala y se puede comparar dentro de la misma pantalla.
+   Los colores estan elegidos midiendo contraste WCAG, no a ojo:
+     · claro : con tinta #0f1a2e, del paso 1 al 5 dan 15,5 / 12,5 / 9,3 / 6,7 / 4,7; el paso 6
+               (#c62f53) da 3,3 con tinta y 5,3 con blanco -> cellInk() pasa a blanco solo.
+     · oscuro: todos con texto BLANCO, de 16,0 a 5,1 (bad) y de 14,0 a 3,4 (good).
+   Peor caso del numero, medido sobre datos reales: 4,6 de contraste. */
+var MXRAMP={
+  light:{ bad :['#fdeef2','#fbd0da','#f5a8ba','#ee7f97','#e05575','#c62f53'],
+          good:['#e9f7f1','#c2ead8','#93dcbd','#5cc9a1','#2dab80','#118662'] },
+  dark :{ bad :['#3b1522','#54182b','#6f2038','#8b2745','#a72f52','#c33a61'],
+          good:['#0e3227','#0f4534','#0f5b42','#0e7150','#0d885e','#0c9f6c'] }
+};
+function _hx(h){ h=h.replace('#',''); var n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+function _mix(h1,h2,f){ var a=_hx(h1), b2=_hx(h2);
+  return 'rgb('+Math.round(a[0]+(b2[0]-a[0])*f)+','+Math.round(a[1]+(b2[1]-a[1])*f)+','+Math.round(a[2]+(b2[2]-a[2])*f)+')'; }
+function _esOscuro(){ try{ return document.documentElement.classList.contains('dark'); }catch(e){ return false; } }
+/* t = 0..1 -> color del tramo correspondiente, interpolando entre pasos */
+function rampColor(kind,t){
+  var r=MXRAMP[_esOscuro()?'dark':'light'][kind];
+  var x=Math.max(0,Math.min(1,t))*(r.length-1), i=Math.floor(x), f=x-i;
+  if(i>=r.length-1) return _mix(r[r.length-1],r[r.length-1],0);
+  return _mix(r[i],r[i+1],f); }
+/* Intensidad RELATIVA A LA VISTA: se divide por la peor desviacion que hay pintada (_DVMAX),
+   con un suelo del 6 % para que en una vista plana no se exagere una diferencia insignificante.
+   Exponente 0,75: mantiene separados los tramos altos, que era el problema. */
+function divAlpha(dv,ref){ if(dv==null)return 0;
+  var base=(ref!=null&&isFinite(ref)&&ref!==0)?Math.abs(dv/ref):1;
+  var mx=Math.max(_DVMAX||0, 0.06);
+  return Math.pow(Math.min(1,base/mx),0.75); }
+function divColor(dv,ref){ if(dv==null)return 'var(--panel2)';
+  return rampColor(dv>0?'bad':'good', divAlpha(dv,ref)); }
+/* ¿Texto oscuro o claro sobre la celda? No se decide a ojo ni por un umbral inventado: se compone
+   el color de la celda sobre el panel y se mira su LUMINANCIA (formula WCAG). Medido en tema claro,
+   sobre el rojo mas fuerte (alpha .97) la tinta oscura da 5,6 de contraste y el blanco solo 3,0 —
+   asi que el blanco era peor idea. En tema oscuro, en cambio, las celdas palidas quedan oscuras y
+   ahi manda el texto claro. Con esto sale bien en los dos temas y a cualquier intensidad. */
+function _rgbOf(v){ v=(v||'').trim();
+  var m=/^#?([0-9a-fA-F]{6})$/.exec(v);
+  if(m){ var n=parseInt(m[1],16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+  m=/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/.exec(v);
+  return m?[+m[1],+m[2],+m[3]]:[255,255,255]; }
+function _lum(r,g,b){ function f(v){ v/=255; return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4); }
+  return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b); }
+function _contr(l1,l2){ var hi=Math.max(l1,l2), lo=Math.min(l1,l2); return (hi+0.05)/(lo+0.05); }
+/* Se comparan LOS DOS contrastes y gana el mayor. Un umbral fijo de luminancia no sirve: el rojo
+   fuerte sobre blanco sale a 0,34 de luminancia (parece "oscuro") pero la tinta oscura le da 5,6 de
+   contraste y el blanco solo 3,0. Comparando, no hay que adivinar el umbral. */
+function cellInk(dv,ref){
+  if(dv==null) return '';
+  /* En tema OSCURO todos los numeros van en BLANCO (decision de Javier): la rampa oscura esta
+     hecha para eso, del paso 1 al 6 el blanco da entre 16,0 y 3,4 de contraste. */
+  if(_esOscuro()) return 'ink-light';
+  var c=_rgbOf(divColor(dv,ref)), L=_lum(c[0],c[1],c[2]);
+  var LD=_lum(15,26,46), LL=_lum(255,255,255);
+  return _contr(L,LD) >= _contr(L,LL) ? 'ink-dark' : 'ink-light'; }
 // Color del faro por APORTE a la productividad: en objetivo (imp<=0) → sin color; peor → rojo escalado por el impacto (cuanto más aporta, más rojo = revisar primero)
-let _FMB=0,_FMP=0,_PCTTA=0,_PCTTB=0;
-function impColor(imp,isTot){ if(imp==null||Math.abs(imp)<1e-4)return 'var(--panel2)'; var mx=isTot?_FMP:_FMB; if(!(mx>0))return 'var(--panel2)'; var t=Math.pow(Math.min(1,Math.abs(imp)/mx),0.6); return 'rgba('+(imp>0?RGB.bad:RGB.good)+','+(0.12+0.85*t).toFixed(3)+')'; }
+let _FMB=0,_FMP=0,_PCTTA=0,_PCTTB=0,_DVMAX=0;   // _DVMAX = peor desviacion relativa de la vista
+/* misma rampa de 6 pasos que divColor, para que las dos vistas del faro no canten distinto */
+function impColor(imp,isTot){ if(imp==null||Math.abs(imp)<1e-4)return 'var(--panel2)';
+  var mx=isTot?_FMP:_FMB; if(!(mx>0))return 'var(--panel2)';
+  return rampColor(imp>0?'bad':'good', Math.pow(Math.min(1,Math.abs(imp)/mx),0.75)); }
 // ---- unidad del faro: 'min' (min/lote) · 'prod' (min/ud todas) · 'objof' (prep+pesaje min/ud; consol+entre min/lote) ----
 // Objetivo oficial: por unidad = picking, desplazamiento, pesaje (y sus bloques). Arranque (P1) es tiempo fijo
 // SEPARADO (min/lote); pero el bloque agrupado Preparación (g_prep = P1+P2+P3) sí va en min/ud.
@@ -3208,9 +3374,11 @@ function cellHTML(val,dv,imp,cv,ref,name,area,faseK,span,isTot,dec){
     return '<div class="mxc na"'+spanSt+' title="'+name+' · '+area+': no aplica en esta área"><div class="mv" style="color:var(--ink3);font-weight:600">—</div></div>';
   // ≈0 → gris neutro (no rojo tenue); el color solo cuando hay diferencia real, e intensidad por % vs referencia
   const bg=(dv!=null&&Math.abs(dv)>eps)?divColor(dv,ref):'var(--panel2)';
+  // tinta segun la luminancia real de la celda (ver cellInk)
+  const inkCls=(dv!=null&&Math.abs(dv)>eps)?(' '+cellInk(dv,ref)):'';
   let mdcls='neu',mdtxt='';if(dv!=null&&Math.abs(dv)>eps){mdcls=dv>0?'bad':'good';mdtxt=sg(dv)+fmt(dv,dec);}else if(dv!=null){mdtxt='≈0';}
   const st=(span>1?'grid-column:span '+span+';':'')+'background:'+bg;
-  return '<div class="mxc'+(isTot?' tot':'')+'" style="'+st+'" data-area="'+area+'" data-fase="'+faseK+'" title="'+name+' · '+area+': '+fmt(val,dec)+' '+faroUnitLbl()+(dv!=null?' ('+sg(dv)+fmt(dv,dec)+' vs ref · impacto '+fmtImpact(imp)+'/mes)':'')+'"><div class="mv">'+fmt(val,dec)+'</div>'+(mdtxt?'<div class="md '+mdcls+'">'+mdtxt+'</div>':'')+'</div>';
+  return '<div class="mxc'+(isTot?' tot':'')+inkCls+'" style="'+st+'" data-area="'+area+'" data-fase="'+faseK+'" title="'+name+' · '+area+': '+fmt(val,dec)+' '+faroUnitLbl()+(dv!=null?' ('+sg(dv)+fmt(dv,dec)+' vs ref · impacto '+fmtImpact(imp)+'/mes)':'')+'"><div class="mv">'+fmt(val,dec)+'</div>'+(mdtxt?'<div class="md '+mdcls+'">'+mdtxt+'</div>':'')+'</div>';
 }
 // Bloques del modo "Juntar": Preparación=P1+P2+P3 · Pesaje=P4 · Consolidación=P5+P6 · Entre lotes=P7
 const FGRUPOS=[
@@ -3259,15 +3427,21 @@ function renderMatrix(){
   const uStyle='display:block;font-size:8px;font-weight:600;color:var(--ink3);text-transform:none;letter-spacing:0';
   const uSub=k=>'<span style="'+uStyle+'">'+(ST.faroUnit==='pct'?'%':(ST.faroUnit==='min'?'min/lote':((ST.faroUnit==='prod'||PERUD_K1.has(k))?'min/ud':'min')))+'</span>';
   const isMinV=(ST.faroUnit==='min'), isPctV=(ST.faroUnit==='pct');
-  const tailLbl=isMinV?'Total lote':(isPctV?'Aporte al total':'Productividad'), tailUnit='<span style="'+uStyle+'">'+(isMinV?'min/lote':(isPctV?'%':udName()))+'</span>';
-  let h='<div class="mxrow head"><div class="mxh"></div>'+cols.map(f=>'<div class="mxh"><i style="background:'+cssv(f.col)+'"></i>'+f.name+uSub(f.k)+'</div>').join('')+'<div class="mxh tot">'+tailLbl+tailUnit+'</div></div>';
+  /* etiqueta larga + corta: en movil el CSS deja solo la corta (si no, "Productividad"
+     se recortaba a "ODUCTIVID" al no caber en la columna) */
+  const tailLong=isMinV?'Total lote':(isPctV?'Aporte al total':'Productividad');
+  const tailShort=isMinV?'Total':(isPctV?'%':'Prod');
+  const tailLbl='<span class="mxh-l">'+tailLong+'</span><span class="mxh-c">'+tailShort+'</span>', tailUnit='<span style="'+uStyle+'">'+(isMinV?'min/lote':(isPctV?'%':udName()))+'</span>';
+  /* La cabecera lleva el nombre largo Y el codigo (P1, P2...). En movil, con el faro
+     desglosado, el CSS esconde el largo y deja el codigo: 7 columnas caben sin arrastrar. */
+  let h='<div class="mxrow head"><div class="mxh"></div>'+cols.map(f=>'<div class="mxh"><i style="background:'+cssv(f.col)+'"></i><span class="mxh-l">'+f.name+'</span><span class="mxh-c">'+(f.code||f.name)+'</span>'+uSub(f.k)+'</div>').join('')+'<div class="mxh tot">'+tailLbl+tailUnit+'</div></div>';
   // LÓGICA INVERSA: cada fase por su aporte a la productividad (reparto por % de tiempo); columna resumen por el desvío de la prod. Σ aportes = desvío prod → prod roja ⇒ fase roja. _FMB=máx |aporte fase|, _FMP=máx |desvío prod área|.
   // Vista %: totales de minutos (ponderados por nº de lotes) del analizado y de la referencia, para repartir la contribución
   _PCTTA=0;_PCTTB=0;
   if(isPctV){ dispAreas.forEach(a=>{ const m0=MODEL.find(x=>x.area===a);
     if(m0.tiempoA!=null&&m0.lotesA!=null)_PCTTA+=m0.tiempoA*m0.lotesA;
     if(m0.tiempoB!=null&&m0.lotesB!=null)_PCTTB+=m0.tiempoB*m0.lotesB; }); }
-  _FMB=0;_FMP=0;
+  _FMB=0;_FMP=0;_DVMAX=0;
   /* Se publica EXACTAMENTE lo que pinta cada celda del faro para que "Qué revisar
      primero" use el mismo criterio y no puedan contradecirse. cellHTML colorea por
      `dv` (rojo si dv>eps, verde si dv<-eps, gris si |dv|<=eps), con
@@ -3276,13 +3450,18 @@ function renderMatrix(){
   window.__faroCell={unit:ST.faroUnit,lbl:faroUnitLbl(),cells:{}};
   dispAreas.forEach(a=>{ const m0=MODEL.find(x=>x.area===a);
     areaCells(m0).forEach(o=>{ var cv=(isMinV||isPctV)?o.c.dv:o.c.cD; if(cv!=null){ var v=Math.abs(cv); if(v>_FMB)_FMB=v; }
+      /* peor desviacion RELATIVA de la vista: es el 100 % de la escala de color (ver divAlpha) */
+      if(o.c.dv!=null&&o.c.ref!=null&&isFinite(o.c.ref)&&o.c.ref!==0){
+        var rr=Math.abs(o.c.dv/o.c.ref); if(rr>_DVMAX)_DVMAX=rr; }
       window.__faroCell.cells[a+'|'+o.k]={dv:o.c.dv,val:o.c.val,ref:o.c.ref,dec:o.c.dec,name:o.name}; });
     var tv=isMinV?m0.dTiempo:(isPctV?((m0.tiempoA!=null&&m0.lotesA!=null&&m0.tiempoB!=null&&m0.lotesB!=null&&_PCTTA>0&&_PCTTB>0)?(m0.tiempoA*m0.lotesA/_PCTTA-m0.tiempoB*m0.lotesB/_PCTTB)*100:null):((m0.prodA!=null&&m0.prodB!=null)?(m0.prodA-m0.prodB)*MF():null));
     if(tv!=null&&Math.abs(tv)>_FMP)_FMP=Math.abs(tv);
   });
   dispAreas.forEach(a=>{
     const m=MODEL.find(x=>x.area===a);
-    h+='<div class="mxrow"><div class="mxa" data-area="'+a+'">'+a+'</div>';
+    /* nombre largo + abreviado (5 letras, igual que en Objetivos): en movil el CSS deja el
+       corto, porque "REFRIGERADO" no cabia en la columna y se salia sobre la primera celda */
+    h+='<div class="mxrow"><div class="mxa" data-area="'+a+'"><span class="mxa-l">'+a+'</span><span class="mxa-s">'+(a==='PENDIENTES'?'PEND':a.slice(0,5))+'</span></div>';
     const cells=areaCells(m);
     cells.forEach(o=>{ var cv=(isMinV||isPctV)?o.c.dv:o.c.cD; h+=cellHTML(o.c.val,o.c.dv,o.c.imp,cv,o.c.ref,o.name,a,o.k,o.span,false,o.c.dec); });
     // columna resumen: color por el desvío de la productividad oficial (prodA-prodB). Como el color de cada fase es su aporte (reparto de la prod por % de tiempo) y Σ aportes = este desvío, si la prod sale roja hay sí o sí una fase roja.
@@ -3306,7 +3485,13 @@ function renderMatrix(){
   $('matBody').querySelectorAll('.mxa[data-area]').forEach(c=>c.addEventListener('click',()=>{ST.fichaArea=c.dataset.area;renderFichaTabs();renderFicha();$('secFicha').scrollIntoView({behavior:'smooth',block:'start'});}));
   $('matFoot').innerHTML=ST.single
     ? '<div class="mx-imp-legend">Ficha de la tienda · valores propios, sin comparación · pulsa una celda para su tendencia de 12 meses</div>'
-    : '<div class="mx-scale"><span>mejor</span><div class="mx-grad" style="background:linear-gradient(90deg,rgba('+RGB.good+',.9),var(--panel2),rgba('+RGB.bad+',.9))"></div><span>peor</span></div>';
+    /* La escala se normaliza con el peor caso DE ESTA VISTA, asi que se dice cual es: si no, dos
+       capturas de dos tiendas distintas parecerian comparables por color y no lo son. */
+    : '<div class="mx-scale"><span>mejor</span><div class="mx-grad" style="background:linear-gradient(90deg,'+
+        MXRAMP[_esOscuro()?'dark':'light'].good.slice().reverse().join(',')+',var(--panel2),'+
+        MXRAMP[_esOscuro()?'dark':'light'].bad.join(',')+')"></div><span>peor</span>'+
+      (_DVMAX>0?('<span style="color:var(--ink3);font-size:10px;margin-left:4px">el extremo del color es '+fmt(_DVMAX*100,0)+'% de desvio</span>'):'')+
+      '</div>';
 }
 const FARO_MACRO={g_prep:{name:'Preparación',col:'--f-prep',keys:['p1','p2','p3','p23']},g_pes:{name:'Pesaje',col:'--f-pesaje',keys:['p4']},g_cons:{name:'Consolidación',col:'--f-consol',keys:['p5','p6']},g_entre:{name:'Entre lotes',col:'--f-entre',keys:['p7']}};
 function macroSerie(t,sh,area,keys){return ST.meses.map(mkey=>{const r=mapCorte((((ST.index[t]||{})[mkey]||{})[sh]||{})[area]||null);if(!r)return null;let s=0,any=false;keys.forEach(k=>{const v=r[MINKEY[k]];if(v!=null){s+=v;any=true;}});return any?s:null;});}
@@ -3356,12 +3541,14 @@ function renderFaroDetail(area,faseK){
     '<div class="fd-chart"><div style="position:relative"><button class="png" data-png="cFaroDetail" data-pngname="faro_detalle">⤓ PNG</button><div class="csub" style="margin-bottom:7px">Tendencia 12 meses · '+area+' · '+name+' ('+unitLbl+')</div><div class="chart" id="cFaroDetail" style="height:200px"></div></div><div class="fd-read">'+lectura+'</div></div></div>';
   /* Al cerrar la tendencia se vuelve a la celda que la abrio (o al mapa de calor si ya no
      esta): antes el detalle desaparecia y te quedabas abajo, sin referencia de donde ibas. */
+  /* Al cerrar la tendencia se sube SIEMPRE al mismo sitio: la fila de controles del faro (el
+     selector Objetivo oficial / Tiempo / ...), no al titulo de la seccion. Asi el mapa empieza
+     justo debajo y se ve entero. Antes se centraba la celda pulsada y el resultado dependia de
+     la fila: con la ultima no se veia el mapa completo y con la primera se subia de mas. */
   const c=$('fdClose');if(c)c.addEventListener('click',()=>{
     $('faroDetail').innerHTML='';
-    var f=ST._faroFrom, dst=null;
-    if(f){ try{ dst=$('matBody').querySelector('.mxc[data-area="'+f.area+'"][data-fase="'+f.fase+'"]'); }catch(e){} }
-    if(!dst) dst=$('secMatrix');
-    if(dst) requestAnimationFrame(()=>{ dst.scrollIntoView({behavior:'smooth',block:'center'}); });
+    var dst=document.querySelector('#secMatrix .faro-ctrls')||$('faroUnitSeg')||$('secMatrix');
+    if(dst) requestAnimationFrame(()=>{ dst.scrollIntoView({behavior:'smooth',block:'start'}); });
   });
   const xf=ST.meses.map(k=>ST.mesLabel[k]),realC='#4f8fe0',refc=cssv('--ref');
   const _a=[...sA,...sB].filter(v=>v!=null),_mn=_a.length?Math.min(..._a):0,_mx=_a.length?Math.max(..._a):1,_pad=((_mx-_mn)||_mx||1)*0.2;
@@ -3931,21 +4118,56 @@ function tableToCsv(id,name){const t=(typeof id==='string')?$(id):id;if(!t)retur
   const rows=[...t.querySelectorAll('tr')].map(tr=>[...tr.querySelectorAll('th,td')].map(c=>{const s=(c.innerText||c.textContent||'').replace(/\s+/g,' ').trim();return '"'+s.replace(/"/g,'""')+'"';}).join(';')).filter(r=>r.replace(/[";]/g,'').trim().length);
   const blob=new Blob(['﻿'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
   window.__deliver((name||id||'tabla')+'.csv', blob, false);}
+/* El PNG tarda un momento en generarse: el boton lo dice y se bloquea mientras tanto, para
+   que no parezca que el clic no ha hecho nada (y para no encadenar diez capturas a la vez). */
+window.btnBusy=function btnBusy(b){
+  if(!b||b.disabled) return null;
+  var txt=b.innerHTML, w=b.offsetWidth;
+  b.disabled=true; b.style.minWidth=w+'px'; b.style.opacity='.6'; b.textContent='Generando…';
+  return function(){ b.disabled=false; b.innerHTML=txt; b.style.minWidth=''; b.style.opacity=''; };
+};
 document.addEventListener('click',function(e){
   const p=e.target.closest&&e.target.closest('[data-png]');
-  if(p){const id=p.dataset.png; const el=$(id);
-    if(el&&el.data){ const fn=(p.dataset.pngname||id)+'.png';
+  if(p){const id=p.dataset.png; const el=$(id); const fn=(p.dataset.pngname||id)+'.png';
+    if(el&&el.data){ const fin=btnBusy(p); if(!fin)return;
       Plotly.toImage(el,{format:'png',width:1200,height:620,scale:2})
         .then(function(url){ window.__deliver(fn,url,true); })
-        .catch(function(e){ console.warn('png',e); }); }
+        .catch(function(e){ console.warn('png',e); alert('No se pudo generar el PNG: '+(e&&e.message||e)); })
+        .then(fin,fin); }
+    /* No todas las "graficas" son de Plotly: la composicion del tiempo por area (#cReal) esta
+       hecha con divs. Antes este boton no hacia NADA en silencio (comprobado: tampoco funcionaba
+       antes de tocar nada). Si el div no es de Plotly se captura con html2canvas, igual que las
+       tablas, con el mismo truco de ignoreElements para que sea rapido. */
+    else if(el&&typeof html2canvas!=='undefined'){ const fin=btnBusy(p); if(!fin)return;
+      const bg=cssv('--panel','#fff');
+      html2canvas(el,{backgroundColor:bg,scale:2,useCORS:true,logging:false,imageTimeout:0,
+        ignoreElements:function(n){
+          if(n===el||n.contains(el)||el.contains(n)) return false;
+          var t=n.tagName;
+          return !(t==='STYLE'||t==='LINK'||t==='HEAD'||t==='META'||t==='BASE'||t==='TITLE');
+        }}).then(function(cv){ window.__deliver(fn,cv.toDataURL('image/png'),true); })
+        .catch(function(err){ console.warn('png html',err); alert('No se pudo generar el PNG: '+(err&&err.message||err)); })
+        .then(fin,fin); }
     return;}
   // PNG de una TABLA (html2canvas): data-pngtbl="idDeLaTabla"
   const pt=e.target.closest&&e.target.closest('[data-pngtbl]');
   if(pt){ const el=$(pt.dataset.pngtbl);
     if(typeof html2canvas==='undefined'){alert('No se pudo cargar la librería de captura (sin conexión).');return;}
-    if(el){ const bg=cssv('--panel','#fff'); html2canvas(el,{backgroundColor:bg,scale:2,useCORS:true}).then(cv=>{
+    if(el){ const bg=cssv('--panel','#fff'); const fin=btnBusy(pt); if(!fin)return;
+      /* OJO con ignoreElements: html2canvas CLONA TODO EL DOCUMENTO antes de dibujar, y este
+         HTML pesa medio mega con gráficas de Plotly por todas partes -> medido, 3.684 ms por
+         PNG. Clonando solo la tabla, sus ancestros y las hojas de estilo baja a 135 ms y el
+         PNG sale IDENTICO pixel a pixel (0 de 1.747.040 distintos). Las etiquetas de estilo
+         hay que dejarlas pasar o la captura sale sin CSS (comprobado: salia en blanco y negro). */
+      html2canvas(el,{backgroundColor:bg,scale:2,useCORS:true,logging:false,imageTimeout:0,
+        ignoreElements:function(n){
+          if(n===el||n.contains(el)||el.contains(n)) return false;
+          var t=n.tagName;
+          return !(t==='STYLE'||t==='LINK'||t==='HEAD'||t==='META'||t==='BASE'||t==='TITLE');
+        }}).then(cv=>{
       window.__deliver((pt.dataset.pngname||pt.dataset.pngtbl)+'.png', cv.toDataURL('image/png'), true);
-    }).catch(err=>console.error(err)); }
+    }).catch(err=>{console.error(err);alert('No se pudo generar el PNG: '+(err&&err.message||err));})
+      .then(fin,fin); }
     return; }
   const c=e.target.closest&&e.target.closest('[data-csv]');
   if(c){tableToCsv(c.dataset.csv,c.dataset.csvname);}
@@ -4057,7 +4279,7 @@ loadObjetivos();  // carga (si existe) el CSV de objetivos liebre como tienda de
 (function(){
 "use strict";
 
-const CSV_URL="https://raw.githubusercontent.com/jrodrbr/CSV-for-html/refs/heads/main/super_fase_6_tiendas_liebre.csv";
+const CSV_URL="https://raw.githubusercontent.com/jrodrbr/Javify/refs/heads/main/super_fase_6_tiendas_liebre.csv";
 
 function numEU(v){ if(v==null)return NaN; let s=String(v).trim().replace(/^"|"$/g,''); if(s==='')return NaN;
   const hasC=s.includes(','),hasD=s.includes('.');
@@ -4292,7 +4514,12 @@ function tipHide(){tipEl.classList.remove('lo-on');}
 
 /* ---------- HERO ---------- */
 function renderHero(){
-  {const cp=document.getElementById('lo_critProd'); if(cp)cp.textContent=es(0.315*MF(),3)+' '+udName();}  // umbral liebre 0,315 MO ↔ 0,340 Merca
+  /* Umbral liebre. Se muestra SIEMPRE la equivalencia en la otra unidad: la gente todavia no
+     tiene interiorizado que 0,315 MO y 0,34 Merca son el mismo ritmo, y en una explicacion
+     como esta merece la pena decirlo aunque ocupe una linea mas. */
+  {const cp=document.getElementById('lo_critProd');
+   if(cp)cp.innerHTML=es(0.315*MF(),3)+' '+udName()+
+     '<span style="font-weight:600;color:var(--ink3)"> = '+(window.__MERC?(es(0.315,3)+' min/ud MO'):(es(0.34,2)+' min/ud Merca'))+'</span>';}
   const C=cols(ST.corte), src=subActiva();
   let real=globReal(), efec=globEfec(), fallback=false;
   if(isNaN(real)){ fallback=true; real=estGlobalProd(src,'prod_total_min_ud_media'); efec=estGlobalProd(src,'prod_efectiva_min_ud_media'); }
@@ -4464,17 +4691,35 @@ function renderStores(){
       const v=stCorteVal(r),o=stCorteVal(ST.objTrim[a]),d=v-o;
       h+=`<td class="lo-cell lo-prod ${isNaN(d)?'':(d<=0?'lo-ok':'lo-bad')}"><span>${es(v*MF(),3)}</span></td>`; });   // liebre: verde=más rápida que el objetivo, rojo=más lenta
     const pg=storeGlobCorte(t),dg=pg-og; h+=`<td class="lo-cell lo-prod ${isNaN(dg)?'':(dg<=0?'lo-ok':'lo-bad')} lo-tot lo-colgrp"><span>${es(pg*MF(),3)}</span></td></tr>`;
+    /* El desglose se abre AQUI, partiendo la tabla justo debajo de la tienda pulsada. Antes
+       vivia encima de la tabla y al pulsar te subia; con 20 tiendas en pantalla perdias de
+       vista por cual ibas. La celda va sticky a la izquierda para que, cuando la tabla
+       scrollee en horizontal (movil), el desglose no se vaya de la pantalla. */
+    if(ST.sel===t) h+=`<tr class="lo-detrow"><td colspan="${viewAreas().length+2}"><div class="lo-det" id="lo_stDetIn"></div></td></tr>`;
   });
   if(!list.length)h+='<tr><td class="lo-area">—</td><td class="lo-cell lo-na" colspan="8"><span>Sin resultados</span></td></tr>';
   document.getElementById('lo_stTbl').innerHTML=h+'</tbody>';
   try{var _n=document.getElementById('lo_stNote');if(_n)_n.textContent='Mostrando '+list.length+' de '+totalN+' tiendas'+(ST.stSearch?' · búsqueda "'+ST.stSearch+'"':'')+'.';}catch(e){}
 }
-window.loSelStore=function(t){ ST.sel=String(t); if(ST.detPer!=='trim'&&!(ST.stMes[t]&&ST.stMes[t][ST.detPer]))ST.detPer='trim'; renderStores(); renderDet(); try{var _d=document.getElementById('secLiebre')||document.getElementById('lo_stDet');if(_d)_d.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){} };
+window.loSelStore=function(t){ ST.sel=String(t); if(ST.detPer!=='trim'&&!(ST.stMes[t]&&ST.stMes[t][ST.detPer]))ST.detPer='trim';
+  renderStores(); renderDet();
+  /* SIN salto a la tabla de arriba: el desglose sale debajo de la fila, asi que solo se acerca
+     lo justo si se ha quedado fuera de la pantalla ('nearest', no 'start'). */
+  try{ var d=document.getElementById('lo_stDetIn');
+    if(d){ var r=d.getBoundingClientRect();
+      if(r.top<60||r.bottom>innerHeight-20) d.scrollIntoView({behavior:'smooth',block:'nearest'}); } }catch(e){} };
 window.loSetDetPer=function(p){ ST.detPer=p; renderDet(); };
 window.loCloseDet=function(){ ST.sel=null; renderStores(); renderDet(); };
 window.loRerenderStores=function(){ try{renderStores();}catch(e){} try{renderRanking();}catch(e){} };
 function renderDet(){
-  const t=ST.sel; if(!t){document.getElementById('lo_stDet').innerHTML='<div class="lo-det-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>Pulsa una tienda para ver su desglose por subproceso y comparar meses.</div>';return;}
+  /* destino: la fila dentro de la tabla si esta pintada; si no, el hueco de siempre */
+  const host=document.getElementById('lo_stDetIn')||document.getElementById('lo_stDet');
+  const arriba=document.getElementById('lo_stDet');
+  const t=ST.sel;
+  if(!t){ if(arriba){arriba.style.display=''; arriba.innerHTML='<div class="lo-det-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5l7 7-7 7"/></svg>Pulsa una tienda para ver su desglose por subproceso y comparar meses.</div>';} return;}
+  /* con tienda elegida el desglose esta en la fila: el hueco de arriba se esconde para no
+     dejar una tarjeta vacia ni duplicar el contenido */
+  if(arriba&&host!==arriba){ arriba.style.display='none'; arriba.innerHTML=''; }
   const C=cols(ST.corte), cs=activeCols();
   const per=ST.detPer, isTrim=(per==='trim');
   const m=isTrim?(ST.stTrim[t]||{}):((ST.stMes[t]&&ST.stMes[t][per])||{});
@@ -4499,7 +4744,10 @@ function renderDet(){
   });
   if(!Object.keys(m).length)h+=`<tr><td class="lo-area">—</td><td class="lo-cell lo-na" colspan="${cs.length+3}"><span>Sin datos en ${fmtMes(per)}</span></td></tr>`;
   h+='</tbody></table></div>';
-  document.getElementById('lo_stDet').innerHTML=h;
+  host.innerHTML=h;
+  /* ancho del desglose = ancho visible del contenedor, no el de la tabla (que puede ser mucho
+     mas ancho y sacar el desglose fuera de pantalla al scrollear) */
+  try{ var wrap=host.closest('.lo-tbl-wrap'); if(wrap) host.style.width=(wrap.clientWidth-2)+'px'; }catch(e){}
 }
 
 /* ---------- FOOT ---------- */
@@ -4544,7 +4792,7 @@ function wire(){
 <script>
 (function(){
 "use strict";
-const CD_URL="https://raw.githubusercontent.com/jrodrbr/CSV-for-html/refs/heads/main/super_caudal.csv";
+const CD_URL="https://raw.githubusercontent.com/jrodrbr/Javify/refs/heads/main/super_caudal.csv";
 const $=id=>document.getElementById(id);
 const COL={ancla:'#2f6bff',horario:'#f5b301',real:'#e5484d',rr:'#12b5a5'};
 const MES_ES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -4980,7 +5228,7 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
 /* ===== FAROLAS: media DIA-IGUAL por mes (cada tienda-dia pesa lo mismo).
    Siempre unidades Mercadona. Objetivos fijos. Dos modos: contra referencia o contra si mismo. ===== */
 (function(){
-  var FAR_URL='https://raw.githubusercontent.com/jrodrbr/CSV-for-html/refs/heads/main/Javify_Farolas.csv';
+  var FAR_URL='https://raw.githubusercontent.com/jrodrbr/Javify/refs/heads/main/Javify_Farolas.csv';
   var LOADED=false, LOADING=false, PENDING=false, ROWS=[], DIMV={}, NAMES={}, MESES=[];
   var $=function(id){return document.getElementById(id);};
   var DIMS=[{k:'Tienda',lab:'Tienda'},{k:'Zona',lab:'Zona'},{k:'Region',lab:'Región'},{k:'Fase',lab:'Fase'},{k:'Modelo',lab:'Modelo'},{k:'Otros',lab:'Otros'}];
@@ -5217,11 +5465,23 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     pop.innerHTML=sh.length?sh.slice(0,400).map(function(v){ return '<div class="fa-it" data-v="'+String(v).replace(/"/g,'&quot;')+'">'+valLabel(ST.dim,v)+'</div>'; }).join('')
       :'<div class="fa-it" style="color:var(--ink3);cursor:default">Sin resultados</div>'; }
   function wireCombo(){ var inp=$('fa_val'), pop=$('fa_valPop'); if(!inp||!pop||inp._w)return; inp._w=1;
-    inp.addEventListener('focus',function(){ inp.value=''; renderCombo(''); pop.classList.add('open'); });
+    /* Igual que el combo de tienda del comparador: NO se abre con 'focus'. Un foco que no venga
+       de un toque (Safari al ocultar el teclado, autorrelleno, repintado) vaciaba el campo y
+       desplegaba la lista, y parecia que el filtro se reiniciaba solo. */
+    var abrir=function(){ if(pop.classList.contains('open'))return; inp.value=''; renderCombo(''); pop.classList.add('open'); };
+    inp.addEventListener('pointerdown',abrir);
+    inp.addEventListener('click',abrir);
+    inp.addEventListener('keydown',function(e){ if(e.key&&e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&ST.val&&inp.value===valLabel(ST.dim,ST.val)) inp.value=''; });
     inp.addEventListener('input',function(){ renderCombo(inp.value); pop.classList.add('open'); });
     inp.addEventListener('blur',function(){ setTimeout(function(){ pop.classList.remove('open'); if(ST.val)inp.value=valLabel(ST.dim,ST.val); },140); });
-    pop.addEventListener('mousedown',function(e){ var el=e.target.closest('[data-v]'); if(!el)return; e.preventDefault();
-      ST.val=el.getAttribute('data-v'); inp.value=valLabel(ST.dim,ST.val); pop.classList.remove('open'); render(); }); }
+    var elg=false;
+    var onPop=function(e){ var el=e.target.closest&&e.target.closest('[data-v]'); if(!el)return; e.preventDefault();
+      if(elg)return; elg=true; setTimeout(function(){elg=false;},500);
+      ST.val=el.getAttribute('data-v'); inp.value=valLabel(ST.dim,ST.val); pop.classList.remove('open');
+      try{ inp.blur(); }catch(_){}
+      render(); };
+    pop.addEventListener('pointerdown',onPop);
+    pop.addEventListener('mousedown',onPop); }
 
   function refItems(){ var it=[{kind:'vet',val:null,label:'Veteranas',grp:'Referencias'},{kind:'all',val:null,label:'Todas las tiendas',grp:'Referencias'}];
     if(liebreSet()) it.push({kind:'liebre',val:null,label:'Tiendas Liebre',grp:'Referencias'});
@@ -5236,12 +5496,21 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
       h+='<div class="fa-it" data-k="'+o.kind+'" data-v="'+(o.val==null?'':String(o.val).replace(/"/g,'&quot;'))+'">'+o.label+'</div>'; });
     pop.innerHTML=h; }
   function wireRef(){ var inp=$('fa_ref'), pop=$('fa_refPop'); if(!inp||!pop||inp._w)return; inp._w=1;
-    inp.addEventListener('focus',function(){ inp.value=''; renderRefCombo(''); pop.classList.add('open'); });
+    var abrirR=function(){ if(pop.classList.contains('open'))return; inp.value=''; renderRefCombo(''); pop.classList.add('open'); };
+    inp.addEventListener('pointerdown',abrirR);
+    inp.addEventListener('click',abrirR);
+    inp.addEventListener('keydown',function(e){ if(e.key&&e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&inp.value===refLabel()) inp.value=''; });
     inp.addEventListener('input',function(){ renderRefCombo(inp.value); pop.classList.add('open'); });
     inp.addEventListener('blur',function(){ setTimeout(function(){ pop.classList.remove('open'); inp.value=refLabel(); },140); });
-    pop.addEventListener('mousedown',function(e){ var el=e.target.closest('[data-k]'); if(!el)return; e.preventDefault();
+    var elgR=false;
+    var onPopR=function(e){ var el=e.target.closest&&e.target.closest('[data-k]'); if(!el)return; e.preventDefault();
+      if(elgR)return; elgR=true; setTimeout(function(){elgR=false;},500);
       ST.refKind=el.getAttribute('data-k'); var v=el.getAttribute('data-v'); ST.refVal=v===''?null:v;
-      inp.value=refLabel(); pop.classList.remove('open'); render(); }); }
+      inp.value=refLabel(); pop.classList.remove('open');
+      try{ inp.blur(); }catch(_){}
+      render(); };
+    pop.addEventListener('pointerdown',onPopR);
+    pop.addEventListener('mousedown',onPopR); }
 
   function renderRings(rows,rrows,same){ var host=$('fa_rings'); if(!host)return;
     _lastRings={rows:rows,rrows:rrows,same:same};
@@ -5427,6 +5696,8 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
      Titulo arriba, leyenda SIEMPRE entre el titulo y el area de la grafica, y numeros grandes. */
   document.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('[data-fapng]'); if(!b)return;
     e.stopPropagation(); var id=b.getAttribute('data-fapng'), src=$(id); if(!src||!src.data||!window.Plotly)return;
+    /* mismo aviso "Generando…" que el resto de PNG: la imagen es de 1800x1020 y tarda */
+    var fin=(window.btnBusy?window.btnBusy(b):null); if(window.btnBusy&&!fin)return;
     var W=1800,H=1020, tit=b.getAttribute('data-fatitle')||'';
     var tmp=document.createElement('div');
     tmp.style.cssText='position:fixed;left:-10000px;top:0;width:'+W+'px;height:'+H+'px;pointer-events:none';
@@ -5463,8 +5734,9 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
       .then(function(){ return Plotly.toImage(tmp,{format:'png',width:W,height:H,scale:2}); })
       .then(function(url){
         window.__deliver(fname,url,true);
-        try{Plotly.purge(tmp);}catch(_){} tmp.remove(); })
-      .catch(function(err){ console.warn('fa png',err); try{Plotly.purge(tmp);}catch(_){} tmp.remove(); });
+        try{Plotly.purge(tmp);}catch(_){} tmp.remove(); if(fin)fin(); })
+      .catch(function(err){ console.warn('fa png',err); try{Plotly.purge(tmp);}catch(_){} tmp.remove();
+        if(fin)fin(); alert('No se pudo generar el PNG: '+(err&&err.message||err)); });
   },true);
 
   function render(){ try{ saveFa(); }catch(e){}
