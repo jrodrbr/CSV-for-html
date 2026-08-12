@@ -2791,6 +2791,25 @@ function populate(){
   preview();
 }
 function scn(w){return {tienda:$('t'+w).dataset.val,mesKey:$('m'+w).value,shift:$('s'+w).value};}
+/* ===== NOMBRE LARGO DEL ESCENARIO (solo para titulos) =====
+   En las graficas y en las leyendas se sigue usando shortStore ("Tienda 2465"), que es lo que
+   cabe. Pero en el titulo del resumen se pone el nombre completo, el mismo que sale al buscar
+   en el desplegable ("2465 - Paseo Saladar (Denia)"), que es lo que se reconoce de un vistazo.
+   scopeName() respeta lo que haya anadido smartName (mes, turno, "(ref.)"): solo cambia la
+   parte de la tienda, no reescribe el nombre. */
+function fullStore(t){
+  if(t==null) return '';
+  try{ var n=(typeof genName==='function')?genName(t):''; if(n) return n; }catch(e){}
+  return shortStore(t);
+}
+function scopeName(w){
+  var cur=(w==='A')?curA:curB; if(!cur) return (w==='A'?ST.nameA:ST.nameB)||'';
+  var corto=shortStore(cur.tienda), largo=fullStore(cur.tienda)||corto;
+  var n=(w==='A'?ST.nameA:ST.nameB)||corto;
+  if(largo===corto) return n;                       // agregados y sinteticos: ya es el nombre bueno
+  if(n.indexOf(corto)===0) return largo+n.slice(corto.length);   // "Tienda 2465 · Mañana" -> largo + " · Mañana"
+  return largo+' · '+n;                             // el nombre no traia la tienda (mismo centro, otro mes)
+}
 function smartName(s,other){
   const dT=s.tienda!==other.tienda,dM=s.mesKey!==other.mesKey,dS=s.shift!==other.shift,sameYear=s.mesKey.slice(0,4)===other.mesKey.slice(0,4);
   const parts=[];if(dT||(!dT&&!dM&&!dS))parts.push(shortStore(s.tienda));if(dM)parts.push(mesCorto(s.mesKey,!sameYear));if(dS)parts.push(shiftLabel(s.shift));if(!parts.length)parts.push(shortStore(s.tienda));return parts.join(' · ');
@@ -3063,7 +3082,7 @@ function paretoData(){
 }
 function renderSummary(){
   const av=MODEL.filter(m=>m.disponible);
-  $('summaryScope').innerHTML=(ST.single?'Tienda: <b style="color:var(--brand)">'+ST.nameA+'</b> · ficha individual':'Analizado: <b style="color:var(--brand)">'+ST.nameA+'</b> · Referencia: <b style="color:var(--ink)">'+ST.nameB+'</b> · comparación por área')+' · productividad en <b>'+udName()+'</b>';
+  $('summaryScope').innerHTML=(ST.single?'Tienda: <b style="color:var(--brand)">'+scopeName('A')+'</b> · ficha individual':'Analizado: <b style="color:var(--brand)">'+scopeName('A')+'</b> · Referencia: <b style="color:var(--ink)">'+scopeName('B')+'</b> · comparación por área')+' · productividad en <b>'+udName()+'</b>';
   const rowsA=viewAreas().map(a=>rowFor(curA,a)).filter(Boolean),rowsB=viewAreas().map(a=>rowFor(curB,a)).filter(Boolean);
   const tgA=tiempoGlobal(rowsA),tgB=tiempoGlobal(rowsB),pgA=prodGlobal(rowsA),pgB=prodGlobal(rowsB);
   const impTot=av.reduce((s,m)=>s+(m.impacto||0),0);
@@ -3110,7 +3129,7 @@ function renderSummary(){
   const gA=genRow(curA.tienda,curA.mesKey), gB=genRow(curB.tienda,curB.mesKey);
   const k=[];
   if(gA){
-    $('summaryScope').innerHTML=(ST.single?'Tienda: <b style="color:var(--brand)">'+ST.nameA+'</b> · ficha individual':'Analizado: <b style="color:var(--brand)">'+ST.nameA+'</b> · Referencia: <b style="color:var(--ink)">'+ST.nameB+'</b>')+' · valores <b>globales del centro</b> (día completo, no por área) · productividad en <b>'+udName()+'</b>';
+    $('summaryScope').innerHTML=(ST.single?'Tienda: <b style="color:var(--brand)">'+scopeName('A')+'</b> · ficha individual':'Analizado: <b style="color:var(--brand)">'+scopeName('A')+'</b> · Referencia: <b style="color:var(--ink)">'+scopeName('B')+'</b>')+' · valores <b>globales del centro</b> (día completo, no por área) · productividad en <b>'+udName()+'</b>';
     // ---- TARJETA de tienda (Región · Zona · Modelo · veteranía del mes completo) ----
     const chip=(v,bg)=>v?'<span style="display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:'+(bg||'var(--panel3)')+';border:1px solid var(--line2);color:var(--ink2)">'+v+'</span>':'';
     const titulo=gA.center_name||shortStore(curA.tienda);
