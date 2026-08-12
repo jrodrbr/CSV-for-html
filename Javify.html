@@ -2382,9 +2382,55 @@ body.simple #mObj{display:none!important}
 
 <script>
 "use strict";
-const CSV_URL='https://raw.githubusercontent.com/jrodrbr/Javify/refs/heads/main/super_fase_6.csv';
+/* ===================================================================================
+   UN SOLO CSV PARA TRES BLOQUES DE DATOS
+   Antes se descargaban tres ficheros (super_fase_6, super_fase_6_general y
+   super_fase_6_tiendas_liebre). Ahora es uno solo, super_fase_6_unificado.csv, con una
+   columna 'dataset' que dice de que bloque es cada fila:
+       dataset='detalle'  -> lo que era super_fase_6.csv            (tienda/mes/turno/area)
+       dataset='general'  -> lo que era super_fase_6_general.csv    (tienda/mes global)
+       dataset='objetivo' -> lo que era super_fase_6_tiendas_liebre (4 niveles)
+   Se descarga y se parsea UNA vez; cada consumidor recibe su trozo ya separado. Los tres
+   consumidores (loadGeneral, la carga principal y el modulo de Objetivos) siguen con su
+   codigo intacto: solo cambia de donde les llegan las filas.
+   Comprobado contra los tres CSV antiguos: mismas filas y mismos valores (las diferencias
+   eran datos que cambiaron entre extracciones, con el total de lotes identico).
+   =================================================================================== */
+window.__UNI_URL='https://raw.githubusercontent.com/jrodrbr/Javify/refs/heads/main/super_fase_6_unificado.csv';
+window.__uni=null; window.__uniErr=null; window.__uniLoading=false; window.__uniWaiters=[];
+window.__uniLoad=function(cb){
+  if(window.__uni){ cb(null,window.__uni); return; }
+  if(window.__uniErr){ cb(window.__uniErr); return; }
+  window.__uniWaiters.push(cb);
+  if(window.__uniLoading) return;                      // ya hay una descarga en marcha
+  window.__uniLoading=true;
+  var avisar=function(err,out){
+    window.__uniLoading=false;
+    var w=window.__uniWaiters; window.__uniWaiters=[];
+    w.forEach(function(f){ try{ f(err,out); }catch(e){ console.warn('uni cb',e); } });
+  };
+  Papa.parse(window.__UNI_URL,{download:true,header:true,skipEmptyLines:true,delimiter:'',
+    transformHeader:function(h){ return h.trim(); },
+    complete:function(res){
+      var out={detalle:[],general:[],objetivo:[]}, sinCol=0;
+      (res.data||[]).forEach(function(r){
+        var d=String(r.dataset||'').trim();
+        if(out[d]) out[d].push(r); else sinCol++;
+      });
+      if(sinCol && !out.detalle.length){          // ¿es un CSV antiguo, sin columna dataset?
+        out.detalle=res.data||[];
+        console.warn('El CSV no trae columna dataset: se trata entero como detalle.');
+      }
+      window.__uni=out;
+      try{ if(window.__uniInfo) window.__uniInfo(out); }catch(e){}
+      avisar(null,out);
+    },
+    error:function(err){ window.__uniErr=err||new Error('sin datos'); avisar(window.__uniErr); }
+  });
+};
+const CSV_URL=window.__UNI_URL;   // se mantiene el nombre por compatibilidad con el resto
 // CSV de VALORES GENERALES por tienda/mes (Fase general). Cruza con el desglose por tienda+mes.
-const GENERAL_URL='https://raw.githubusercontent.com/jrodrbr/Javify/refs/heads/main/super_fase_6_general.csv';
+const GENERAL_URL=window.__UNI_URL;   // mismo fichero: el bloque dataset='general'
 const AREAS=['SECOS','REFRIGERADO','CONGELADO','FRESCOS','FYV','HORNO','PENDIENTES'];
 const AREAS_DESGLOSE=['SECOS','REFRIGERADO','CONGELADO','HORNO','PENDIENTES'];
 const tieneDesglose=a=>AREAS_DESGLOSE.includes(a);
@@ -2582,6 +2628,11 @@ $('file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;$
 function showErr(list){$('empty').classList.remove('loading');$('errbox').classList.add('show');$('errbox').innerHTML='<b>No se puede continuar:</b><br>'+list.join('<br>');setStatus('Error en el archivo','err');$('step2').style.display='none';$('modeBar').style.display='none';if($('emptyT')){$('emptyT').textContent='No se han podido cargar los datos';$('emptyP').textContent='Revisa la conexión o carga el CSV manualmente desde el panel de datos.';}}
 function buildFromRows(raw,fname){
   if(!raw||!raw.length){showErr(['El CSV está vacío.']);return;}
+  /* Si alguien arrastra el CSV unificado entero, aqui solo interesa el bloque de detalle. */
+  if(raw[0] && raw[0].dataset!==undefined){
+    const d=raw.filter(r=>String(r.dataset||'').trim()==='detalle');
+    if(d.length) raw=d;
+  }
   const cols=Object.keys(raw[0]);
   const miss=REQUIRED.filter(c=>!cols.includes(c));
   if(miss.length){showErr(['Faltan columnas: '+miss.map(c=>'<code>'+c+'</code>').join(', ')]);return;}
@@ -4220,8 +4271,11 @@ const GEN_NUMC=['n_dias','uds_dia_media','uds_total_mes','tiempo_efectivo_min','
 function genRow(t,mk){return (ST.gen[t]||{})[mk]||null;}
 function loadGeneral(){
   if(!GENERAL_URL)return;
-  Papa.parse(GENERAL_URL,{download:true,header:true,skipEmptyLines:true,delimiter:'',transformHeader:h=>h.trim(),
-    complete:res=>{
+  window.__uniLoad(function(err,uni){
+    if(err){ console.warn('No se pudo cargar el CSV unificado:',err&&err.message);
+      if($('src2s'))$('src2s').textContent='error'; if($('dot2'))$('dot2').classList.add('err'); return; }
+    var res={data:uni.general};
+    (function(){
       try{
         const idx={};
         (res.data||[]).forEach(r=>{
@@ -4240,8 +4294,7 @@ function loadGeneral(){
         if(ST.analyzed){renderSummary();try{refreshTrMetricOptions();renderTrend();}catch(e){}}
         if(ST.mode==='rank')renderRank();
       }catch(e){console.warn('general parse',e);}
-    },
-    error:err=>{console.warn('No se pudo cargar el CSV general:',err&&err.message);if($('src2s'))$('src2s').textContent='error';if($('dot2'))$('dot2').classList.add('err');}
+    })();
   });
 }
 /* ===== ORDEN DE SECCIONES (global primero, luego desglose) ===== */
@@ -4263,14 +4316,13 @@ if(CSV_URL){
   $('emptyT').textContent='Cargando datos…';
   $('emptyP').textContent='Descargando el desglose por tienda y mes. Suele tardar unos segundos.';
   $('empty').classList.add('loading');
-  Papa.parse(CSV_URL,{
-    download:true,
-    header:true,
-    skipEmptyLines:true,
-    delimiter:'',
-    transformHeader:h=>h.trim(),
-    complete:res=>{$('empty').classList.remove('loading');try{buildFromRows(res.data,'GitHub · auto');}catch(err){showErr(['Error procesando el CSV: '+err.message]);}finally{try{if(window.__bootStep)window.__bootStep('main');}catch(e){}}},
-    error:err=>{showErr(['No se pudo descargar el CSV de GitHub: '+err.message+'. Puedes cargarlo manualmente con el drop.']);try{if(window.__bootStep)window.__bootStep('main');}catch(e){}}
+  window.__uniLoad(function(err,uni){
+    $('empty').classList.remove('loading');
+    if(err){ showErr(['No se pudo descargar el CSV de GitHub: '+(err&&err.message||'')+'. Puedes cargarlo manualmente con el drop.']);
+      try{if(window.__bootStep)window.__bootStep('main');}catch(e){} return; }
+    try{ buildFromRows(uni.detalle,'GitHub · auto'); }
+    catch(e){ showErr(['Error procesando el CSV: '+e.message]); }
+    finally{ try{if(window.__bootStep)window.__bootStep('main');}catch(e){} }
   });
 }
 loadObjetivos();  // carga (si existe) el CSV de objetivos liebre como tienda de referencia
@@ -4279,7 +4331,9 @@ loadObjetivos();  // carga (si existe) el CSV de objetivos liebre como tienda de
 (function(){
 "use strict";
 
-const CSV_URL="https://raw.githubusercontent.com/jrodrbr/Javify/refs/heads/main/super_fase_6_tiendas_liebre.csv";
+/* Los objetivos salen del MISMO fichero unificado, del bloque dataset='objetivo'.
+   Ya no hay descarga propia: se pide al cargador compartido (window.__uniLoad), que puede
+   tener el fichero ya en memoria si el comparador lo bajo antes. */
 
 function numEU(v){ if(v==null)return NaN; let s=String(v).trim().replace(/^"|"$/g,''); if(s==='')return NaN;
   const hasC=s.includes(','),hasD=s.includes('.');
@@ -4349,15 +4403,19 @@ const ST={corte:'util',mode:'objof',uunit:'mo',per:'trim',mes:null,group:'agr',s
   rkMetric:'g_real',rkOrder:'worst',rkCount:10,stCorte:'util',calcCorte:'util',calcView:'objof',contribView:'pct',calcUnit:'merc',stSort:'prod',stSearch:'',stCount:20,
   objTrim:{},objMes:{},stTrim:{},stMes:{},glob:{trimGen:null,mesGen:{},trimStore:{},mesStore:{}},meses:[],stores:[],hasOf:false};
 
-window.loInit=function(){ if(window._loInit)return; window._loInit=1; Papa.parse(CSV_URL+(CSV_URL.includes('?')?'&':'?')+'cb='+Date.now(),{download:true,header:true,skipEmptyLines:true,
-  complete:r=>{try{build(r.data);}catch(e){fail(e.message);console.error(e);}},
-  error:e=>fail(e.message)}); };
+window.loInit=function(){ if(window._loInit)return; window._loInit=1;
+  window.__uniLoad(function(err,uni){
+    if(err){ fail(err&&err.message); return; }
+    try{ build(uni.objetivo); }catch(e){ fail(e.message); console.error(e); }
+  }); };
 function fail(m){var n=document.getElementById('lo_globNote');if(n)n.innerHTML='<div class="lo-note lo-warn"><span class="lo-ic">!</span>No se pudo cargar el CSV de objetivos: '+(m||'')+'</div>';}
 
 function build(data){
-  const META=['nivel','tienda','mes','area_batch','estado_veterana'];
+  const META=['nivel','tienda','mes','area_batch','estado_veterana','dataset','shift'];
+  /* Del fichero unificado llegan tambien las columnas de los otros dos bloques, vacias. Se
+     salta lo vacio para no crear claves con NaN que antes no existian. */
   const rows=data.filter(r=>r&&r.nivel).map(r=>{const o={nivel:r.nivel,tienda:r.tienda,mes:(r.mes||'').trim(),area:r.area_batch,estado:r.estado_veterana};
-    for(const k in r){if(META.includes(k))continue;o[k]=numEU(r[k]);}return o;});
+    for(const k in r){if(META.includes(k))continue;if(r[k]===''||r[k]==null)continue;o[k]=numEU(r[k]);}return o;});
   for(const r of rows){
     if(r.area==='GLOBAL'){ if(!isNaN(r.prod_real_oficial))ST.hasOf=true;
       if(r.nivel==='general_trim')ST.glob.trimGen=r;
