@@ -303,7 +303,7 @@ h1,h2,h3,h4{letter-spacing:-.02em}
 /* campos: sin relleno gris, solo una linea inferior. Se marca al enfocar. */
 .pick .combo-in,.pick select{width:100%;min-width:0;background:transparent;border:0;border-bottom:1px solid var(--line2);
   border-radius:0;padding:7px 2px;color:var(--ink);font:inherit;transition:border-color .16s}
-.pick .combo-in{font-size:16px;font-weight:750;letter-spacing:-.2px}
+.pick .combo-in{font-size:16px;font-weight:750;letter-spacing:-.2px;text-overflow:ellipsis}
 .pick .combo-in::placeholder{font-weight:500;color:var(--ink3)}
 .pick .combo-in:focus,.pick select:focus{outline:none;border-bottom-color:var(--brand)}
 .pick .combo-in:hover,.pick select:hover{border-bottom-color:var(--line3)}
@@ -2611,7 +2611,7 @@ function renderCompFarolas(){
   if(!grp){ host.innerHTML=''; return; }                       // A = Objetivo -> no hay farolas que mostrar
   var ref=ST.single?null:faSelFromScenario(curB?curB.tienda:null);
   var head='<div class="fa-sech" style="margin-bottom:12px"><div class="t">Farolas'+
-    (ref&&window.__faSelName?(' · frente a '+window.__faSelName(ref)):'')+'</div><div class="r"></div></div>';
+    (ref&&window.__faSelName?(' · frente a '+window.__faSelName(ref)):'')+'</div><div class="r"></div><button class="png dl-in" type="button" data-pngtbl="cf_rings" data-pngbg="bg" data-pngname="roscos_farolas_comparacion" title="Descarga los cuatro roscos en una sola imagen">⤓ PNG</button></div>';
   host.innerHTML=head+'<div id="cfFaBody"></div>';
   var ok=window.faSummary($('cfFaBody'),{group:grp, mesKey:curA.mesKey, ref:ref});
   if(!ok&&!$('cfFaBody').innerHTML) host.innerHTML='';
@@ -2694,7 +2694,7 @@ function buildAggregates(){
 }
 function refreshScenarioOptions(){ const rk=$('rkRef'); if(rk){ const cur=rk.value,first=ST.realStores[0]; rk.innerHTML=ST.synthPresent.map(t=>opt(t,shortStore(t),t===OBJ_NAME)).join('')||opt(first,'Tienda '+first,true); if(cur&&ST.synthPresent.indexOf(cur)>=0)rk.value=cur; } }
 window.__buildAgg=function(){ try{ buildAggregates(); refreshScenarioOptions(); }catch(e){console.warn('buildAgg',e);} };
-function setCombo(id,val){const inp=$(id);inp.dataset.val=val;inp.value=val?shortStore(val):'';}
+function setCombo(id,val){const inp=$(id);inp.dataset.val=val;inp.value=val?fullStore(val):'';}
 function makeCombo(id){
   const inp=$(id),pop=$(id+'pop');let hi=-1,shown=[];
   /* Delegacion: un unico listener para todas las opciones (la lista se reconstruye en cada
@@ -2715,8 +2715,8 @@ function makeCombo(id){
     let h='',lastG=null;shown.forEach((o,i)=>{if(o.group!==lastG){h+='<div class="combo-grp">'+o.group+'</div>';lastG=o.group;}h+='<div class="combo-it'+(o.tag?' synth':'')+(i===hi?' hi':'')+'" data-i="'+i+'">'+o.label+(o.tag?'<span class="tag">referencia</span>':'')+'</div>';});
     pop.innerHTML=h;
   }
-  function open(){pop.classList.add('open');inp.setAttribute('aria-expanded','true');render(inp.value===shortStore(inp.dataset.val)?'':inp.value);}
-  function close(){pop.classList.remove('open');inp.setAttribute('aria-expanded','false');hi=-1;if(inp.dataset.val)inp.value=shortStore(inp.dataset.val);}
+  function open(){pop.classList.add('open');inp.setAttribute('aria-expanded','true');render(inp.value===fullStore(inp.dataset.val)?'':inp.value);}
+  function close(){pop.classList.remove('open');inp.setAttribute('aria-expanded','false');hi=-1;if(inp.dataset.val)inp.value=fullStore(inp.dataset.val);}
   /* Al elegir se SUELTA el foco a proposito: en movil cierra el teclado y, sobre todo, evita
      que el navegador devuelva el scroll al campo enfocado cada vez que el teclado se oculta
      (era lo que "reenviaba" al selector de tienda al tocar una celda del mapa de calor). */
@@ -2740,7 +2740,7 @@ function makeCombo(id){
     if(e.key==='ArrowUp'){hi=Math.max(0,hi-1);render(inp.value);return;}
     if(e.key==='Enter'){e.preventDefault();pick(hi<0?0:hi);return;}
     if(e.key==='Escape'){close();inp.blur();return;}
-    if(e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&inp.dataset.val&&inp.value===shortStore(inp.dataset.val)){ inp.value=''; }
+    if(e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&inp.dataset.val&&inp.value===fullStore(inp.dataset.val)){ inp.value=''; }
   });
   inp.addEventListener('input',()=>{hi=-1;open();render(inp.value);});
   inp.addEventListener('blur',()=>setTimeout(close,120));
@@ -2802,13 +2802,24 @@ function fullStore(t){
   try{ var n=(typeof genName==='function')?genName(t):''; if(n) return n; }catch(e){}
   return shortStore(t);
 }
-function scopeName(w){
-  var cur=(w==='A')?curA:curB; if(!cur) return (w==='A'?ST.nameA:ST.nameB)||'';
-  var corto=shortStore(cur.tienda), largo=fullStore(cur.tienda)||corto;
-  var n=(w==='A'?ST.nameA:ST.nameB)||corto;
+function longify(n,t){
+  var corto=shortStore(t), largo=fullStore(t)||corto;
+  if(!n) return largo;
   if(largo===corto) return n;                       // agregados y sinteticos: ya es el nombre bueno
   if(n.indexOf(corto)===0) return largo+n.slice(corto.length);   // "Tienda 2465 · Mañana" -> largo + " · Mañana"
   return largo+' · '+n;                             // el nombre no traia la tienda (mismo centro, otro mes)
+}
+/* scopeName: para los titulos del resumen, sobre el escenario YA analizado (curA/curB). */
+function scopeName(w){
+  var cur=(w==='A')?curA:curB; if(!cur) return (w==='A'?ST.nameA:ST.nameB)||'';
+  return longify((w==='A'?ST.nameA:ST.nameB)||'', cur.tienda);
+}
+/* pickerName: para la linea "X frente a Y" de debajo del selector. Lee del selector y no de
+   curA/curB porque el preview se pinta en el momento de elegir, y analyze() va 140 ms detras. */
+function pickerName(w){
+  var sc; try{ sc=scn(w); }catch(e){ sc=null; }
+  if(!sc||!sc.tienda) return (w==='A'?ST.nameA:ST.nameB)||'';
+  return longify((w==='A'?ST.nameA:ST.nameB)||'', sc.tienda);
 }
 function smartName(s,other){
   const dT=s.tienda!==other.tienda,dM=s.mesKey!==other.mesKey,dS=s.shift!==other.shift,sameYear=s.mesKey.slice(0,4)===other.mesKey.slice(0,4);
@@ -2817,7 +2828,7 @@ function smartName(s,other){
 function syncAutoNames(){['A','B'].forEach(w=>{const inp=$('n'+w);if(inp&&inp.dataset.touched!=='1')inp.value=smartName(scn(w),scn(w==='A'?'B':'A'));});}
 function resolveNames(){const A=scn('A'),B=scn('B'),_nA=$('nA'),_nB=$('nB'),cA=_nA?_nA.value.trim():'',cB=_nB?_nB.value.trim():'';ST.nameA=cA||smartName(A,B);ST.nameB=cB||smartName(B,A);if(ST.nameA===ST.nameB){ST.nameA+=' (analizado)';ST.nameB+=' (ref.)';}}
 function preview(){syncAutoNames();resolveNames();
-  var a=$('pvA'),b=$('pvB'); if(a)a.textContent=ST.nameA; if(b)b.textContent=ST.nameB;
+  var a=$('pvA'),b=$('pvB'); if(a)a.textContent=pickerName('A'); if(b)b.textContent=pickerName('B');
   autoAnalyze();}
 /* Ya no hay boton "Analizar": si eliges otra tienda, otro mes o otro turno es porque lo
    quieres ver. Se agrupa con un pequeno retardo para que cambiar varias cosas seguidas
@@ -4196,6 +4207,33 @@ window.btnBusy=function btnBusy(b){
   b.disabled=true; b.style.minWidth=w+'px'; b.style.opacity='.6'; b.textContent='Generando…';
   return function(){ b.disabled=false; b.innerHTML=txt; b.style.minWidth=''; b.style.opacity=''; };
 };
+/* ============================================================================================
+   QUE CLONA html2canvas (y que NO)
+   html2canvas CLONA TODO EL DOCUMENTO antes de dibujar. Este HTML pesa medio mega con graficas
+   de Plotly por todas partes -> medido, 3.684 ms por PNG. Clonando solo el objetivo, sus
+   ancestros y las hojas de estilo baja a ~150 ms y el PNG sale IDENTICO pixel a pixel.
+
+   OJO CON LOS <style> ANIDADOS. No basta con dejar pasar las etiquetas STYLE: si el <style>
+   esta DENTRO de un div que se descarta, html2canvas ya no baja a sus hijos y la hoja se
+   pierde con el div. Pasaba de verdad: el CSS de Farolas vive en un <style> dentro de
+   <div id="farolasTab">, asi que al capturar los roscos del COMPARADOR (que estan fuera de
+   farolasTab) la imagen salia sin rejilla, sin tarjetas y con las tres variantes del titulo
+   una detras de otra ("Pedido 10Pedido 10Pedido 10").
+   Por eso aqui se conserva la CADENA DE ANCESTROS de cada <style>. Se calcula una vez por
+   captura: preguntar n.querySelector('style') nodo a nodo seria O(n^2).
+   ============================================================================================ */
+function pngIgnore(el){
+  var vivos=new Set();
+  document.querySelectorAll('style').forEach(function(st){
+    for(var n=st;n;n=n.parentNode){ if(n.nodeType===1) vivos.add(n); }
+  });
+  return function(n){
+    if(n===el||n.contains(el)||el.contains(n)) return false;   // el objetivo y sus ancestros
+    if(vivos.has(n)) return false;                             // hojas de estilo y su camino
+    var t=n.tagName;
+    return !(t==='LINK'||t==='HEAD'||t==='META'||t==='BASE'||t==='TITLE');
+  };
+}
 document.addEventListener('click',function(e){
   const p=e.target.closest&&e.target.closest('[data-png]');
   if(p){const id=p.dataset.png; const el=$(id); const fn=(p.dataset.pngname||id)+'.png';
@@ -4211,11 +4249,7 @@ document.addEventListener('click',function(e){
     else if(el&&typeof html2canvas!=='undefined'){ const fin=btnBusy(p); if(!fin)return;
       const bg=cssv('--panel','#fff');
       html2canvas(el,{backgroundColor:bg,scale:2,useCORS:true,logging:false,imageTimeout:0,
-        ignoreElements:function(n){
-          if(n===el||n.contains(el)||el.contains(n)) return false;
-          var t=n.tagName;
-          return !(t==='STYLE'||t==='LINK'||t==='HEAD'||t==='META'||t==='BASE'||t==='TITLE');
-        }}).then(function(cv){ window.__deliver(fn,cv.toDataURL('image/png'),true); })
+        ignoreElements:pngIgnore(el)}).then(function(cv){ window.__deliver(fn,cv.toDataURL('image/png'),true); })
         .catch(function(err){ console.warn('png html',err); alert('No se pudo generar el PNG: '+(err&&err.message||err)); })
         .then(fin,fin); }
     return;}
@@ -4223,18 +4257,10 @@ document.addEventListener('click',function(e){
   const pt=e.target.closest&&e.target.closest('[data-pngtbl]');
   if(pt){ const el=$(pt.dataset.pngtbl);
     if(typeof html2canvas==='undefined'){alert('No se pudo cargar la librería de captura (sin conexión).');return;}
-    if(el){ const bg=cssv('--panel','#fff'); const fin=btnBusy(pt); if(!fin)return;
-      /* OJO con ignoreElements: html2canvas CLONA TODO EL DOCUMENTO antes de dibujar, y este
-         HTML pesa medio mega con gráficas de Plotly por todas partes -> medido, 3.684 ms por
-         PNG. Clonando solo la tabla, sus ancestros y las hojas de estilo baja a 135 ms y el
-         PNG sale IDENTICO pixel a pixel (0 de 1.747.040 distintos). Las etiquetas de estilo
-         hay que dejarlas pasar o la captura sale sin CSS (comprobado: salia en blanco y negro). */
+    if(el){ const bg=cssv(pt.dataset.pngbg==='bg'?'--bg':'--panel')||'#fff'; const fin=btnBusy(pt); if(!fin)return;
+      /* Que se clona y que no: ver pngIgnore(), justo encima de este listener. */
       html2canvas(el,{backgroundColor:bg,scale:2,useCORS:true,logging:false,imageTimeout:0,
-        ignoreElements:function(n){
-          if(n===el||n.contains(el)||el.contains(n)) return false;
-          var t=n.tagName;
-          return !(t==='STYLE'||t==='LINK'||t==='HEAD'||t==='META'||t==='BASE'||t==='TITLE');
-        }}).then(cv=>{
+        ignoreElements:pngIgnore(el)}).then(cv=>{
       window.__deliver((pt.dataset.pngname||pt.dataset.pngtbl)+'.png', cv.toDataURL('image/png'), true);
     }).catch(err=>{console.error(err);alert('No se pudo generar el PNG: '+(err&&err.message||err));})
       .then(fin,fin); }
@@ -5615,7 +5641,10 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     }); }
 
   function renderBlocks(rows,rrows,same){ var host=$('fa_blocks'); if(!host)return;
-    var h='<div class="fa-sec"><div class="fa-sech"><div class="t">Indicadores globales</div><div class="r"></div></div><div class="fa-rings" id="fa_rings"></div></div>';
+    /* El boton captura el CONTENEDOR de los cuatro roscos de una vez (html2canvas), asi que
+       la imagen sale con el rosco, el valor, el delta en pp y la referencia de cada uno,
+       igual que en pantalla. Va en la cabecera, fuera de #fa_rings, para no salir en la foto. */
+    var h='<div class="fa-sec"><div class="fa-sech"><div class="t">Indicadores globales</div><div class="r"></div><button class="png dl-in" type="button" data-pngtbl="fa_rings" data-pngbg="bg" data-pngname="roscos_farolas" title="Descarga los cuatro roscos en una sola imagen">⤓ PNG</button></div><div class="fa-rings" id="fa_rings"></div></div>';
     h+=GRUPOS.map(function(g){
       var cards=g.ms.map(function(m){ var v=dayIgual(rows,m.k), ref=same?null:dayIgual(rrows,m.k);
         var obj=(m.obj==null)?'':('objetivo '+(m.low?'≤ ':'')+fmtVal(m,m.obj));
