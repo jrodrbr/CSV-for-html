@@ -1815,7 +1815,7 @@ body.simple #mObj{display:none!important}
         <div class="rk-f"><label for="rkMes">Mes</label><select id="rkMes"></select></div>
         <div class="rk-f"><label for="rkArea">Área</label><select id="rkArea"></select></div>
         <div class="rk-f"><label for="rkShift">Turno</label><select id="rkShift"></select></div>
-        <div class="rk-f"><label for="rkVet">Veteranía</label><select id="rkVet"><option value="all">Todas</option><option value="vet">Solo veteranas</option><option value="nov">Solo no veteranas</option></select></div>
+        <div class="rk-f"><label for="rkVet">Fase</label><select id="rkVet"><option value="all">Todas</option><option value="vet">Solo veteranas</option><option value="roll">Solo roll out</option><option value="apr">Solo aprendices</option><option value="nov">Solo no veteranas</option></select></div>
         <div class="rk-f"><label for="rkRef">Referencia</label><select id="rkRef"></select></div>
         <div class="rk-f"><label for="rkRegion">Región</label><input class="tin" id="rkRegion" list="rkRegionList" placeholder="Todas" autocomplete="off"><datalist id="rkRegionList"></datalist></div>
         <div class="rk-f"><label for="rkZona">Zona</label><input class="tin" id="rkZona" list="rkZonaList" placeholder="Todas" autocomplete="off"><datalist id="rkZonaList"></datalist></div>
@@ -2042,10 +2042,21 @@ body.simple #mObj{display:none!important}
     .cd-pop{position:absolute;z-index:60;top:100%;left:0;margin-top:6px;min-width:220px;max-height:320px;overflow:auto;background:var(--panel);border:1px solid var(--line2);border-radius:10px;box-shadow:var(--sh);padding:8px;display:none}
     .cd-pop.open{display:block}
     .cd-srch{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);font:inherit;font-size:12px;margin-bottom:6px}
+    .cd-p-top .cd-srch{margin-bottom:6px}
     .cd-opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;font-size:12.5px;cursor:pointer;color:var(--ink)}
     .cd-opt:hover{background:var(--panel2)}
     .cd-opt input{width:15px;height:15px;accent-color:var(--brand);cursor:pointer}
-    .cd-p-act{display:flex;gap:6px;margin-bottom:6px;position:sticky;top:0}
+    /* CABECERA FIJA DEL DESPLEGABLE (buscador + Todos/Ninguno).
+       Antes solo .cd-p-act era sticky y no llevaba fondo: daba igual porque la lista se abria
+       siempre arriba y no habia nada que pasara por detras. Ahora el desplegable se abre en la
+       seleccion (verSeleccion), asi que hay que taparlo de verdad y el buscador tiene que
+       seguir a la vista. Se envuelven los dos en un bloque sticky en vez de apilar dos
+       stickys con un top fijo: en tactil el buscador mide 44 px y en escritorio 33, y
+       cualquier numero cableado se rompia en uno de los dos.
+       El box-shadow de 8 px hacia arriba cubre el padding del .cd-pop, que si no deja
+       asomar una franja de la fila de detras. */
+    .cd-p-top{position:sticky;top:0;z-index:2;background:var(--panel);padding-bottom:6px;box-shadow:0 -8px 0 0 var(--panel)}
+    .cd-p-act{display:flex;gap:6px}
     .cd-p-act button{flex:1;padding:6px;border-radius:7px;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);font:inherit;font-size:11px;font-weight:700;cursor:pointer}
     .cd-p-act button:hover{color:var(--ink)}
     .cd-viewbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px 14px;align-items:end}
@@ -2175,6 +2186,14 @@ body.simple #mObj{display:none!important}
     .fa-pop.open{display:block}
     .fa-it{padding:8px 12px;font-size:12.5px;cursor:pointer;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .fa-it:hover{background:var(--panel2)}
+    /* LA OPCION QUE YA ESTA PUESTA, MARCADA.
+       Al abrir el desplegable el campo se VACIA a proposito (para poder escribir sin borrar
+       antes), asi que sin esta marca no hay manera de saber en que grupo estabas: con 262
+       tiendas la lista se abria arriba del todo y no lo decia. --panel3 es un paso mas oscuro
+       que el --panel2 del hover, en los dos temas, y la barra verde de la izquierda lo
+       distingue de un simple raton por encima. */
+    .fa-it.on{background:var(--panel3);font-weight:800;box-shadow:inset 3px 0 0 var(--brand)}
+    .fa-it.on:hover{background:var(--panel3)}
     .fa-grp{padding:6px 12px 3px;font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--brand)}
     .fa-sel{padding:9px 11px;border-radius:9px;border:1px solid var(--line2);background:var(--panel);color:var(--ink);font:inherit;font-size:13px}
     .fa-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
@@ -3144,13 +3163,16 @@ function renderSummary(){
     // ---- TARJETA de tienda (Región · Zona · Modelo · veteranía del mes completo) ----
     const chip=(v,bg)=>v?'<span style="display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:'+(bg||'var(--panel3)')+';border:1px solid var(--line2);color:var(--ink2)">'+v+'</span>':'';
     const titulo=gA.center_name||shortStore(curA.tienda);
-    const vetTxt=gA.estado==='Veterana'?'Veterana':gA.estado==='Sintética: todas'?'':'No veterana';
+    const _fase=faseTienda(curA.tienda,gA);
+    const vetTxt=faseTxt(curA.tienda,gA,gA.estado);
+    const _mesTxt=ST.mesLabel[curA.mesKey]||'ese mes';
+    const aunNoChip=faseAunNo(_fase,gA.estado)?chip('aún no en '+_mesTxt):'';
     const _liebreReal=!SYNTH.includes(curA.tienda)&&curA.tienda!==OBJ_NAME&&curA.tienda!==LIEBRE_HIST&&!(ST.aggMeta&&ST.aggMeta[curA.tienda]);
     const liebreChip=(_liebreReal&&window.__liebreSet)?(window.__liebreSet.has(String(curA.tienda))?chip('Tienda liebre','var(--brand-soft)'):chip('No liebre')):'';
     $('execSummary').innerHTML='<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(135deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-sm);padding:18px 22px;margin-bottom:14px">'+
       '<div style="flex:1;min-width:220px"><div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--brand)">Tienda analizada</div>'+
       '<div style="font-size:19px;font-weight:850;margin-top:3px">'+titulo+'</div>'+
-      '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'+chip(gA.region&&('Región '+gA.region))+chip(gA.zona&&('Zona '+gA.zona))+chip(gA.model)+chip(vetTxt,gA.estado==='Veterana'?'var(--brand-soft)':'var(--panel3)')+liebreChip+'</div></div>'+
+      '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px">'+chip(gA.region&&('Región '+gA.region))+chip(gA.zona&&('Zona '+gA.zona))+chip(gA.model)+chip(vetTxt,_fase?faseBg(_fase):(gA.estado==='Veterana'?'var(--brand-soft)':'var(--panel3)'))+aunNoChip+liebreChip+'</div></div>'+
       '<div style="text-align:right"><div style="font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px">'+(ST.mesLabel[curA.mesKey]||'')+'</div><div style="font-size:12px;color:var(--ink2);margin-top:2px">'+(gA.n_dias!=null?fmt(gA.n_dias,0)+' días con datos':'')+'</div></div>'+
       '</div>';
     /* ---- PRODUCTIVIDADES · orden: real · efectiva · oficial · óptima ----
@@ -3997,6 +4019,37 @@ function fillRankAttrs(){
 }
 function genSerie(t,prop){return ST.meses.map(k=>{const r=genRow(t,k);return r?(typeof prop==='function'?prop(r):r[prop]):null;});}
 function fmtUds(u){if(u==null)return '—';return u>=1000?fmt(u/1000,1)+'k uds':fmt(u,0)+' uds';}
+/* ===== LAS TRES FASES: APRENDIZ / ROLL OUT / VETERANA =====
+   Antes aqui solo se veia un binario del mes (columna estado_veterana: "Veterana" / "No
+   veterana"). La fase de verdad esta en la columna 'fase' del bloque general, y es CONSTANTE
+   por tienda (comprobado: ninguna de las 260 cambia de fase de un mes a otro).
+
+   OJO, son DOS COSAS DISTINTAS y no se pueden sustituir la una por la otra:
+     fase             -> en que punto esta la tienda HOY (Aprendiz / Roll out / Veterana)
+     estado_veterana  -> si en ESE MES ya era veterana o todavia no lo era
+   Se desmarcan en 450 filas de 2.737: tiendas que hoy son Veteranas y que, en los meses
+   anteriores a graduarse, figuran como "No veterana". Por eso se pinta la FASE siempre y,
+   ademas, un aviso "aun no en <mes>" SOLO cuando el mes analizado no la tenia todavia.
+
+   Fuentes: general.fase (260 tiendas) y, si viene vacia, __faFase() del CSV de Farolas (254).
+   Coinciden en 253 de 254; la unica discrepancia es la tienda 4256 (general="Aprendiz",
+   farolas="Roll out") y manda general, que es de donde sale el resto de la tarjeta. */
+function faseTienda(t,gr){
+  var f=(gr&&gr.fase!=null)?String(gr.fase).trim():'';
+  if(!f){ try{ f=(window.__faFase&&window.__faFase(t))||''; }catch(e){} }
+  return f;
+}
+function faseLabel(f){ return (f==='Veterana'||f==='Roll out'||f==='Aprendiz')?f:''; }
+function faseBg(f){ return f==='Veterana'?'var(--brand-soft)':'var(--panel3)'; }
+/* la tienda es Veterana hoy, pero en el mes analizado aun no lo era */
+function faseAunNo(f,est){ return f==='Veterana' && est==='No veterana'; }
+/* texto de veterania para las fichas: la fase si la hay, y si no el binario de siempre */
+function faseTxt(t,gr,est){
+  if(est==='Sintética: todas') return '';
+  var f=faseLabel(faseTienda(t,gr));
+  if(f) return f;
+  return est==='Veterana'?'Veterana':est==='No veterana'?'No veterana':'';
+}
 function vetTag(est){if(est==='Veterana')return '<span class="rk-tag vet">veterana</span>';if(est==='No veterana')return '<span class="rk-tag nov">no veterana</span>';if(est==='Mixta/parcial')return '<span class="rk-tag">veteranía mixta</span>';if(est==='Sintética: todas')return '<span class="rk-tag">conjunto</span>';return '';}
 function estadoVet(t,mes,shift,area){if(area==='__global'){const c={};AREAS.forEach(a=>{const r=rowTMSA(t,mes,shift,a);if(r&&r.vet)c[r.vet]=(c[r.vet]||0)+1;});let best='',bn=0;for(const k in c)if(c[k]>bn){bn=c[k];best=k;}return best;}const r=rowTMSA(t,mes,shift,area);return r?(r.vet||''):'';}
 function lotesT(t,mes,shift,area){const list=area==='__global'?AREAS:[area];let s=0,any=false;list.forEach(a=>{const r=rowTMSA(t,mes,shift,a);if(r&&r.n_lotes!=null){s+=r.n_lotes;any=true;}});return any?s:null;}
@@ -4063,9 +4116,14 @@ function renderRank(){
   if(fReg)items=items.filter(o=>o.gr&&o.gr.region===fReg);
   if(fZon)items=items.filter(o=>o.gr&&o.gr.zona===fZon);
   if(fMod!=='__all')items=items.filter(o=>o.gr&&o.gr.model===fMod);
-  if(fVet==='vet')items=items.filter(o=>o.est==='Veterana');
-  else if(fVet==='nov')items=items.filter(o=>o.est==='No veterana');
-  if(!items.length){$('rkList').innerHTML='<div class="combo-none">Ninguna tienda cumple los filtros en esta combinación.</div>';$('rkNote').textContent='Relaja los filtros (veteranía, zona/región/modelo).';return;}
+  /* El filtro va por FASE, no por el binario del mes: "Solo veteranas" son las que HOY son
+     veteranas (aunque en el mes analizado aun no lo fueran, que se avisa en la propia fila),
+     y "Solo no veteranas" es Roll out + Aprendiz juntas. */
+  if(fVet==='vet')      items=items.filter(o=>faseTienda(o.t,o.gr)==='Veterana');
+  else if(fVet==='roll')items=items.filter(o=>faseTienda(o.t,o.gr)==='Roll out');
+  else if(fVet==='apr') items=items.filter(o=>faseTienda(o.t,o.gr)==='Aprendiz');
+  else if(fVet==='nov') items=items.filter(o=>{var f=faseTienda(o.t,o.gr); return f==='Roll out'||f==='Aprendiz';});
+  if(!items.length){$('rkList').innerHTML='<div class="combo-none">Ninguna tienda cumple los filtros en esta combinación.</div>';$('rkNote').textContent='Relaja los filtros (fase, zona/región/modelo).';return;}
   const worst=ST.rkOrder==='worst';
   /* faSigno invierte el orden en los indicadores donde MAS es MEJOR */
   items.sort((a,b)=>(worst?(b.val-a.val):(a.val-b.val))*faSigno);
@@ -4113,7 +4171,8 @@ function renderRank(){
     const valTxt=special?(sg(o.val)+fmt(o.val,dec)):fmt(o.val,dec);
     const subTxt=isFa?(FA.unit||''):(isGen?G.unit:(mk==='__imp'?'h/mes':(mk==='__worsen'||mk==='__improve')?'/mes':(M&&M.unit||'ratio')));
     const valCls=cls==='up'?'up':cls==='down'?'down':'flat';
-    const vetTxt=o.est==='Veterana'?'Veterana':o.est==='Sintética: todas'?'':'No veterana';
+    const _fR=faseTienda(o.t,o.gr);
+    const vetTxt=faseTxt(o.t,o.gr,o.est)+(faseAunNo(_fR,o.est)?' · aún no ese mes':'');
     const attrs=[o.gr&&o.gr.region,o.gr&&o.gr.zona,o.gr&&o.gr.model,vetTxt?'<span style="white-space:nowrap">'+vetTxt+'</span>':''].filter(Boolean).join(' · ');
     const meStyle=isCur?' style="border-color:var(--brand-bd);background:var(--brand-soft)"':'';
     const nom=(o.gr&&o.gr.center_name)?o.gr.center_name:('Tienda '+o.t);
@@ -4129,7 +4188,8 @@ function renderRank(){
   $('rkList').querySelectorAll('[data-t]').forEach(r=>r.addEventListener('click',()=>{setCombo('tA',r.dataset.t);$('mA').value=mes;$('sA').value=(isGen?'global':shift);preview();setMode('comp');analyze();}));
   const lbl=isFa?(FA.label+' · farolas oficiales'):isGen?G.label+' (centro)':mk==='__imp'?'horas de oportunidad frente a '+shortStore(ref):mk==='__worsen'?'tiendas que más empeoran frente a '+shortStore(ref)+' (12 meses)':mk==='__improve'?'tiendas que más mejoran frente a '+shortStore(ref)+' (12 meses)':M.label;
   const fIn=[fReg||null,fZon||null,fMod!=='__all'?fMod:null].filter(Boolean).join(' · ');
-  const vetLbl=fVet==='vet'?' · solo veteranas':fVet==='nov'?' · solo no veteranas':'';
+  const vetLbl=fVet==='vet'?' · solo veteranas':fVet==='roll'?' · solo roll out':fVet==='apr'?' · solo aprendices'
+    :fVet==='nov'?' · solo no veteranas (roll out + aprendiz)':'';
   const ambito=isFa?('media día-igual del CSV de Farolas · '+(FA.low?'menos es mejor':'más es mejor')):(isGen?'valores globales del centro (CSV general)':(area==='__global'?'global (todas las áreas, ponderado del desglose)':'área '+area+' · '+shiftLabel(shift)));
   $('rkNote').innerHTML='Ranking por <b>'+lbl+'</b> · '+ambito+' · '+ST.mesLabel[mes]+vetLbl+(fIn?' · '+fIn:'')+'. '+(worst?'Peores primero.':'Mejores primero.')+(vRef!=null?(isFa?(' Rojo peor que '+(ref===OBJ_NAME?('el objetivo ('+fmt(vRef,dec)+(FA.unit||'')+')'):shortStore(ref))+', verde mejor.'):(isGen?' Rojo peor que el objetivo ('+fmt(vRef,G&&G.isProd?3:1)+'), verde mejor.':' Rojo peor que '+shortStore(ref)+', verde mejor.')):'')+' Pulsa una tienda para abrirla en el comparador.';
 }
@@ -4331,6 +4391,7 @@ function loadGeneral(){
           (idx[t]=idx[t]||{})[mk]=o;
         });
         ST.gen=idx;ST.genReady=true;
+        try{ if(window.__cdStoreNames) window.__cdStoreNames(); }catch(e){}   // Caudal ya puede poner el nombre largo del centro
         try{if(window.__buildAgg)window.__buildAgg();}catch(e){}  // ya hay zona/región: (re)construye agregadas geográficas
         let nfilas=0,ntiendas=0;for(const t in idx){if(!SYNTH.includes(t))ntiendas++;for(const mk in idx[t])nfilas++;}
         if($('src2s'))$('src2s').textContent=nfilas.toLocaleString('es-ES')+' filas · '+ntiendas+' tiendas';
@@ -4918,15 +4979,40 @@ function cssv(n,f){const v=getComputedStyle(document.documentElement).getPropert
 function diaLabel(k){ const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(k); return m?`${m[3]}/${m[2]}/${m[1]}`:k; }
 function mesLabel(k){ const m=/^(\d{4})(\d{2})$/.exec(String(k)); return m?`${MES_ES[+m[2]-1]||m[2]} ${m[1]}`:k; }
 function semLabel(k){ const s=String(k); return s.length>=6?`S${s.slice(4)} ${s.slice(0,4)}`:s; }
+/* ===== EL MES DE CADA SEMANA =====
+   El codigo de semana es AAAASS y no dice de que mes es, asi que en el desplegable no habia
+   forma de situarse. Aqui se mira de que meses son los DIAS de cada semana: si cae entera en
+   uno sale "(Jul)", y si esta partida entre dos, "(Jul–Ago)". Va entre parentesis y al final
+   para que la semana siga siendo lo primero que se lee.
+   Solo se usa en el SELECTOR (optLabel). La columna Semana de la tabla sigue con semLabel a
+   secas: ahi el mes ya sale en su propia columna y ensancharia la tabla. */
+let SEMMES={};
+function buildSemMes(){ SEMMES={};
+  const acc={};
+  (ROWS||[]).forEach(r=>{ if(!r.semana||!r.dia)return; const mm=String(r.dia).slice(0,7); if(mm.length!==7)return;
+    (acc[r.semana]=acc[r.semana]||{})[mm]=1; });
+  Object.keys(acc).forEach(sm=>{ const ms=Object.keys(acc[sm]).sort();
+    SEMMES[sm]=ms.map(mm=>MES_ES[+mm.slice(5,7)-1]||mm).join('–'); }); }
+function semLabelMes(k){ const base=semLabel(k), m=SEMMES[String(k)]; return m?(base+' ('+m+')'):base; }
 function procLabel(p){ return /^prepar/i.test(p)?'Preparar' : /^repart/i.test(p)?'Repartir' : p; }
 function regLabel(v){ return String(v).replace(/^DR/i,'R'); }   // DR03 -> R03
 function zonaLabel(v){ return v===''?'':'Z'+v; }                 // 22 -> Z22
-function optLabel(k,v){ if(k==='mes')return mesLabel(v); if(k==='semana')return semLabel(v); if(k==='dia')return diaLabel(v);
+function optLabel(k,v){ if(k==='mes')return mesLabel(v); if(k==='semana')return semLabelMes(v); if(k==='dia')return diaLabel(v);
   if(k==='proceso')return procLabel(v);
   if(k==='region')return regLabel(v);
   if(k==='zona')return zonaLabel(v);
-  if(k==='centro'){const r=ROWS&&ROWS.find(x=>x.centro===v); return r&&r.centro_nombre?v+' · '+r.centro_nombre:v;}
+  if(k==='centro')return cdCentroNom(v);
   return v; }
+/* ===== NOMBRE DEL CENTRO: EL MISMO QUE EN COMPARAR Y EN FAROLAS =====
+   El CSV de caudal trae "PASEO SALADAR" (mayusculas, sin poblacion) en centro_nombre, asi que
+   aqui no se podia buscar "denia" y en las otras pestanas si. El nombre bueno es el del bloque
+   'general' ("2465 - Paseo Saladar (Denia)"), que ya publica el comparador en window.genName.
+   Se pide en vivo y se cae al centro_nombre del propio CSV si el general aun no ha llegado;
+   cuando llega, __cdStoreNames() (mas abajo) vuelve a etiquetar lo ya pintado. */
+function cdCentroNom(v){
+  try{ if(window.genName){ const n=window.genName(String(v)); if(n) return n; } }catch(e){}
+  const r=ROWS&&ROWS.find(x=>x.centro===v);
+  return (r&&r.centro_nombre)?(v+' · '+r.centro_nombre):String(v); }
 function cdNorm(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
 function optSearchKey(k,v){ var s=cdNorm(optLabel(k,v))+' '+cdNorm(v);
   if(k==='zona'){var n=String(v).replace(/\D/g,'');if(n)s+=' zona '+n+' z'+n+' z'+('0'+n).slice(-2);}
@@ -4974,6 +5060,7 @@ function build(data){
     var sems=Object.keys(semRR).sort(function(a,b){ return (+a)-(+b); });
     if(sems.length){ SEMDEF=new Set(sems.slice(-4)); SEL['semana']=new Set(SEMDEF); }
   }catch(e){}
+  buildSemMes();
   VISM=new Set(MCOLS.map(c=>c[1]));
   VISD=new Set(DEVCOLS.map(c=>c[1]));
   LOADED=true;
@@ -5000,24 +5087,61 @@ function dimDropdown(d){
   f.innerHTML=`<label>${d.lab}</label>
     <button class="cd-btn" data-dim="${d.k}"><span class="cd-txt"></span><span class="cd-cnt"></span></button>
     <div class="cd-pop">
-      ${(OPTS[d.k].length>8||d.k==='centro'||d.k==='zona'||d.k==='region')?'<input class="cd-srch" placeholder="Buscar…" aria-label="Filtrar opciones">':''}
-      <div class="cd-p-act"><button data-a="all">Todos</button><button data-a="none">Ninguno</button></div>
+      <div class="cd-p-top">
+        ${(OPTS[d.k].length>8||d.k==='centro'||d.k==='zona'||d.k==='region')?'<input class="cd-srch" placeholder="Buscar…" aria-label="Filtrar opciones">':''}
+        <div class="cd-p-act"><button data-a="all">Todos</button><button data-a="none">Ninguno</button></div>
+      </div>
       <div class="cd-list"></div></div>`;
   const pop=f.querySelector('.cd-pop'), list=f.querySelector('.cd-list');
   pop.addEventListener('click',e=>e.stopPropagation());
   OPTS[d.k].forEach(v=>{ const o=document.createElement('label'); o.className='cd-opt'; o.dataset.search=optSearchKey(d.k,v);
+    o.dataset.val=String(v);          // para poder re-etiquetar sin reconstruir la lista
     o.innerHTML='<input type="checkbox"><span></span>';
     o.querySelector('span').textContent=optLabel(d.k,v);
     const chk=o.querySelector('input'); chk.checked=SEL[d.k].has(v);
     chk.addEventListener('change',()=>{ if(chk.checked)SEL[d.k].add(v); else SEL[d.k].delete(v); syncBtn(d.k); render(); });
     list.appendChild(o); });
   const btn=f.querySelector('.cd-btn');
-  btn.addEventListener('click',e=>{ e.stopPropagation(); const isOpen=pop.classList.contains('open'); closePops(); if(!isOpen)pop.classList.add('open'); });
+  btn.addEventListener('click',e=>{ e.stopPropagation(); const isOpen=pop.classList.contains('open'); closePops();
+    if(!isOpen){ pop.classList.add('open'); encajar(pop); verSeleccion(pop,list); } });
   f.querySelectorAll('.cd-p-act button').forEach(b=>b.addEventListener('click',()=>{ const all=b.dataset.a==='all';
     SEL[d.k]=all?new Set(OPTS[d.k]):new Set(); list.querySelectorAll('input').forEach(i=>i.checked=all); syncBtn(d.k); render(); }));
   const srch=f.querySelector('.cd-srch');
   if(srch)srch.addEventListener('input',()=>{ const q=cdNorm(srch.value); f.querySelectorAll('.cd-opt').forEach(o=>o.style.display=(o.dataset.search||cdNorm(o.textContent)).includes(q)?'':'none'); });
   return f;
+}
+/* ===== AL ABRIR UN FILTRO, IR A LO QUE ESTA MARCADO =====
+   Semana y Dia van en orden ascendente y lo seleccionado por defecto son los ULTIMOS, asi que
+   el desplegable se abria en 2025 y habia que bajar a mano hasta el final para ver que semanas
+   estaban puestas. Se lleva la lista a la primera opcion marcada, centrada en el hueco visible.
+   El que hace scroll es .cd-pop (max-height + overflow), no .cd-list, y es tambien el
+   offsetParent (position:absolute), asi que offsetTop ya cuenta el buscador y la fila de
+   acciones. Hay que medir DESPUES de anadir .open: cerrado, clientHeight es 0. */
+/* ===== QUE EL DESPLEGABLE NO SE SALGA DE LA PANTALLA =====
+   Va position:absolute;left:0 colgado de su columna. En iPhone (390 px) la columna de Centro
+   cae a la derecha y la lista se salia por el borde: medido, de x=249 a x=469 con 390 px de
+   ancho, o sea media lista inalcanzable, y sin desbordar el documento (no se puede recuperar
+   con scroll). Al abrirlo se desplaza lo justo para que entre. Se limpia left antes de medir
+   para que no se acumule de una apertura a la siguiente. */
+function encajar(pop){
+  try{
+    pop.style.left='';
+    const m=8;
+    let r=pop.getBoundingClientRect();
+    const fuera=r.right-(window.innerWidth-m);
+    if(fuera>0){ const l=parseFloat(getComputedStyle(pop).left)||0; pop.style.left=(l-fuera)+'px'; r=pop.getBoundingClientRect(); }
+    if(r.left<m){ const l=parseFloat(getComputedStyle(pop).left)||0; pop.style.left=(l+(m-r.left))+'px'; }
+  }catch(e){}
+}
+function verSeleccion(pop,list){
+  try{
+    const m=list.querySelector('.cd-opt input:checked'); if(!m)return;
+    const o=m.closest('.cd-opt'); if(!o)return;
+    const top=pop.querySelector('.cd-p-top');
+    const alto=pop.clientHeight-(top?top.offsetHeight:0);      // hueco real, descontando la cabecera fija
+    const y=o.offsetTop-(top?top.offsetHeight:0)-Math.max(0,(alto-o.offsetHeight)/2);
+    pop.scrollTop=Math.max(0,y);
+  }catch(e){}
 }
 function syncBtn(k){ const btn=document.querySelector(`#cd_filts .cd-btn[data-dim="${k}"]`); if(!btn)return;
   const n=SEL[k].size, tot=OPTS[k].length;
@@ -5025,6 +5149,22 @@ function syncBtn(k){ const btn=document.querySelector(`#cd_filts .cd-btn[data-di
   btn.querySelector('.cd-cnt').textContent = n+'/'+tot;
   btn.classList.toggle('cd-part', n>0 && n<tot);
 }
+
+/* Lo llama el comparador en cuanto tiene los nombres del bloque general. Re-etiqueta las
+   opciones de Centro que ya estan pintadas en vez de reconstruir el filtro: reconstruirlo
+   cerraria el desplegable y perderia el foco del buscador si el usuario estuviera dentro. */
+window.__cdStoreNames=function(){ try{
+  if(!LOADED)return;
+  const host=document.getElementById('cd_filts'); if(!host)return;
+  const btn=host.querySelector('.cd-btn[data-dim="centro"]'); if(!btn)return;
+  const caja=btn.closest('.cd-f'); if(!caja)return;
+  caja.querySelectorAll('.cd-opt').forEach(o=>{ const v=o.dataset.val; if(v===undefined)return;
+    const sp=o.querySelector('span'); if(sp) sp.textContent=optLabel('centro',v);
+    o.dataset.search=optSearchKey('centro',v); });
+  syncBtn('centro');
+  const tab=document.getElementById('caudalTab');
+  if(tab&&tab.style.display!=='none'){ try{ render(); }catch(e){} }   // el ranking tambien los muestra
+}catch(e){} };
 
 /* ---------- controles de vista ---------- */
 function seg(id,cb){ const el=$(id); if(!el)return; el.querySelectorAll('[data-v]').forEach(b=>b.addEventListener('click',()=>{
@@ -5334,7 +5474,14 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
   var FAR_URL='https://raw.githubusercontent.com/jrodrbr/Javify/refs/heads/main/Javify_Farolas.csv';
   var LOADED=false, LOADING=false, PENDING=false, ROWS=[], DIMV={}, NAMES={}, MESES=[];
   var $=function(id){return document.getElementById(id);};
-  var DIMS=[{k:'Tienda',lab:'Tienda'},{k:'Zona',lab:'Zona'},{k:'Region',lab:'Región'},{k:'Fase',lab:'Fase'},{k:'Modelo',lab:'Modelo'},{k:'Otros',lab:'Otros'}];
+  /* ===== GLOBAL: el ambito mas amplio, y por eso el PRIMERO del selector "Ver" =====
+     Lo que antes era la dimension "Fase" (Aprendiz / Roll out / Veterana) se llama ahora
+     "Global" y ademas ofrece "Todas las tiendas". El campo del CSV sigue llamandose Fase y
+     se sigue usando tal cual en scopeOk(), refOk() y __faFase(): lo unico que cambia es el
+     nombre del selector, su posicion y el valor extra.
+     "Todas las tiendas" NO es un valor de r.Fase, es un comodin: lo resuelve dimMatch(). */
+  var TODAS='Todas las tiendas';
+  var DIMS=[{k:'Global',lab:'Global'},{k:'Tienda',lab:'Tienda'},{k:'Zona',lab:'Zona'},{k:'Region',lab:'Región'},{k:'Modelo',lab:'Modelo'},{k:'Otros',lab:'Otros'}];
   /* GRUPOS PROPIOS de tiendas ("Otros"): aqui se iran anadiendo los grupos raros (laboratorio, etc.).
      'test' recibe una fila y decide si pertenece al grupo. */
   var OTROS=[{name:'Tiendas liebre', test:function(r){ return isLiebre(r); }, need:function(){ return !!liebreSet(); }}];
@@ -5395,7 +5542,7 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     return acc.length?dayIgual(acc,key):null; };
   window.__faIsLiebre=function(t){ try{ return isLiebre({Tienda:String(t)}); }catch(e){ return false; } };
   window.__faFase=function(t){ try{ for(var i=0;i<ROWS.length;i++) if(ROWS[i].Tienda===String(t)) return ROWS[i].Fase; }catch(e){} return null; };
-  var ST={dim:'Fase', val:'Veterana', scope:'vet', mes:null, per:'a2', refKind:'vet', refVal:null};
+  var ST={dim:'Global', val:'Veterana', scope:'vet', mes:null, per:'a2', refKind:'vet', refVal:null};
   /* recordar la ultima vista de Farolas entre sesiones */
   function saveFa(){ try{ localStorage.setItem('javify_farolas_cfg', JSON.stringify({dim:ST.dim,val:ST.val,scope:ST.scope,per:ST.per,refKind:ST.refKind,refVal:ST.refVal})); }catch(e){} }
   function loadFa(){ try{ var s=localStorage.getItem('javify_farolas_cfg'); return s?JSON.parse(s):null; }catch(e){ return null; } }
@@ -5467,8 +5614,9 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     faResize(); };
 
   function dayIgual(rows,key){ var s=0,n=0; for(var i=0;i<rows.length;i++){ var v=rows[i][key]; if(v!=null&&!isNaN(v)){s+=v;n++;} } return n? s/n : null; }
-  function scopeOk(r){ if(ST.dim==='Fase')return true; return ST.scope==='all'?true:(r.Fase==='Veterana'); }
+  function scopeOk(r){ if(ST.dim==='Global')return true; return ST.scope==='all'?true:(r.Fase==='Veterana'); }
   function dimMatch(r){ if(ST.dim==='Otros'){ var g=OTROS.filter(function(x){ return x.name===ST.val; })[0]; return g?!!g.test(r):false; }
+    if(ST.dim==='Global') return ST.val===TODAS ? true : (r.Fase===ST.val);
     return r[ST.dim]===ST.val; }
   function groupRows(sel){ return ROWS.filter(function(r){ return dimMatch(r) && scopeOk(r) && (sel?sel.test(r):true); }); }
   /* referencia: 'vet' y 'all' son absolutas; Region/Zona/Tienda respetan el ambito elegido */
@@ -5485,7 +5633,11 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     if(k==='Tienda')return valLabel('Tienda',ST.refVal);
     var d=DIMS.filter(function(x){return x.k===k;})[0]; return (d?d.lab:k)+' '+ST.refVal; }
   /* mismo conjunto -> no tiene sentido comparar: solo objetivo */
-  function sameSet(){ if(ST.refKind==='vet' && ST.dim==='Fase' && ST.val==='Veterana')return true;
+  function sameSet(){
+    if(ST.dim==='Global'){                                   // Veteranas vs Veteranas, Todas vs Todas
+      if(ST.refKind==='vet' && ST.val==='Veterana')return true;
+      if(ST.refKind==='all' && ST.val===TODAS)return true;
+      return false; }
     if(ST.refKind==='liebre' && ST.dim==='Otros' && ST.val==='Tiendas liebre')return true;
     return ST.refKind===ST.dim && ST.refVal===ST.val; }
 
@@ -5499,6 +5651,9 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     ROWS.forEach(function(r){ if(r.Nombre&&r.Tienda)NAMES[r.Tienda]=r.Nombre; });
     MESES=Object.keys(mset).sort();
     DIMS.forEach(function(d){ if(d.k==='Otros'){ DIMV[d.k]=otrosVals(); return; }
+      /* Global no es una columna del CSV: son las fases que haya, con "Todas las tiendas" delante. */
+      if(d.k==='Global'){ var fs={}; ROWS.forEach(function(r){ if(r.Fase)fs[r.Fase]=1; });
+        DIMV[d.k]=[TODAS].concat(Object.keys(fs).sort(function(a,b){ return a.localeCompare(b,'es',{numeric:true}); })); return; }
       var set={}; ROWS.forEach(function(r){ var v=r[d.k]; if(v)set[v]=1; }); var arr=Object.keys(set);
       if(d.k==='Tienda') arr.sort(function(a,b){ var na=+a,nb=+b; if(!isNaN(na)&&!isNaN(nb))return na-nb; return a.localeCompare(b,'es'); });
       else arr.sort(function(a,b){ return a.localeCompare(b,'es',{numeric:true}); });
@@ -5515,7 +5670,7 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
   function mesesSel(){ var lc=lastClosed(); if(!lc)return []; var y=+lc.split('-')[0]; var min=(y-1)+'-01';
     return MESES.filter(function(mk){ return mk>=min && mk<=lc; }); }
   function valLabel(dim,v){ if(dim==='Tienda'){ var nm=NAMES[v]; return nm?(v+' · '+nm):v; } return v; }
-  function defVal(dim){ var arr=DIMV[dim]||[]; if(dim==='Fase'&&arr.indexOf('Veterana')>=0)return 'Veterana'; return arr.length?arr[0]:null; }
+  function defVal(dim){ var arr=DIMV[dim]||[]; if(dim==='Global'&&arr.indexOf('Veterana')>=0)return 'Veterana'; return arr.length?arr[0]:null; }
   function dimAvail(d){ return (DIMV[d]||[]).length>0; }
   /* "Otros" (hoy solo "Tiendas liebre") depende de window.__liebreSet, que publica el
      modulo de objetivos a los 800 ms del load. Hasta ahora la lista se congelaba en
@@ -5538,13 +5693,13 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
   /* lo llama el modulo de objetivos en cuanto tiene la lista de tiendas liebre */
   window.__faLiebreSync=function(){ try{ if(syncOtros()) render(); }catch(e){} };
   /* nombre corto para el titulo de la imagen: Veteranas / R08 / Z24 / 2004 · Nombre / NTC60 */
-  function shortGroup(){ if(ST.dim==='Fase') return ST.val==='Veterana'?'Veteranas':ST.val;
+  function shortGroup(){ if(ST.dim==='Global') return ST.val===TODAS?'Todas':(ST.val==='Veterana'?'Veteranas':ST.val);
     if(ST.dim==='Otros') return ST.val;
     if(ST.dim==='Tienda') return valLabel('Tienda',ST.val);
     return ST.val||''; }
   function groupName(){ if(ST.dim==='Tienda')return valLabel('Tienda',ST.val);
     if(ST.dim==='Otros')return ST.val;
-    if(ST.dim==='Fase')return (ST.val==='Veterana'?'Tiendas veteranas':ST.val);
+    if(ST.dim==='Global')return ST.val===TODAS?TODAS:(ST.val==='Veterana'?'Tiendas veteranas':ST.val);
     var d=DIMS.filter(function(x){return x.k===ST.dim;})[0]; return (d?d.lab:ST.dim)+' '+(ST.val||''); }
 
   function renderDim(){ var el=$('fa_dim'); if(!el)return;
@@ -5553,8 +5708,14 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     el.querySelectorAll('[data-d]').forEach(function(b){ b.addEventListener('click',function(){ ST.dim=b.getAttribute('data-d');
       el.querySelectorAll('[data-d]').forEach(function(x){x.classList.toggle('on',x===b);});
       ST.val=defVal(ST.dim); var inp=$('fa_val'); if(inp)inp.value=ST.val?valLabel(ST.dim,ST.val):'';
+      /* Cerrar la lista al cambiar de dimension. Si se queda abierta se queda con las opciones
+         de la dimension ANTERIOR (abrir() no re-pinta si ya esta abierta), y al pulsar una se
+         asignaba un valor que no pertenece a la dimension nueva: p.ej. ST.dim='Zona' con
+         ST.val='2004' -> dimMatch no encuentra nada y sale "No hay farolas de...". Facil de
+         provocar con el dedo: abres Grupo y, sin elegir, tocas otra pestana de Ver. */
+      var pv=$('fa_valPop'); if(pv) pv.classList.remove('open');
       syncScope(); render(); }); }); }
-  function syncScope(){ var sc=$('fa_scope'); if(!sc)return; var dis=(ST.dim==='Fase');
+  function syncScope(){ var sc=$('fa_scope'); if(!sc)return; var dis=(ST.dim==='Global');
     sc.querySelectorAll('button').forEach(function(b){ b.disabled=dis; }); }
   function wireScope(){ var sc=$('fa_scope'); if(!sc||sc._w)return; sc._w=1;
     sc.querySelectorAll('[data-s]').forEach(function(b){ b.addEventListener('click',function(){ if(b.disabled)return; ST.scope=b.getAttribute('data-s');
@@ -5565,13 +5726,23 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
 
   function renderCombo(q){ var pop=$('fa_valPop'); if(!pop)return; var arr=DIMV[ST.dim]||[]; q=(q||'').trim().toLowerCase();
     var sh=arr.filter(function(v){ return !q||valLabel(ST.dim,v).toLowerCase().indexOf(q)>=0; });
-    pop.innerHTML=sh.length?sh.slice(0,400).map(function(v){ return '<div class="fa-it" data-v="'+String(v).replace(/"/g,'&quot;')+'">'+valLabel(ST.dim,v)+'</div>'; }).join('')
+    pop.innerHTML=sh.length?sh.slice(0,400).map(function(v){ return '<div class="fa-it'+(v===ST.val?' on':'')+'" data-v="'+String(v).replace(/"/g,'&quot;')+'">'+valLabel(ST.dim,v)+'</div>'; }).join('')
       :'<div class="fa-it" style="color:var(--ink3);cursor:default">Sin resultados</div>'; }
+  /* ===== AL ABRIR, IR A LO QUE YA ESTA PUESTO =====
+     Mismo criterio que en los filtros de Caudal: la lista se centra en la opcion marcada.
+     Hay que medir DESPUES de anadir .open, que cerrado el clientHeight es 0. El que hace
+     scroll es .fa-pop (max-height + overflow) y ademas es el offsetParent (position:absolute),
+     asi que offsetTop ya cuenta las cabeceras de grupo que haya por encima. */
+  function verElegido(pop){
+    try{ var o=pop.querySelector('.fa-it.on'); if(!o){ pop.scrollTop=0; return; }
+      pop.scrollTop=Math.max(0,o.offsetTop-Math.max(0,(pop.clientHeight-o.offsetHeight)/2));
+    }catch(e){}
+  }
   function wireCombo(){ var inp=$('fa_val'), pop=$('fa_valPop'); if(!inp||!pop||inp._w)return; inp._w=1;
     /* Igual que el combo de tienda del comparador: NO se abre con 'focus'. Un foco que no venga
        de un toque (Safari al ocultar el teclado, autorrelleno, repintado) vaciaba el campo y
        desplegaba la lista, y parecia que el filtro se reiniciaba solo. */
-    var abrir=function(){ if(pop.classList.contains('open'))return; inp.value=''; renderCombo(''); pop.classList.add('open'); };
+    var abrir=function(){ if(pop.classList.contains('open'))return; inp.value=''; renderCombo(''); pop.classList.add('open'); verElegido(pop); };
     inp.addEventListener('pointerdown',abrir);
     inp.addEventListener('click',abrir);
     inp.addEventListener('keydown',function(e){ if(e.key&&e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&ST.val&&inp.value===valLabel(ST.dim,ST.val)) inp.value=''; });
@@ -5596,10 +5767,11 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
     var sh=refItems().filter(function(o){ return !q||o.label.toLowerCase().indexOf(q)>=0; });
     if(!sh.length){ pop.innerHTML='<div class="fa-it" style="color:var(--ink3);cursor:default">Sin resultados</div>'; return; }
     var h='',lg=null; sh.slice(0,400).forEach(function(o){ if(o.grp!==lg){ h+='<div class="fa-grp">'+o.grp+'</div>'; lg=o.grp; }
-      h+='<div class="fa-it" data-k="'+o.kind+'" data-v="'+(o.val==null?'':String(o.val).replace(/"/g,'&quot;'))+'">'+o.label+'</div>'; });
+      var puesta=(o.kind===ST.refKind) && (String(o.val==null?'':o.val)===String(ST.refVal==null?'':ST.refVal));
+      h+='<div class="fa-it'+(puesta?' on':'')+'" data-k="'+o.kind+'" data-v="'+(o.val==null?'':String(o.val).replace(/"/g,'&quot;'))+'">'+o.label+'</div>'; });
     pop.innerHTML=h; }
   function wireRef(){ var inp=$('fa_ref'), pop=$('fa_refPop'); if(!inp||!pop||inp._w)return; inp._w=1;
-    var abrirR=function(){ if(pop.classList.contains('open'))return; inp.value=''; renderRefCombo(''); pop.classList.add('open'); };
+    var abrirR=function(){ if(pop.classList.contains('open'))return; inp.value=''; renderRefCombo(''); pop.classList.add('open'); verElegido(pop); };
     inp.addEventListener('pointerdown',abrirR);
     inp.addEventListener('click',abrirR);
     inp.addEventListener('keydown',function(e){ if(e.key&&e.key.length===1&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&inp.value===refLabel()) inp.value=''; });
@@ -5968,13 +6140,18 @@ window.addEventListener('load',function(){ setTimeout(function(){ try{ if(window
         build(res.data);
         if(!(DIMV[ST.dim]||[]).length) ST.dim='Tienda';
         ST.val=defVal(ST.dim); ST.mes=lastClosed();
+        /* ===== FAROLAS ABRE SIEMPRE EN GLOBAL · VETERANA =====
+           El AMBITO (grupo y referencia) ya NO se recuerda de una sesion a otra: al entrar
+           siempre sale Global · Veterana comparado con Veteranas, que es la foto de partida.
+           Antes se restauraba lo ultimo mirado y, si te habias quedado en una tienda, Farolas
+           abria en esa tienda. Se sigue recordando lo que es preferencia de VISTA y no de
+           ambito: el periodo de las graficas y el ambito Veteranas/Todas (que en Global esta
+           desactivado, asi que no se nota hasta que cambias de dimension).
+           ST.dim/ST.val/ST.refKind/ST.refVal se quedan con el valor de arranque de ST. */
         try{ var fc=loadFa();
           if(fc){
-            if(fc.dim&&(DIMV[fc.dim]||[]).length){ ST.dim=fc.dim;
-              if(fc.val&&DIMV[fc.dim].indexOf(fc.val)>=0) ST.val=fc.val; else ST.val=defVal(ST.dim); }
             if(fc.scope==='vet'||fc.scope==='all') ST.scope=fc.scope;
             if(fc.per&&PERS[fc.per]) ST.per=fc.per;
-            if(fc.refKind) { ST.refKind=fc.refKind; ST.refVal=(fc.refVal===undefined?null:fc.refVal); }
           }
         }catch(e){ console.warn('farolas cfg',e); }
         LOADED=true; if(st)st.style.display='none';
